@@ -29,21 +29,13 @@ public final class HitboxMixins {
 	private HitboxMixins() {
 	}
 
-	static boolean wanted(Entity e) {
-		Hitboxes h = Hitboxes.INSTANCE;
-		if (e == Minecraft.getInstance().getCameraEntity() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) return false;
-		if (h.targets.is("Players")) return e instanceof Player;
-		if (h.targets.is("Living")) return e instanceof LivingEntity;
-		return true;
-	}
-
 	@Mixin(EntityRenderer.class)
 	public static class Enable {
 		@WrapOperation(method = "extractRenderState", at = @At(value = "INVOKE",
 				target = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;shouldRenderHitBoxes()Z"))
 		private boolean tatnat$hitboxes(EntityRenderDispatcher dispatcher, Operation<Boolean> original, @Local(argsOnly = true) Entity entity) {
 			boolean vanilla = original.call(dispatcher);
-			return vanilla || Hitboxes.active() && wanted(entity);
+			return vanilla || Hitboxes.active() && com.tatnat.client.mc.HitboxFilter.wanted(entity);
 		}
 	}
 
