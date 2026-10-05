@@ -19,13 +19,13 @@ public class FpsCounter extends TextHudModule {
 
 	@Override
 	protected String value(boolean preview) {
-		return String.valueOf(mc.getFps());
+		return String.valueOf(game().fps());
 	}
 
 	@Override
 	protected int valueColor(boolean preview) {
 		if (!colorCode.on()) return 0;
-		int fps = mc.getFps();
+		int fps = game().fps();
 		return fps > 60 ? 0xFF55FF55 : fps >= 30 ? 0xFFFFFF55 : 0xFFFF5555;
 	}
 }

@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.event.Events;
+import com.tatnat.client.mc.FeaturesImpl;
 import com.tatnat.client.modules.impl.utility.Freecam;
 import com.tatnat.client.modules.impl.visual.Zoom;
 
@@ -53,7 +54,7 @@ public class MouseHandlerMixin {
 	/** Freecam: mouse movement turns the floating camera instead of your player. */
 	@WrapOperation(method = "turnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;turn(DD)V"))
 	private void tatnat$freecamTurn(LocalPlayer player, double yaw, double pitch, Operation<Void> original) {
-		if (Freecam.active()) Freecam.camera().turn(yaw, pitch);
+		if (Freecam.active() && FeaturesImpl.INSTANCE.freecam() != null) FeaturesImpl.INSTANCE.freecam().turn(yaw, pitch);
 		else original.call(player, yaw, pitch);
 	}
 }

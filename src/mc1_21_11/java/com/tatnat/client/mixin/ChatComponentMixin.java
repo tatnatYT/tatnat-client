@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.event.Events;
+import com.tatnat.client.mc.PlayerLooks;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
 import net.minecraft.client.GuiMessageTag;
@@ -19,9 +20,8 @@ public class ChatComponentMixin {
 	@ModifyVariable(method = "addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/GuiMessageTag;)V",
 			at = @At("HEAD"), argsOnly = true)
 	private Component tatnat$chat(Component message, Component m, MessageSignature sig, GuiMessageTag tag) {
-		Events.Chat e = TatnatClient.EVENTS.post(new Events.Chat(message));
-		Component out = e.message;
-		if (NickHider.active() && NickHider.INSTANCE.inChat.on()) out = NickHider.INSTANCE.replace(out);
-		return out;
+		TatnatClient.EVENTS.post(new Events.Chat(message.getString()));
+		if (NickHider.active() && NickHider.INSTANCE.inChat.on()) return PlayerLooks.replaceName(message);
+		return message;
 	}
 }

@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.authlib.GameProfile;
+import com.tatnat.client.mc.PlayerLooks;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -20,8 +21,8 @@ public abstract class PlayerInfoMixin {
 
 	@Inject(method = "getSkin", at = @At("RETURN"), cancellable = true)
 	private void tatnat$skin(CallbackInfoReturnable<PlayerSkin> cir) {
-		if (NickHider.active() && NickHider.INSTANCE.hideSkin.on() && NickHider.INSTANCE.isMe(getProfile().id())) {
-			cir.setReturnValue(NickHider.INSTANCE.replacementSkin());
+		if (NickHider.active() && NickHider.INSTANCE.hideSkin.on() && PlayerLooks.isMe(getProfile().id())) {
+			cir.setReturnValue(PlayerLooks.replacementSkin());
 		}
 	}
 }

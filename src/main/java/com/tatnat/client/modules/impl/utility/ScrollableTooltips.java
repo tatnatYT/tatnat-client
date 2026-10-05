@@ -6,8 +6,6 @@ import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.ui.render.Icons;
 
-import net.minecraft.world.item.ItemStack;
-
 /**
  * Lets you scroll tooltips that are taller than the screen (shulker boxes, books, heavily
  * enchanted gear) with the mouse wheel, and shows a scrollbar beside them. Hooks:
@@ -23,7 +21,7 @@ public class ScrollableTooltips extends Module {
 
 	/** Current scroll offset in GUI units (negative = scrolled down). */
 	public float offset;
-	private ItemStack lastStack = ItemStack.EMPTY;
+	private Object lastStack;
 
 	public ScrollableTooltips() {
 		super("Scrollable Tooltips", "Scroll long tooltips with the mouse wheel", Category.UTILITY, true);
@@ -36,7 +34,7 @@ public class ScrollableTooltips extends Module {
 	}
 
 	/** Resets the scroll whenever you hover a different item. */
-	public void hovering(ItemStack stack) {
+	public void hovering(Object stack) {
 		if (stack != lastStack) {
 			lastStack = stack;
 			offset = 0;

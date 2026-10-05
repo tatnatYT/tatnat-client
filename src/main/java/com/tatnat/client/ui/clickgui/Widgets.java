@@ -7,8 +7,8 @@ import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.TatnatClient;
+import com.tatnat.client.platform.Gfx;
 
 /** Shared look for the small controls used across the menu (pixel space, scaled by {@link Ui}). */
 public final class Widgets {
@@ -27,7 +27,7 @@ public final class Widgets {
 	 * Feather-style switch: red track with a white knob when on, dark track with a grey knob when
 	 * off. {@code anim} runs 0 (off) .. 1 (on) over 150ms; knob, track and knob colour all glide.
 	 */
-	public static void toggle(GuiGraphics g, int x, int y, Animation anim, boolean hovered) {
+	public static void toggle(Gfx g, int x, int y, Animation anim, boolean hovered) {
 		float t = anim.get();
 		int w = toggleW(), h = toggleH();
 		int track = Colors.lerp(Theme.TRACK, Theme.ACCENT, t);
@@ -40,7 +40,7 @@ public final class Widgets {
 	}
 
 	/** A rounded button with centred text. */
-	public static void button(GuiGraphics g, int x, int y, int w, int h, String text, UIFont font, int bg, int fg, boolean hovered) {
+	public static void button(Gfx g, int x, int y, int w, int h, String text, UIFont font, int bg, int fg, boolean hovered) {
 		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), hovered ? Colors.shade(bg, 1.18f) : bg);
 		font.drawCentered(g, text, x + w / 2, y + (h - font.size()) / 2, fg);
 	}
@@ -51,12 +51,10 @@ public final class Widgets {
 
 	/** The mouse position in real window pixels (sub-GUI-pixel precise). */
 	public static double mouseX() {
-		Minecraft mc = Minecraft.getInstance();
-		return mc.mouseHandler.xpos() * mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getScreenWidth());
+		return TatnatClient.game().mouseX();
 	}
 
 	public static double mouseY() {
-		Minecraft mc = Minecraft.getInstance();
-		return mc.mouseHandler.ypos() * mc.getWindow().getHeight() / Math.max(1, mc.getWindow().getScreenHeight());
+		return TatnatClient.game().mouseY();
 	}
 }

@@ -4,12 +4,12 @@ import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.ModeSetting;
+import com.tatnat.client.platform.Bind;
+import com.tatnat.client.platform.Gfx;
+import com.tatnat.client.ui.render.Icons;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 import com.tatnat.client.util.CpsTracker;
-
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * WASD + mouse buttons (+ optional space bar) that light up while held.
@@ -33,72 +33,71 @@ public class Keystrokes extends HudModule {
 
 	public Keystrokes() {
 		super("Keystrokes", "Shows WASD and mouse buttons lighting up as you press them", true, 0.0, 0.55);
-		icon = com.tatnat.client.ui.render.Icons.Icon.KEYBOARD;
+		icon = Icons.Icon.KEYBOARD;
 	}
 
 	@Override
-	protected long draw(GuiGraphics g, boolean preview) {
+	protected long draw(Gfx g, boolean preview) {
 		long now = System.nanoTime();
 		float dt = Math.min(0.1f, (now - lastFrame) / 1e9f);
 		lastFrame = now;
 
 		int full = KEY * 3 + GAP * 2;
 		int y = 0;
-		drawKey(g, 0, mc.options.keyUp, KEY + GAP, y, KEY, KEY, dt, null);
+		drawKey(g, 0, Bind.FORWARD, KEY + GAP, y, KEY, KEY, dt, null);
 		y += KEY + GAP;
-		drawKey(g, 1, mc.options.keyLeft, 0, y, KEY, KEY, dt, null);
-		drawKey(g, 2, mc.options.keyDown, KEY + GAP, y, KEY, KEY, dt, null);
-		drawKey(g, 3, mc.options.keyRight, (KEY + GAP) * 2, y, KEY, KEY, dt, null);
+		drawKey(g, 1, Bind.LEFT, 0, y, KEY, KEY, dt, null);
+		drawKey(g, 2, Bind.BACK, KEY + GAP, y, KEY, KEY, dt, null);
+		drawKey(g, 3, Bind.RIGHT, (KEY + GAP) * 2, y, KEY, KEY, dt, null);
 		y += KEY + GAP;
 		if (!layout.is("WASD")) {
 			int half = (full - GAP) / 2;
-			drawKey(g, 4, mc.options.keyAttack, 0, y, half, KEY, dt, "LMB");
-			drawKey(g, 5, mc.options.keyUse, half + GAP, y, full - half - GAP, KEY, dt, "RMB");
+			drawKey(g, 4, Bind.ATTACK, 0, y, half, KEY, dt, "LMB");
+			drawKey(g, 5, Bind.USE, half + GAP, y, full - half - GAP, KEY, dt, "RMB");
 			y += KEY + GAP;
 		}
 		if (layout.is("WASD + Mouse + Space")) {
-			drawKey(g, 6, mc.options.keyJump, 0, y, full, 12, dt, "space");
+			drawKey(g, 6, Bind.JUMP, 0, y, full, 12, dt, "space");
 			y += 12 + GAP;
 		}
 		return size(full, y - GAP);
 	}
 
-	private void drawKey(GuiGraphics g, int index, KeyMapping key, int x, int y, int w, int h, float dt, String label) {
-		boolean down = key.isDown();
+	private void drawKey(Gfx g, int index, Bind bind, int x, int y, int w, int h, float dt, String label) {
+		boolean down = game().keyDown(bind);
 		// ~80ms ease towards the target state.
 		float target = down ? 1f : 0f;
 		glow[index] += (target - glow[index]) * Math.min(1f, dt * 14f);
 
 		int lit = pressedColor.color((x + y) / 160.0);
 		int bg = Colors.lerp(keyColor.get(), Colors.withAlpha(lit, 0xC0), glow[index]);
-		g.fill(x, y, x + w, y + h, bg);
+		g.rect(x, y, x + w, y + h, bg);
 
-		String text;
 		if ("space".equals(label)) {
 			// A short bar instead of the word, like a real space bar.
 			int bw = w / 3, by = y + h / 2;
-			g.fill(x + (w - bw) / 2, by - 1, x + (w + bw) / 2, by, Colors.lerp(textColor.get(), 0xFF000000, glow[index] * 0.7f));
+			g.rect(x + (w - bw) / 2, by - 1, x + (w + bw) / 2, by, Colors.lerp(textColor.get(), 0xFF000000, glow[index] * 0.7f));
 			return;
 		}
-		text = label != null ? label : keyName(key);
+		String text = label != null ? label : keyName(bind);
 		int tc = Colors.lerp(textColor.get(), 0xFF101014, glow[index] * 0.85f);
 		boolean mouse = index == 4 || index == 5;
 		if (mouse && showCps.on()) {
-			g.drawString(mc.font, text, x + (w - mc.font.width(text)) / 2, y + 4, tc, shadow.on());
+			g.mcText(text, x + (w - g.mcTextWidth(text, false)) / 2, y + 4, tc, shadow.on(), false);
 			String cps = CpsTracker.INSTANCE.cps(index - 4) + " CPS";
-			g.pose().pushMatrix();
-			g.pose().translate(x + w / 2f, y + 14);
-			g.pose().scale(0.5f, 0.5f);
-			g.drawString(mc.font, cps, -mc.font.width(cps) / 2, 0, tc, false);
-			g.pose().popMatrix();
+			g.push();
+			g.translate(x + w / 2f, y + 14);
+			g.scale(0.5f, 0.5f);
+			g.mcText(cps, -g.mcTextWidth(cps, false) / 2, 0, tc, false, false);
+			g.pop();
 		} else {
-			g.drawString(mc.font, text, x + (w - mc.font.width(text)) / 2, y + (h - 8) / 2 + 1, tc, shadow.on());
+			g.mcText(text, x + (w - g.mcTextWidth(text, false)) / 2, y + (h - 8) / 2 + 1, tc, shadow.on(), false);
 		}
 	}
 
 	/** "W", "A"... from the actual binding, shortened for keys like "Left Shift". */
-	private static String keyName(KeyMapping key) {
-		String s = key.getTranslatedKeyMessage().getString();
+	private static String keyName(Bind bind) {
+		String s = game().keyName(bind);
 		return s.length() <= 3 ? s.toUpperCase() : s.substring(0, 1).toUpperCase();
 	}
 }

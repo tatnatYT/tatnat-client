@@ -1,7 +1,7 @@
-package com.tatnat.client.util;
+package com.tatnat.client.mc;
 
-import static com.tatnat.client.util.DevTest.shot;
-import static com.tatnat.client.util.DevTest.step;
+import static com.tatnat.client.mc.DevTest.shot;
+import static com.tatnat.client.mc.DevTest.step;
 
 import com.tatnat.client.modules.ModuleManager;
 import com.tatnat.client.modules.impl.hud.ArmorStatus;
@@ -16,8 +16,6 @@ import com.tatnat.client.ui.clickgui.ClickGuiScreen;
 import com.tatnat.client.ui.hud.HudEditorScreen;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.input.MouseButtonInfo;
 
 /** The scripted dev test (see {@link DevTest}). Development only. */
 final class DevTestSteps {
@@ -69,7 +67,7 @@ final class DevTestSteps {
 
 		step(5, "open clickgui", () -> {
 			gui = new ClickGuiScreen();
-			mc().setScreen(gui);
+			GameImpl.INSTANCE.openScreen(gui);
 		});
 		step(20, "shot clickgui", () -> shot("02-clickgui"));
 		step(2, "select keystrokes", () -> gui.openSettingsFor(ModuleManager.get().get(Keystrokes.class)));
@@ -95,22 +93,22 @@ final class DevTestSteps {
 		step(2, "open hud editor", () -> {
 			gui.devSearch("");
 			editor = new HudEditorScreen(gui);
-			mc().setScreen(editor);
+			GameImpl.INSTANCE.openScreen(editor);
 		});
 		step(20, "shot hud editor", () -> shot("06-hud-editor"));
 		step(2, "drag clock near centre", () -> {
 			Clock clock = ModuleManager.get().get(Clock.class);
 			int w = editor.width, h = editor.height;
 			double sx = clock.screenX(w) + 3, sy = clock.screenY(h) + 3;
-			MouseButtonInfo left = new MouseButtonInfo(0, 0);
-			editor.mouseClicked(new MouseButtonEvent(sx, sy, left), false);
+			int sc = mc().getWindow().getGuiScale();
+			editor.mouseClicked(sx * sc, sy * sc, 0);
 			// Aim 2 GUI px off the exact centre: the snap should pull it in and show guides.
 			double tx = w / 2.0 - clock.scaledWidth() / 2 + 2 + 3, ty = h / 2.0 - clock.scaledHeight() / 2 - 1 + 3;
-			editor.mouseDragged(new MouseButtonEvent(tx, ty, left), tx - sx, ty - sy);
+			editor.mouseDragged(tx * sc, ty * sc, 0);
 		});
 		step(10, "shot snapping", () -> shot("07-snapping"));
 		step(2, "release + close", () -> {
-			editor.mouseReleased(new MouseButtonEvent(0, 0, new MouseButtonInfo(0, 0)));
+			editor.mouseReleased(0, 0, 0);
 			ModuleManager.get().get(Clock.class).resetPosition();
 			mc().setScreen(null);
 		});
@@ -210,8 +208,8 @@ final class DevTestSteps {
 			com.tatnat.client.modules.impl.utility.Freecam fc = mod(com.tatnat.client.modules.impl.utility.Freecam.class);
 			fc.setEnabled(true);
 			// Fly up and back so the (hidden) body would be in view.
-			com.tatnat.client.modules.impl.utility.Freecam.camera().moveBy(0, 4, 0);
-			com.tatnat.client.modules.impl.utility.Freecam.camera().turn(0, 300);
+			FeaturesImpl.INSTANCE.freecam().moveBy(0, 4, 0);
+			FeaturesImpl.INSTANCE.freecam().turn(0, 300);
 		});
 		step(15, "shot freecam", () -> shot("14-freecam"));
 		step(2, "freecam off", () -> mod(com.tatnat.client.modules.impl.utility.Freecam.class).setEnabled(false));

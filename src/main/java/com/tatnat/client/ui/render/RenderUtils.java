@@ -5,8 +5,8 @@ import java.util.Map;
 
 import com.tatnat.client.ui.theme.Colors;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.TatnatClient;
+import com.tatnat.client.platform.Gfx;
 
 /**
  * 2D drawing primitives for the menus: anti-aliased rounded rectangles, soft shadows, gradients,
@@ -34,36 +34,36 @@ public final class RenderUtils {
 	private static final Map<Integer, float[][]> CORNER_MASKS = new HashMap<>();
 
 	/** Switches {@code g} to real-pixel coordinates. Returns the GUI scale that was undone. */
-	public static int beginPixels(GuiGraphics g) {
-		int scale = Minecraft.getInstance().getWindow().getGuiScale();
-		g.pose().pushMatrix();
-		g.pose().scale(1f / scale, 1f / scale);
+	public static int beginPixels(Gfx g) {
+		int scale = guiScale();
+		g.push();
+		g.scale(1f / scale, 1f / scale);
 		return scale;
 	}
 
-	public static void end(GuiGraphics g) {
-		g.pose().popMatrix();
+	public static void end(Gfx g) {
+		g.pop();
 	}
 
 	public static int guiScale() {
-		return Minecraft.getInstance().getWindow().getGuiScale();
+		return TatnatClient.game().guiScale();
 	}
 
 	/** A plain rectangle from (x1, y1) to (x2, y2), faded by {@link #alpha}. */
-	public static void rect(GuiGraphics g, int x1, int y1, int x2, int y2, int color) {
+	public static void rect(Gfx g, int x1, int y1, int x2, int y2, int color) {
 		if (x2 <= x1 || y2 <= y1) return;
 		int c = Colors.fade(color, alpha);
 		if (Colors.alpha(c) == 0) return;
-		g.fill(x1, y1, x2, y2, c);
+		g.rect(x1, y1, x2, y2, c);
 	}
 
 	/** Anti-aliased rounded rectangle; {@code radius} is clamped to half the smaller side. */
-	public static void roundedRect(GuiGraphics g, int x, int y, int w, int h, int radius, int color) {
+	public static void roundedRect(Gfx g, int x, int y, int w, int h, int radius, int color) {
 		roundedRect(g, x, y, w, h, radius, color, true, true, true, true);
 	}
 
 	/** Rounded rectangle where each corner can be square (e.g. a tab glued to a panel edge). */
-	public static void roundedRect(GuiGraphics g, int x, int y, int w, int h, int radius, int color,
+	public static void roundedRect(Gfx g, int x, int y, int w, int h, int radius, int color,
 			boolean tl, boolean tr, boolean bl, boolean br) {
 		if (w <= 0 || h <= 0) return;
 		int r = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
@@ -88,7 +88,7 @@ public final class RenderUtils {
 	}
 
 	/** A 1-pixel-thick rounded outline of the given thickness, drawn as a ring. */
-	public static void roundedOutline(GuiGraphics g, int x, int y, int w, int h, int radius, int thickness, int color) {
+	public static void roundedOutline(Gfx g, int x, int y, int w, int h, int radius, int thickness, int color) {
 		// Draw the ring by layering: outer shape in the colour, then punch nothing -- instead draw
 		// four straight edges plus corner arcs from the coverage masks of two radii.
 		int r = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
@@ -123,7 +123,7 @@ public final class RenderUtils {
 	 * Soft drop shadow: {@code layers} rounded rects, each one pixel bigger and fainter, offset
 	 * slightly downwards like light from above. Draw it before the panel it belongs to.
 	 */
-	public static void shadow(GuiGraphics g, int x, int y, int w, int h, int radius, int layers, float strength) {
+	public static void shadow(Gfx g, int x, int y, int w, int h, int radius, int layers, float strength) {
 		for (int i = layers; i >= 1; i--) {
 			float t = 1f - (i - 1) / (float) layers;
 			int a = Math.round(255 * strength * t * t / layers * 2.2f);
@@ -133,13 +133,13 @@ public final class RenderUtils {
 	}
 
 	/** Top-to-bottom gradient. */
-	public static void verticalGradient(GuiGraphics g, int x1, int y1, int x2, int y2, int top, int bottom) {
+	public static void verticalGradient(Gfx g, int x1, int y1, int x2, int y2, int top, int bottom) {
 		if (x2 <= x1 || y2 <= y1) return;
-		g.fillGradient(x1, y1, x2, y2, Colors.fade(top, alpha), Colors.fade(bottom, alpha));
+		g.gradient(x1, y1, x2, y2, Colors.fade(top, alpha), Colors.fade(bottom, alpha));
 	}
 
 	/** Left-to-right gradient, drawn as 1px columns (only used for small things like slider fills). */
-	public static void horizontalGradient(GuiGraphics g, int x1, int y1, int x2, int y2, int left, int right) {
+	public static void horizontalGradient(Gfx g, int x1, int y1, int x2, int y2, int left, int right) {
 		int w = x2 - x1;
 		for (int i = 0; i < w; i++) {
 			rect(g, x1 + i, y1, x1 + i + 1, y2, Colors.lerp(left, right, w <= 1 ? 0 : i / (float) (w - 1)));
@@ -147,12 +147,12 @@ public final class RenderUtils {
 	}
 
 	/** Filled anti-aliased circle centred on (cx, cy). */
-	public static void circle(GuiGraphics g, int cx, int cy, int radius, int color) {
+	public static void circle(Gfx g, int cx, int cy, int radius, int color) {
 		roundedRect(g, cx - radius, cy - radius, radius * 2, radius * 2, radius, color);
 	}
 
 	/** Rectangle outline made of dashes, {@code thickness} px wide (HUD editor bounding boxes). */
-	public static void dashedRect(GuiGraphics g, int x, int y, int w, int h, int dash, int gap, int thickness, int color) {
+	public static void dashedRect(Gfx g, int x, int y, int w, int h, int dash, int gap, int thickness, int color) {
 		// Offset the dash pattern over time so the boxes look "alive" ("marching ants").
 		int phase = (int) (System.currentTimeMillis() / 60 % (dash + gap));
 		for (int i = -phase; i < w; i += dash + gap) {
@@ -172,7 +172,7 @@ public final class RenderUtils {
 	}
 
 	/** Draws one corner's arc spans. (ox, oy) is the corner square's top-left. */
-	private static void corner(GuiGraphics g, float[][] mask, int r, int ox, int oy, boolean flipX, boolean flipY, int color) {
+	private static void corner(Gfx g, float[][] mask, int r, int ox, int oy, boolean flipX, boolean flipY, int color) {
 		for (int j = 0; j < r; j++) {
 			float[] row = mask[flipY ? r - 1 - j : j];
 			// Coverage rises towards the inside of the corner; find where it becomes solid.

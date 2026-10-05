@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.tatnat.client.mc.PlayerLooks;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
 import net.minecraft.client.gui.components.PlayerTabOverlay;
@@ -17,6 +18,6 @@ public class NameMixins {
 	@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true)
 	private void tatnat$tabName(PlayerInfo info, CallbackInfoReturnable<Component> cir) {
 		if (!NickHider.active() || !NickHider.INSTANCE.inTab.on()) return;
-		if (NickHider.INSTANCE.isMe(info.getProfile().id())) cir.setReturnValue(NickHider.INSTANCE.replace(cir.getReturnValue()));
+		if (PlayerLooks.isMe(info.getProfile().id())) cir.setReturnValue(PlayerLooks.replaceName(cir.getReturnValue()));
 	}
 }

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.tatnat.client.modules.impl.visual.ChunkAnimator;
 import com.tatnat.client.modules.impl.visual.ClearWater;
-import com.tatnat.client.modules.impl.visual.HitColor;
+import com.tatnat.client.mc.FeaturesImpl;
 import com.tatnat.client.modules.impl.visual.TimeChanger;
 
 import net.minecraft.client.Camera;
@@ -46,14 +46,14 @@ public final class WorldLookMixins {
 	}
 
 	@Mixin(OverlayTexture.class)
-	public static class Overlay implements HitColor.Target {
+	public static class Overlay implements FeaturesImpl.HurtOverlay {
 		@Shadow
 		@Final
 		private DynamicTexture texture;
 
 		@Inject(method = "<init>", at = @At("RETURN"))
 		private void tatnat$capture(CallbackInfo ci) {
-			HitColor.target = this;
+			FeaturesImpl.overlay = this;
 		}
 
 		@Override

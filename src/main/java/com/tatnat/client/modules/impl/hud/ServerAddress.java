@@ -2,8 +2,6 @@ package com.tatnat.client.modules.impl.hud;
 
 import com.tatnat.client.modules.TextHudModule;
 
-import net.minecraft.client.multiplayer.ServerData;
-
 /** Shows the address of the server you're on ("Singleplayer" in your own worlds). */
 public class ServerAddress extends TextHudModule {
 	public ServerAddress() {
@@ -18,9 +16,9 @@ public class ServerAddress extends TextHudModule {
 
 	@Override
 	protected String value(boolean preview) {
-		ServerData server = mc.getCurrentServer();
-		if (server != null) return server.ip;
-		if (mc.hasSingleplayerServer()) return "Singleplayer";
+		String ip = game().serverIp();
+		if (ip != null) return ip;
+		if (game().singleplayer()) return "Singleplayer";
 		return preview ? "play.example.net" : "-";
 	}
 }

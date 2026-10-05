@@ -7,13 +7,9 @@ import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.ModeSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
+import com.tatnat.client.platform.Gfx;
 import com.tatnat.client.ui.render.Icons;
 import com.tatnat.client.ui.theme.Colors;
-
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.world.entity.LivingEntity;
 
 /**
  * Counts hits you land in a row. A hit counts when the target wasn't still flashing red from
@@ -37,7 +33,7 @@ public class ComboCounter extends HudModule {
 
 	@Subscribe
 	public void onAttack(Events.Attack e) {
-		if (!(e.target instanceof LivingEntity target) || !target.isAlive() || target.hurtTime > 0) return;
+		if (!game().isLiving(e.target) || !game().isAlive(e.target) || game().hurtTime(e.target) > 0) return;
 		if (System.currentTimeMillis() - lastHit > fadeOut.get()) combo = 0;
 		combo++;
 		lastHit = System.currentTimeMillis();
@@ -45,8 +41,8 @@ public class ComboCounter extends HudModule {
 
 	@Subscribe
 	public void onTick(Events.Tick e) {
-		if (mc.player == null) return;
-		int hurt = mc.player.hurtTime;
+		if (!game().inWorld()) return;
+		int hurt = game().hurtTime();
 		// hurtTime jumps up to its maximum on the tick you take damage.
 		if (hurt > lastHurtTime) combo = 0;
 		lastHurtTime = hurt;
@@ -58,7 +54,7 @@ public class ComboCounter extends HudModule {
 	}
 
 	@Override
-	protected long draw(GuiGraphics g, boolean preview) {
+	protected long draw(Gfx g, boolean preview) {
 		int n = combo;
 		float alpha = 1f;
 		long since = System.currentTimeMillis() - lastHit;
@@ -68,12 +64,13 @@ public class ComboCounter extends HudModule {
 		} else if (since > fadeOut.get() - 400) {
 			alpha = Math.max(0f, (fadeOut.floatValue() - since) / 400f);
 		}
-		Component text = Component.literal(n + " Combo").withStyle(Style.EMPTY.withBold(font.is("Bold")));
-		int w = mc.font.width(text);
-		g.pose().pushMatrix();
-		g.pose().scale(2f, 2f);
-		g.drawString(mc.font, text, 0, 0, Colors.fade(color.color(), alpha), shadow.on());
-		g.pose().popMatrix();
+		String text = n + " Combo";
+		boolean bold = font.is("Bold");
+		int w = g.mcTextWidth(text, bold);
+		g.push();
+		g.scale(2f, 2f);
+		g.mcText(text, 0, 0, Colors.fade(color.color(), alpha), shadow.on(), bold);
+		g.pop();
 		return size(w * 2, 18);
 	}
 }

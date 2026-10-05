@@ -3,8 +3,6 @@ package com.tatnat.client.modules.impl.hud;
 import com.tatnat.client.modules.TextHudModule;
 import com.tatnat.client.modules.settings.BooleanSetting;
 
-import net.minecraft.client.multiplayer.PlayerInfo;
-
 /** {@code [Ping: 24ms]}, taken from the server's own tab-list latency for you. */
 public class PingDisplay extends TextHudModule {
 	private final BooleanSetting colorCode = add(new BooleanSetting("Color Code", "Green under 80ms, yellow under 150ms, red above", true));
@@ -16,13 +14,11 @@ public class PingDisplay extends TextHudModule {
 
 	@Override
 	public boolean hasContent() {
-		return mc.getConnection() != null;
+		return game().connected();
 	}
 
 	private int ping() {
-		if (mc.getConnection() == null || mc.player == null) return 0;
-		PlayerInfo info = mc.getConnection().getPlayerInfo(mc.player.getUUID());
-		return info == null ? 0 : info.getLatency();
+		return game().ping();
 	}
 
 	@Override

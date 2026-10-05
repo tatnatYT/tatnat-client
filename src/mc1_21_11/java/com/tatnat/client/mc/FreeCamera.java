@@ -1,4 +1,4 @@
-package com.tatnat.client.modules.impl.utility;
+package com.tatnat.client.mc;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.syncher.SynchedEntityData;

@@ -3,7 +3,7 @@ package com.tatnat.client.modules;
 import com.google.gson.JsonObject;
 import com.tatnat.client.modules.settings.SliderSetting;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /**
  * A module that draws an element on the HUD which can be dragged around in the HUD editor.
@@ -37,7 +37,7 @@ public abstract class HudModule extends Module {
 	 * packed as {@code width << 16 | height}. {@code preview} is true in the HUD editor, where
 	 * elements should show sample content even when there is nothing real to show.
 	 */
-	protected abstract long draw(GuiGraphics g, boolean preview);
+	protected abstract long draw(Gfx g, boolean preview);
 
 	/** Whether there is anything to show right now (e.g. Potion Status with no effects). */
 	public boolean hasContent() {
@@ -45,13 +45,13 @@ public abstract class HudModule extends Module {
 	}
 
 	/** Draws at the element's on-screen position with its scale applied. */
-	public final void render(GuiGraphics g, int screenW, int screenH, boolean preview) {
+	public final void render(Gfx g, int screenW, int screenH, boolean preview) {
 		float s = scale.floatValue();
-		g.pose().pushMatrix();
-		g.pose().translate(screenX(screenW), screenY(screenH));
-		g.pose().scale(s, s);
+		g.push();
+		g.translate(screenX(screenW), screenY(screenH));
+		g.scale(s, s);
 		long size = draw(g, preview);
-		g.pose().popMatrix();
+		g.pop();
 		width = Math.max(1, (int) (size >>> 16));
 		height = Math.max(1, (int) (size & 0xFFFF));
 	}

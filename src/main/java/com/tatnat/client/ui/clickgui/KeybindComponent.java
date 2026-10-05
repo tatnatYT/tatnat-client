@@ -1,6 +1,6 @@
 package com.tatnat.client.ui.clickgui;
 
-import org.lwjgl.glfw.GLFW;
+import com.tatnat.client.util.KeyCodes;
 
 import com.tatnat.client.modules.settings.KeybindSetting;
 import com.tatnat.client.ui.render.RenderUtils;
@@ -10,7 +10,7 @@ import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 import com.tatnat.client.util.Keys;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /** Click, then press any key or mouse button to bind it. Escape cancels; Backspace/Delete unbinds. */
 public class KeybindComponent extends SettingComponent<KeybindSetting> {
@@ -26,7 +26,7 @@ public class KeybindComponent extends SettingComponent<KeybindSetting> {
 	}
 
 	@Override
-	protected void renderControl(GuiGraphics g, int cx, int cy, double mx, double my) {
+	protected void renderControl(Gfx g, int cx, int cy, double mx, double my) {
 		int bw = controlWidth(), bh = Ui.px(32);
 		int fy = cy - bh / 2;
 		boolean hover = Widgets.inside(mx, my, cx, fy, bw, bh);
@@ -56,8 +56,8 @@ public class KeybindComponent extends SettingComponent<KeybindSetting> {
 	@Override
 	public boolean keyPressed(int key) {
 		if (!listening) return false;
-		if (key == GLFW.GLFW_KEY_BACKSPACE || key == GLFW.GLFW_KEY_DELETE) setting.set(Keys.NONE);
-		else if (key != GLFW.GLFW_KEY_ESCAPE) setting.set(key);
+		if (key == KeyCodes.BACKSPACE || key == KeyCodes.DELETE) setting.set(Keys.NONE);
+		else if (key != KeyCodes.ESCAPE) setting.set(key);
 		listening = false;
 		changed();
 		return true;

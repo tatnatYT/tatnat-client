@@ -10,14 +10,14 @@
 	"icon": "assets/tatnatclient/icon.png",
 	"environment": "client",
 	"entrypoints": {
-		"client": ["com.tatnat.client.TatnatClient"]
+		"client": ["com.tatnat.client.mc.Entry"]
 	},
 	"mixins": [
 		{ "config": "tatnatclient.mixins.json", "environment": "client" }
 	],
 	"depends": {
 		"fabricloader": ">=0.16.0",
-		"minecraft": "~1.21.11",
+		"minecraft": "${minecraft_dependency}",
 		"java": ">=21"
 	}
 }

@@ -10,7 +10,7 @@ import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /**
  * A colour swatch that unfolds into an HSV picker: saturation/brightness square, hue bar,
@@ -53,7 +53,7 @@ public class ColorComponent extends SettingComponent<ColorSetting> {
 	}
 
 	@Override
-	protected void renderControl(GuiGraphics g, int cx, int cy, double mx, double my) {
+	protected void renderControl(Gfx g, int cx, int cy, double mx, double my) {
 		int sw = controlWidth(), sh = Ui.px(26), b = Math.max(1, Ui.px(2));
 		RenderUtils.roundedRect(g, cx - b, cy - sh / 2 - b, sw + b * 2, sh + b * 2, Ui.px(Theme.RADIUS), open ? Theme.ACCENT : Theme.TRACK);
 		RenderUtils.roundedRect(g, cx, cy - sh / 2, sw, sh, Ui.px(Theme.RADIUS_SMALL), Colors.withAlpha(setting.color(), 255));
@@ -66,7 +66,7 @@ public class ColorComponent extends SettingComponent<ColorSetting> {
 	}
 
 	@Override
-	public void render(GuiGraphics g, int x, int y, int w, double mx, double my) {
+	public void render(Gfx g, int x, int y, int w, double mx, double my) {
 		super.render(g, x, y, w, mx, my);
 		float t = openAnim.get();
 		if (t <= 0.01f) return;
@@ -75,7 +75,7 @@ public class ColorComponent extends SettingComponent<ColorSetting> {
 		int py = y + boxH() + Ui.px(2);
 		int ph = pickerHeight() - Ui.px(8);
 		// Clip to the animated height so the picker unfolds instead of popping in.
-		g.enableScissor(x, py, x + w, py + Math.round(pickerHeight() * t));
+		g.scissor(x, py, x + w, py + Math.round(pickerHeight() * t));
 		RenderUtils.roundedRect(g, x, py, w, ph, Ui.px(Theme.RADIUS), Theme.PANEL);
 
 		int pad = pad();
@@ -127,7 +127,7 @@ public class ColorComponent extends SettingComponent<ColorSetting> {
 			int tx = hueX + bar - Widgets.toggleW();
 			Widgets.toggle(g, tx, chromaY, chromaAnim, Widgets.inside(mx, my, tx, chromaY, Widgets.toggleW(), Widgets.toggleH()));
 		}
-		g.disableScissor();
+		g.endScissor();
 		RenderUtils.alpha = prev;
 	}
 
@@ -163,21 +163,18 @@ public class ColorComponent extends SettingComponent<ColorSetting> {
 
 	@Override
 	public void mouseDragged(double mx, double my) {
-		switch (dragging) {
-			case 1 -> {
-				sat = clamp01((float) (mx - sqX) / sqW);
-				val = 1f - clamp01((float) (my - sqY) / sqH);
-			}
-			case 2 -> hue = clamp01((float) (my - sqY) / sqH);
-			case 3 -> {
-				int a = Math.round(clamp01((float) (mx - sqX) / (sqW + pad() + bar)) * 255f);
-				setting.set(Colors.withAlpha(setting.get(), a));
-				changed();
-				return;
-			}
-			default -> {
-				return;
-			}
+		if (dragging == 1) {
+			sat = clamp01((float) (mx - sqX) / sqW);
+			val = 1f - clamp01((float) (my - sqY) / sqH);
+		} else if (dragging == 2) {
+			hue = clamp01((float) (my - sqY) / sqH);
+		} else if (dragging == 3) {
+			int a = Math.round(clamp01((float) (mx - sqX) / (sqW + pad() + bar)) * 255f);
+			setting.set(Colors.withAlpha(setting.get(), a));
+			changed();
+			return;
+		} else {
+			return;
 		}
 		setting.set(Colors.withAlpha(Colors.hsv(hue, sat, val), Colors.alpha(setting.get())));
 		changed();

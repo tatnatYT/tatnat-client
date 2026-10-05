@@ -6,8 +6,9 @@ import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
-
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Bind;
+import com.tatnat.client.platform.Gfx;
+import com.tatnat.client.ui.render.Icons;
 
 /**
  * Tap your sprint key once to keep sprinting (and optionally sneak the same way), with a small
@@ -25,28 +26,28 @@ public class ToggleSprint extends HudModule {
 
 	public ToggleSprint() {
 		super("Toggle Sprint", "Tap sprint (or sneak) once instead of holding it", Category.UTILITY, true, 0.0, 1.0);
-		icon = com.tatnat.client.ui.render.Icons.Icon.RUN;
+		icon = Icons.Icon.RUN;
 	}
 
 	@Subscribe
 	public void onTick(Events.Tick e) {
-		if (mc.player == null) return;
-		// consumeClick() counts physical presses; vanilla sprint/sneak only read isDown(), so
+		if (!game().inWorld()) return;
+		// Consuming clicks counts physical presses; vanilla sprint/sneak only read "is held", so
 		// eating the clicks here doesn't change any vanilla behaviour.
-		while (mc.options.keySprint.consumeClick()) sprinting = !sprinting;
-		while (mc.options.keyShift.consumeClick()) if (toggleSneak.on()) sneaking = !sneaking;
+		while (game().consumeClick(Bind.SPRINT)) sprinting = !sprinting;
+		while (game().consumeClick(Bind.SNEAK)) if (toggleSneak.on()) sneaking = !sneaking;
 		if (!toggleSneak.on()) sneaking = false;
 
-		if (mc.screen == null) {
-			if (sprinting) mc.options.keySprint.setDown(true);
-			if (sneaking) mc.options.keyShift.setDown(true);
+		if (!game().screenOpen()) {
+			if (sprinting) game().setKeyDown(Bind.SPRINT, true);
+			if (sneaking) game().setKeyDown(Bind.SNEAK, true);
 		}
 	}
 
 	@Override
 	protected void onDisable() {
-		if (sprinting) mc.options.keySprint.setDown(false);
-		if (sneaking) mc.options.keyShift.setDown(false);
+		if (sprinting) game().setKeyDown(Bind.SPRINT, false);
+		if (sneaking) game().setKeyDown(Bind.SNEAK, false);
 		sprinting = sneaking = false;
 	}
 
@@ -54,7 +55,7 @@ public class ToggleSprint extends HudModule {
 		String s;
 		if (sneaking) s = "Sneaking (Toggled)";
 		else if (sprinting) s = "Sprinting (Toggled)";
-		else if (mc.player != null && mc.player.isSprinting()) s = "Sprinting (Vanilla)";
+		else if (game().inWorld() && game().sprinting()) s = "Sprinting (Vanilla)";
 		else if (preview) s = "Sprinting (Toggled)";
 		else return "";
 		return brackets.on() ? "[" + s + "]" : s;
@@ -66,10 +67,10 @@ public class ToggleSprint extends HudModule {
 	}
 
 	@Override
-	protected long draw(GuiGraphics g, boolean preview) {
+	protected long draw(Gfx g, boolean preview) {
 		String s = status(preview);
 		if (!indicator.on() && !preview) return size(1, 1);
-		g.drawString(mc.font, s, 0, 0, color.color(), shadow.on());
-		return size(mc.font.width(s), 8);
+		g.mcText(s, 0, 0, color.color(), shadow.on(), false);
+		return size(g.mcTextWidth(s, false), 8);
 	}
 }

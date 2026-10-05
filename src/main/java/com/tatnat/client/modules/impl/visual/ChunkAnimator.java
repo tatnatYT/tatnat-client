@@ -53,11 +53,9 @@ public class ChunkAnimator extends Module {
 		float t = (now - t0) / duration.floatValue();
 		if (t >= 1f) return 0f;
 		float remaining = 1f - Easing.outCubic(t);
-		return switch (mode.get()) {
-			case "From Above" -> 24f * remaining;
-			case "From Y 0" -> -originY * remaining;
-			default -> -24f * remaining;
-		};
+		if (mode.is("From Above")) return 24f * remaining;
+		if (mode.is("From Y 0")) return -originY * remaining;
+		return -24f * remaining;
 	}
 
 	@Override

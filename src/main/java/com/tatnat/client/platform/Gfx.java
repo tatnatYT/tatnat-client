@@ -1,0 +1,61 @@
+package com.tatnat.client.platform;
+
+/**
+ * Drawing, as provided by each Minecraft version's platform layer.
+ *
+ * Coordinates are in whatever space the current transform says: the HUD starts in GUI-scaled
+ * units, and menus switch to real pixels with {@code RenderUtils.beginPixels}. Everything the
+ * shared code draws goes through here, so the menu, HUD editor and HUD mods look identical on
+ * every version.
+ */
+public interface Gfx {
+	// ------------------------------------------------------------ shapes
+
+	/** Solid rectangle from (x1, y1) to (x2, y2), ARGB. */
+	void rect(int x1, int y1, int x2, int y2, int argb);
+
+	/** Top-to-bottom gradient. */
+	void gradient(int x1, int y1, int x2, int y2, int top, int bottom);
+
+	// ------------------------------------------------------------ transform / clip
+
+	void push();
+
+	void pop();
+
+	void translate(float x, float y);
+
+	void scale(float x, float y);
+
+	/** Clips drawing to the rectangle (in the current transform's coordinates). Nestable. */
+	void scissor(int x1, int y1, int x2, int y2);
+
+	void endScissor();
+
+	// ------------------------------------------------------------ menu text (Inter, anti-aliased)
+
+	/**
+	 * Draws menu text with the em box's top-left at (x, y). {@code weight} is 500 or 700;
+	 * {@code px} is the rasterised pixel size (8..56). Expects pixel space.
+	 */
+	void uiText(int weight, int px, String s, int x, int y, int argb);
+
+	int uiTextWidth(int weight, int px, String s);
+
+	// ------------------------------------------------------------ HUD text (Minecraft's own font)
+
+	void mcText(String s, int x, int y, int argb, boolean shadow, boolean bold);
+
+	int mcTextWidth(String s, boolean bold);
+
+	// ------------------------------------------------------------ images
+
+	/** The mod's logo (the tatnat head), {@code size} x {@code size}. */
+	void logo(int x, int y, int size, int argb);
+
+	/** A game item (opaque platform handle from {@link Game}) at 16x16, with durability bar. */
+	void item(Object stack, int x, int y);
+
+	/** A potion effect's icon (opaque platform handle from {@link Game}). */
+	void effectIcon(Object effect, int x, int y, int size);
+}

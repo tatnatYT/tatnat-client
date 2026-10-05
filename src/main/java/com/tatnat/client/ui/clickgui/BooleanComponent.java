@@ -3,7 +3,7 @@ package com.tatnat.client.ui.clickgui;
 import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.ui.render.Animation;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /** Text on the left, sliding toggle switch on the right. Clicking anywhere on the row flips it. */
 public class BooleanComponent extends SettingComponent<BooleanSetting> {
@@ -15,7 +15,7 @@ public class BooleanComponent extends SettingComponent<BooleanSetting> {
 	}
 
 	@Override
-	protected void renderControl(GuiGraphics g, int cx, int cy, double mx, double my) {
+	protected void renderControl(Gfx g, int cx, int cy, double mx, double my) {
 		anim.animateTo(setting.on() ? 1f : 0f);
 		Widgets.toggle(g, cx, cy - Widgets.toggleH() / 2, anim, inRow(mx, my));
 	}

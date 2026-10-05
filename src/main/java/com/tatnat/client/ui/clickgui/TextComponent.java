@@ -1,6 +1,6 @@
 package com.tatnat.client.ui.clickgui;
 
-import org.lwjgl.glfw.GLFW;
+import com.tatnat.client.util.KeyCodes;
 
 import com.tatnat.client.modules.settings.TextSetting;
 import com.tatnat.client.ui.render.RenderUtils;
@@ -8,7 +8,7 @@ import com.tatnat.client.ui.render.UIFont;
 import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /** A single-line text field. Click to edit; Enter, Escape or clicking elsewhere finishes. */
 public class TextComponent extends SettingComponent<TextSetting> {
@@ -24,7 +24,7 @@ public class TextComponent extends SettingComponent<TextSetting> {
 	}
 
 	@Override
-	protected void renderControl(GuiGraphics g, int cx, int cy, double mx, double my) {
+	protected void renderControl(Gfx g, int cx, int cy, double mx, double my) {
 		int fw = controlWidth(), fh = Ui.px(32), b = Math.max(1, Ui.px(1));
 		int fy = cy - fh / 2;
 		RenderUtils.roundedRect(g, cx - b, fy - b, fw + b * 2, fh + b * 2, Ui.px(Theme.RADIUS), focused ? Theme.ACCENT : Theme.TRACK);
@@ -50,15 +50,12 @@ public class TextComponent extends SettingComponent<TextSetting> {
 	@Override
 	public boolean keyPressed(int key) {
 		if (!focused) return false;
-		switch (key) {
-			case GLFW.GLFW_KEY_BACKSPACE -> {
-				String v = setting.get();
-				if (!v.isEmpty()) setting.set(v.substring(0, v.length() - 1));
-				changed();
-			}
-			case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER, GLFW.GLFW_KEY_ESCAPE -> focused = false;
-			default -> {
-			}
+		if (key == KeyCodes.BACKSPACE) {
+			String v = setting.get();
+			if (!v.isEmpty()) setting.set(v.substring(0, v.length() - 1));
+			changed();
+		} else if (key == KeyCodes.ENTER || key == KeyCodes.KP_ENTER || key == KeyCodes.ESCAPE) {
+			focused = false;
 		}
 		return true;
 	}

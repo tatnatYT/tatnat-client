@@ -3,8 +3,6 @@ package com.tatnat.client.ui.hud;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.glfw.GLFW;
-
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.ModuleManager;
@@ -16,11 +14,9 @@ import com.tatnat.client.ui.render.UIFont;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.Component;
+import com.tatnat.client.platform.Gfx;
+import com.tatnat.client.platform.UiScreen;
+import com.tatnat.client.util.KeyCodes;
 
 /**
  * Drag-and-drop HUD layout editor.
@@ -31,12 +27,12 @@ import net.minecraft.network.chat.Component;
  * resize it, right-click it for its settings, press R over it to reset it. Hold Shift while
  * dragging to turn snapping off.
  */
-public class HudEditorScreen extends Screen {
+public class HudEditorScreen implements UiScreen {
 	/** Snap distance in real pixels, converted to GUI units when used. */
 	private static final double SNAP_PX = 8;
 	private static final int EDGE_MARGIN = 2;
 
-	private final Screen parent;
+	private final UiScreen parent;
 	private final Animation open = new Animation(200, 0f);
 
 	private HudModule dragging;
@@ -44,20 +40,35 @@ public class HudEditorScreen extends Screen {
 	/** Active guides from the last drag step, in GUI coordinates. NaN = none. */
 	private final List<Float> guidesX = new ArrayList<>(), guidesY = new ArrayList<>();
 
-	public HudEditorScreen(Screen parent) {
-		super(Component.literal("HUD Editor"));
+	/** Width and height of the HUD in GUI units, refreshed every frame. */
+	public int width, height;
+	private static boolean open_;
+
+	/** True while the editor is on screen (the normal HUD pass then skips drawing). */
+	public static boolean isOpen() {
+		return open_;
+	}
+	private boolean shiftHeld;
+
+	public HudEditorScreen(UiScreen parent) {
 		this.parent = parent;
 		open.animateTo(1f);
 	}
 
 	@Override
-	public boolean isPauseScreen() {
+	public Backdrop backdrop() {
+		return Backdrop.DIM;
+	}
+
+	@Override
+	public boolean pausesGame() {
 		return true;
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-		g.fill(0, 0, width, height, Colors.argb(Math.round(60 * open.get()), 0, 0, 0));
+	public void removed() {
+		open_ = false;
+		RenderUtils.alpha = 1f;
 	}
 
 	private List<HudModule> elements() {
@@ -78,7 +89,10 @@ public class HudEditorScreen extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+	public void render(Gfx g, double mouseX, double mouseY) {
+		open_ = true;
+		width = TatnatClient.game().guiWidth();
+		height = TatnatClient.game().guiHeight();
 		float o = open.get();
 		// The elements themselves, in GUI space, on top of the blur.
 		HudRenderer.renderAll(g, true);
@@ -104,7 +118,7 @@ public class HudEditorScreen extends Screen {
 		}
 
 		// Yellow snap guides across the whole screen.
-		int W = minecraft.getWindow().getWidth(), H = minecraft.getWindow().getHeight();
+		int W = TatnatClient.game().windowWidth(), H = TatnatClient.game().windowHeight();
 		if (dragging != null) {
 			for (float gx : guidesX) {
 				int px = Math.round(gx * scale);
@@ -123,7 +137,7 @@ public class HudEditorScreen extends Screen {
 
 	private int doneX, doneY, doneW, doneH;
 
-	private void drawToolbar(GuiGraphics g, int W, int H, double mx, double my) {
+	private void drawToolbar(Gfx g, int W, int H, double mx, double my) {
 		String hint = "Drag to move  ·  Scroll to resize  ·  Right-click for settings  ·  R to reset  ·  Shift = no snap";
 		int hw = UIFont.SMALL.width(hint);
 		doneW = 110;
@@ -141,35 +155,37 @@ public class HudEditorScreen extends Screen {
 	// ---------------------------------------------------------------- input
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+	public boolean mouseClicked(double px, double py, int button) {
 		int scale = RenderUtils.guiScale();
-		if (Widgets.inside(event.x() * scale, event.y() * scale, doneX, doneY, doneW, doneH)) {
+		if (Widgets.inside(px, py, doneX, doneY, doneW, doneH)) {
 			onClose();
 			return true;
 		}
-		HudModule m = elementAt(event.x(), event.y());
+		double gx = px / scale, gy = py / scale;
+		HudModule m = elementAt(gx, gy);
 		if (m == null) return true;
-		if (event.button() == 1) {
+		if (button == 1) {
 			ClickGuiScreen gui = new ClickGuiScreen();
 			gui.openSettingsFor(m);
-			minecraft.setScreen(gui);
+			TatnatClient.game().openScreen(gui);
 			return true;
 		}
-		if (event.button() == 0) {
+		if (button == 0) {
 			dragging = m;
-			grabX = event.x() - m.screenX(width);
-			grabY = event.y() - m.screenY(height);
+			grabX = gx - m.screenX(width);
+			grabY = gy - m.screenY(height);
 		}
 		return true;
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-		if (dragging == null) return true;
-		float x = (float) (event.x() - grabX), y = (float) (event.y() - grabY);
+	public void mouseDragged(double px, double py, int button) {
+		if (dragging == null) return;
+		int scale = RenderUtils.guiScale();
+		float x = (float) (px / scale - grabX), y = (float) (py / scale - grabY);
 		guidesX.clear();
 		guidesY.clear();
-		boolean shift = (event.modifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
+		boolean shift = TatnatClient.game().rawKeyDown(KeyCodes.LEFT_SHIFT) || TatnatClient.game().rawKeyDown(KeyCodes.RIGHT_SHIFT);
 		if (!shift) {
 			float[] snapped = snap(dragging, x, y);
 			x = snapped[0];
@@ -177,7 +193,6 @@ public class HudEditorScreen extends Screen {
 		}
 		dragging.setScreenPos(x, y, width, height);
 		TatnatClient.CONFIG.markDirty();
-		return true;
 	}
 
 	/**
@@ -228,28 +243,31 @@ public class HudEditorScreen extends Screen {
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent event) {
+	public void mouseReleased(double px, double py, int button) {
 		dragging = null;
 		guidesX.clear();
 		guidesY.clear();
-		return true;
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-		HudModule m = elementAt(mouseX, mouseY);
-		if (m == null) return true;
+	public void mouseScrolled(double px, double py, double scrollY) {
+		int scale = RenderUtils.guiScale();
+		HudModule m = elementAt(px / scale, py / scale);
+		if (m == null) return;
 		// Keep the element's centre in place while it grows or shrinks.
 		float cx = m.screenX(width) + m.scaledWidth() / 2f, cy = m.screenY(height) + m.scaledHeight() / 2f;
 		m.scale.set(m.scale.get() + (scrollY > 0 ? 0.05 : -0.05));
 		m.setScreenPos(cx - m.scaledWidth() / 2f, cy - m.scaledHeight() / 2f, width, height);
 		TatnatClient.CONFIG.markDirty();
-		return true;
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent event) {
-		if (event.key() == GLFW.GLFW_KEY_R) {
+	public boolean keyPressed(int key, boolean shift) {
+		if (key == KeyCodes.ESCAPE) {
+			onClose();
+			return true;
+		}
+		if (key == KeyCodes.R) {
 			int scale = RenderUtils.guiScale();
 			HudModule m = elementAt(Widgets.mouseX() / scale, Widgets.mouseY() / scale);
 			if (m != null) {
@@ -259,12 +277,17 @@ public class HudEditorScreen extends Screen {
 			}
 			return true;
 		}
-		return super.keyPressed(event);
+		return false;
 	}
 
 	@Override
+	public boolean charTyped(String chars) {
+		return false;
+	}
+
 	public void onClose() {
 		TatnatClient.CONFIG.save();
-		minecraft.setScreen(parent instanceof ClickGuiScreen ? new ClickGuiScreen() : parent);
+		if (parent instanceof ClickGuiScreen) TatnatClient.game().openScreen(new ClickGuiScreen());
+		else TatnatClient.game().closeScreen();
 	}
 }

@@ -10,7 +10,7 @@ import org.joml.Matrix4f;
 import com.tatnat.client.modules.impl.utility.Freecam;
 import com.tatnat.client.modules.impl.visual.FovModifier;
 import com.tatnat.client.modules.impl.visual.Zoom;
-import com.tatnat.client.util.WorldProjector;
+import com.tatnat.client.mc.GameImpl;
 
 import net.minecraft.client.Minecraft;
 
@@ -28,7 +28,7 @@ public class GameRendererMixin {
 		if (FovModifier.active()) fov *= FovModifier.INSTANCE.fov.floatValue() / Minecraft.getInstance().options.fov().get();
 		Zoom zoom = Zoom.INSTANCE;
 		if (zoom != null && zoom.isEnabled()) fov /= (float) zoom.update();
-		WorldProjector.lastFov = fov;
+		GameImpl.lastFov = fov;
 		cir.setReturnValue(fov);
 	}
 

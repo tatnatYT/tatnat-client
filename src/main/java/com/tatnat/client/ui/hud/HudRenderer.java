@@ -5,8 +5,9 @@ import com.tatnat.client.event.Subscribe;
 import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.ModuleManager;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.TatnatClient;
+import com.tatnat.client.platform.Game;
+import com.tatnat.client.platform.Gfx;
 
 /** Draws every enabled HUD element during the normal HUD pass. */
 public final class HudRenderer {
@@ -17,15 +18,15 @@ public final class HudRenderer {
 
 	@Subscribe
 	public void onRender(Events.Render2D e) {
-		Minecraft mc = Minecraft.getInstance();
-		// F1 hides everything; the HUD editor draws the elements itself (on top of its blur).
-		if (mc.options.hideGui || mc.screen instanceof HudEditorScreen) return;
-		renderAll(e.graphics, false);
+		Game game = TatnatClient.game();
+		// F1 hides everything; the HUD editor draws the elements itself (on top of its backdrop).
+		if (game.hudHidden() || HudEditorScreen.isOpen()) return;
+		renderAll(e.gfx, false);
 	}
 
-	public static void renderAll(GuiGraphics g, boolean preview) {
-		Minecraft mc = Minecraft.getInstance();
-		int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
+	public static void renderAll(Gfx g, boolean preview) {
+		Game game = TatnatClient.game();
+		int w = game.guiWidth(), h = game.guiHeight();
 		for (HudModule m : ModuleManager.get().hud()) {
 			if (!m.isEnabled()) continue;
 			if (!preview && !m.hasContent()) continue;

@@ -3,7 +3,7 @@ package com.tatnat.client.modules;
 import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /**
  * A HUD element that shows a single line like {@code [FPS: 240]}. Handles the shared settings
@@ -35,7 +35,7 @@ public abstract class TextHudModule extends HudModule {
 	}
 
 	@Override
-	protected long draw(GuiGraphics g, boolean preview) {
+	protected long draw(Gfx g, boolean preview) {
 		String label = label();
 		String value = value(preview);
 		String open = brackets.on() ? "[" : "";
@@ -43,20 +43,20 @@ public abstract class TextHudModule extends HudModule {
 		String head = open + (label.isEmpty() ? "" : label + ": ");
 		String full = head + value + close;
 
-		int textW = mc.font.width(full);
+		int textW = g.mcTextWidth(full, false);
 		int w = background.on() ? textW + PAD_X * 2 : textW;
-		int h = background.on() ? BOX_H : mc.font.lineHeight;
-		if (background.on()) g.fill(0, 0, w, h, 0x6F000000);
+		int h = background.on() ? BOX_H : 9;
+		if (background.on()) g.rect(0, 0, w, h, 0x6F000000);
 
 		int x = background.on() ? PAD_X : 0;
 		int y = background.on() ? (BOX_H - 8) / 2 : 0;
 		int base = textColor.color(0);
 		int vc = valueColor(preview);
-		g.drawString(mc.font, head, x, y, base, shadow.on());
-		x += mc.font.width(head);
-		g.drawString(mc.font, value, x, y, vc != 0 ? vc : textColor.color(0.15), shadow.on());
-		x += mc.font.width(value);
-		if (!close.isEmpty()) g.drawString(mc.font, close, x, y, textColor.color(0.3), shadow.on());
+		g.mcText(head, x, y, base, shadow.on(), false);
+		x += g.mcTextWidth(head, false);
+		g.mcText(value, x, y, vc != 0 ? vc : textColor.color(0.15), shadow.on(), false);
+		x += g.mcTextWidth(value, false);
+		if (!close.isEmpty()) g.mcText(close, x, y, textColor.color(0.3), shadow.on(), false);
 		return size(w, h);
 	}
 }

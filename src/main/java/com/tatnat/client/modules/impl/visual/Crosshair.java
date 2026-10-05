@@ -8,15 +8,13 @@ import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.ModeSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
+import com.tatnat.client.platform.Gfx;
 import com.tatnat.client.ui.render.Icons;
 import com.tatnat.client.ui.render.RenderUtils;
-import com.tatnat.client.ui.theme.Colors;
-
-import net.minecraft.client.gui.GuiGraphics;
 
 /**
- * Replaces the vanilla crosshair (see {@code GuiMixin}) with a crisp one drawn in real pixels.
- * In dynamic mode the arms spread apart while you move or are in the air.
+ * Replaces the vanilla crosshair (the platform hides vanilla's while this is on) with a crisp
+ * one drawn in real pixels. In dynamic mode the arms spread apart while you move or jump.
  */
 public class Crosshair extends Module {
 	public static Crosshair INSTANCE;
@@ -44,29 +42,27 @@ public class Crosshair extends Module {
 
 	@Subscribe
 	public void onRender(Events.Render2D e) {
-		if (mc.options.hideGui || !mc.options.getCameraType().isFirstPerson() || mc.player == null || mc.screen != null && false) return;
+		if (game().hudHidden() || !game().firstPerson() || !game().inWorld()) return;
 		long now = System.nanoTime();
 		float dt = Math.min(0.1f, (now - lastFrame) / 1e9f);
 		lastFrame = now;
 		float target = 0;
 		if (dynamic.on()) {
-			double speed = mc.player.getDeltaMovement().horizontalDistance();
-			target = (float) Math.min(8, speed * 30) + (mc.player.onGround() ? 0 : 4);
+			target = (float) Math.min(8, game().horizontalSpeed() * 30) + (game().onGround() ? 0 : 4);
 		}
 		spread += (target - spread) * Math.min(1f, dt * 12f);
 
-		GuiGraphics g = e.graphics;
+		Gfx g = e.gfx;
 		RenderUtils.beginPixels(g);
-		int cx = mc.getWindow().getWidth() / 2, cy = mc.getWindow().getHeight() / 2;
+		int cx = game().windowWidth() / 2, cy = game().windowHeight() / 2;
 		int t = thickness.intValue(), len = size.intValue(), gp = gap.intValue() + Math.round(spread);
-		int c = color.color();
 		String s = style.get();
 		if (outline.on()) drawShape(g, s, cx, cy, t, len, gp, 0xC0000000, 1);
-		drawShape(g, s, cx, cy, t, len, gp, c, 0);
+		drawShape(g, s, cx, cy, t, len, gp, color.color(), 0);
 		RenderUtils.end(g);
 	}
 
-	private void drawShape(GuiGraphics g, String s, int cx, int cy, int t, int len, int gp, int c, int grow) {
+	private void drawShape(Gfx g, String s, int cx, int cy, int t, int len, int gp, int c, int grow) {
 		int half = t / 2;
 		if (s.startsWith("Plus")) {
 			RenderUtils.rect(g, cx - half - grow, cy - gp - len - grow, cx - half + t + grow, cy - gp + grow, c);
@@ -79,16 +75,17 @@ public class Crosshair extends Module {
 			RenderUtils.roundedOutline(g, cx - r - grow, cy - r - grow, (r + grow) * 2, (r + grow) * 2, r + grow, t + grow * 2, c);
 		}
 		if (s.equals("X")) {
+			int[][] dirs = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 			for (int i = gp; i < gp + len; i++) {
-				for (int[] d : new int[][] {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}) {
+				for (int[] d : dirs) {
 					int px = cx + d[0] * i, py = cy + d[1] * i;
 					RenderUtils.rect(g, px - half - grow, py - half - grow, px - half + t + grow, py - half + t + grow, c);
 				}
 			}
 		}
-		if (s.endsWith("Dot") || s.equals("Dot")) {
+		if (s.endsWith("Dot")) {
 			int d = Math.max(2, t + 1);
-			RenderUtils.circle(g, cx, cy, d / 2 + 1 + grow, Colors.withAlpha(c, Colors.alpha(c)));
+			RenderUtils.circle(g, cx, cy, d / 2 + 1 + grow, c);
 		}
 	}
 }

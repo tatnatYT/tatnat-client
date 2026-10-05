@@ -33,7 +33,7 @@ public class AutoGG extends Module {
 	@Subscribe
 	public void onChat(Events.Chat e) {
 		if (countdown >= 0 || System.currentTimeMillis() - lastSent < COOLDOWN_MS) return;
-		String text = e.message.getString().toLowerCase(Locale.ROOT);
+		String text = e.text.toLowerCase(Locale.ROOT);
 		for (String t : triggers.get().split(",")) {
 			String trig = t.trim().toLowerCase(Locale.ROOT);
 			if (!trig.isEmpty() && text.contains(trig)) {
@@ -48,10 +48,10 @@ public class AutoGG extends Module {
 		if (countdown < 0) return;
 		if (countdown-- > 0) return;
 		countdown = -1;
-		if (mc.player == null || message.get().isBlank()) return;
 		String m = message.get().trim();
-		if (m.startsWith("/")) mc.player.connection.sendCommand(m.substring(1));
-		else mc.player.connection.sendChat(m);
+		if (!game().inWorld() || m.isEmpty()) return;
+		if (m.startsWith("/")) game().sendCommand(m.substring(1));
+		else game().sendChat(m);
 		lastSent = System.currentTimeMillis();
 	}
 }

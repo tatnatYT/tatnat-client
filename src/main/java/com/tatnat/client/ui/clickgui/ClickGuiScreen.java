@@ -1,14 +1,11 @@
 package com.tatnat.client.ui.clickgui;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.lwjgl.glfw.GLFW;
 
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.Category;
@@ -26,15 +23,9 @@ import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.util.Util;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import com.tatnat.client.platform.Gfx;
+import com.tatnat.client.platform.UiScreen;
+import com.tatnat.client.util.KeyCodes;
 
 /**
  * The Right Shift mod menu, laid out like Feather's:
@@ -51,8 +42,7 @@ import net.minecraft.resources.Identifier;
  * button. Everything is drawn in real pixels, laid out for 1920x1080 and scaled by {@link Ui}.
  * The menu fades in and rises 10px over 200ms; toggles slide over 150ms; lists scroll smoothly.
  */
-public class ClickGuiScreen extends Screen {
-	private static final Identifier LOGO = Identifier.fromNamespaceAndPath(TatnatClient.ID, "logo.png");
+public class ClickGuiScreen implements UiScreen {
 	private static final String YOUTUBE = "https://www.youtube.com/@tatnatmc";
 
 	private enum Page { MODS, SETTINGS }
@@ -81,13 +71,25 @@ public class ClickGuiScreen extends Screen {
 	private int clipX, clipY, clipW, clipH;
 
 	/** Clickable regions registered while drawing; checked in reverse (topmost first). */
-	private record Hit(int x, int y, int w, int h, boolean clipped, Runnable left, Runnable right) {
+	private static final class Hit {
+		final int x, y, w, h;
+		final boolean clipped;
+		final Runnable left, right;
+
+		Hit(int x, int y, int w, int h, boolean clipped, Runnable left, Runnable right) {
+			this.x = x;
+			this.y = y;
+			this.w = w;
+			this.h = h;
+			this.clipped = clipped;
+			this.left = left;
+			this.right = right;
+		}
 	}
 
 	private final List<Hit> hits = new ArrayList<>();
 
 	public ClickGuiScreen() {
-		super(Component.literal("tatnat client"));
 		open.animateTo(1f);
 	}
 
@@ -133,8 +135,8 @@ public class ClickGuiScreen extends Screen {
 	/** Dev test hook: expands the first colour setting of the open mod. */
 	public void devOpenFirstColorPicker() {
 		for (SettingComponent<?> c : components) {
-			if (c instanceof ColorComponent cc) {
-				cc.devOpen();
+			if (c instanceof ColorComponent) {
+				((ColorComponent) c).devOpen();
 				return;
 			}
 		}
@@ -174,7 +176,13 @@ public class ClickGuiScreen extends Screen {
 	}
 
 	@Override
-	public boolean isPauseScreen() {
+	public Backdrop backdrop() {
+		// Like Feather: the world stays fully visible behind the menu.
+		return Backdrop.CLEAR;
+	}
+
+	@Override
+	public boolean pausesGame() {
 		return false;
 	}
 
@@ -187,27 +195,12 @@ public class ClickGuiScreen extends Screen {
 		TatnatClient.CONFIG.save();
 	}
 
-	@Override
-	public boolean shouldCloseOnEsc() {
-		return false;
-	}
-
 	// ---------------------------------------------------------------- drawing
 
 	@Override
-	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-		// Like Feather: the world stays fully visible behind the menu. Only the title screen
-		// (no world) gets the usual panorama.
-		if (minecraft.level == null) {
-			renderPanorama(g, partialTick);
-			renderBlurredBackground(g);
-		}
-	}
-
-	@Override
-	public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+	public void render(Gfx g, double mouseX, double mouseY) {
 		if (closing && open.isDone()) {
-			minecraft.setScreen(null);
+			TatnatClient.game().closeScreen();
 			return;
 		}
 		Ui.update();
@@ -217,7 +210,7 @@ public class ClickGuiScreen extends Screen {
 		hits.clear();
 		double mx = Widgets.mouseX(), my = Widgets.mouseY();
 
-		int W = minecraft.getWindow().getWidth(), H = minecraft.getWindow().getHeight();
+		int W = TatnatClient.game().windowWidth(), H = TatnatClient.game().windowHeight();
 		int sideW = Ui.px(96), gap = Ui.px(14), panelW = Ui.px(912), panelH = Ui.px(666);
 		int groupX = (W - (sideW + gap + panelW)) / 2;
 		int panelX = groupX + sideW + gap;
@@ -236,7 +229,7 @@ public class ClickGuiScreen extends Screen {
 	}
 
 	/** The small bar above the panel: close chevron in the middle, view buttons on the right. */
-	private void drawToolbar(GuiGraphics g, int px, int py, int pw, double mx, double my) {
+	private void drawToolbar(Gfx g, int px, int py, int pw, double mx, double my) {
 		int cy = py - Ui.px(40);
 		int cs = Ui.px(30);
 		boolean chevHover = Widgets.inside(mx, my, px + pw / 2 - cs, cy - cs / 2, cs * 2, cs);
@@ -259,32 +252,27 @@ public class ClickGuiScreen extends Screen {
 			Icons.draw(g, icons[i], bx + bs / 2, by + bs / 2, Ui.px(24), col);
 			final int idx = i;
 			hit(bx, by, bs, bs, false, () -> {
-				switch (idx) {
-					case 0 -> minecraft.setScreen(new HudEditorScreen(this));
-					case 1 -> {
-						favoritesOnly = !favoritesOnly;
-						page = Page.MODS;
-						closeSettings();
-						scrollTarget = 0;
-					}
-					case 2 -> listView = false;
-					default -> listView = true;
+				if (idx == 0) {
+					TatnatClient.game().openScreen(new HudEditorScreen(this));
+				} else if (idx == 1) {
+					favoritesOnly = !favoritesOnly;
+					page = Page.MODS;
+					closeSettings();
+					scrollTarget = 0;
+				} else {
+					listView = idx == 3;
 				}
 			}, null);
 		}
 	}
 
-	private void drawSidebar(GuiGraphics g, int x, int y, int w, int h, double mx, double my) {
+	private void drawSidebar(Gfx g, int x, int y, int w, int h, double mx, double my) {
 		RenderUtils.shadow(g, x, y, w, h, Ui.px(Theme.RADIUS_LARGE), 8, 0.35f);
 		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS_LARGE), Theme.BACKGROUND);
 
 		// Logo (the player's head), drawn at an exact multiple of 8 so the pixels stay square.
 		int logo = Math.max(32, Ui.px(56) / 8 * 8);
-		g.pose().pushMatrix();
-		g.pose().translate(x + (w - logo) / 2f, y + Ui.px(18));
-		g.pose().scale(logo / 64f, logo / 64f);
-		g.blit(RenderPipelines.GUI_TEXTURED, LOGO, 0, 0, 0f, 0f, 64, 64, 64, 64, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
-		g.pose().popMatrix();
+		g.logo(x + (w - logo) / 2, y + Ui.px(18), logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		RenderUtils.rect(g, x + Ui.px(16), y + Ui.px(90), x + w - Ui.px(16), y + Ui.px(91), Theme.DIVIDER);
 
 		String[] labels = {"MOD MENU", "HUD EDITOR", "SETTINGS"};
@@ -301,20 +289,20 @@ public class ClickGuiScreen extends Screen {
 			UIFont.TINY.drawCentered(g, labels[i], bx + bw / 2, by + Ui.px(50), col);
 			final int idx = i;
 			hit(bx, by, bw, bh, false, () -> {
-				switch (idx) {
-					case 0 -> {
-						page = Page.MODS;
-						closeSettings();
-					}
-					case 1 -> minecraft.setScreen(new HudEditorScreen(this));
-					default -> page = Page.SETTINGS;
+				if (idx == 0) {
+					page = Page.MODS;
+					closeSettings();
+				} else if (idx == 1) {
+					TatnatClient.game().openScreen(new HudEditorScreen(this));
+				} else {
+					page = Page.SETTINGS;
 				}
 			}, null);
 		}
 	}
 
 	/** Red slanted tab in the panel's top-left corner. Returns its right edge. */
-	private int drawTab(GuiGraphics g, int x, int y, String text, boolean back, double mx, double my) {
+	private int drawTab(Gfx g, int x, int y, String text, boolean back, double mx, double my) {
 		int th = Ui.px(64), slant = Ui.px(26);
 		int textX = x + Ui.px(back ? 52 : 26);
 		int tw = textX - x + UIFont.HEADER.width(text) + Ui.px(26) + slant;
@@ -340,7 +328,7 @@ public class ClickGuiScreen extends Screen {
 		return x + tw;
 	}
 
-	private void drawModsPage(GuiGraphics g, int px, int py, int pw, int ph, double mx, double my) {
+	private void drawModsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
 		float v = view.get();
 		boolean inSettings = v > 0.5f && shown != null;
 		int tabRight = drawTab(g, px, py, inSettings ? shown.name : "Mod Menu", inSettings, mx, my);
@@ -397,11 +385,11 @@ public class ClickGuiScreen extends Screen {
 			RenderUtils.alpha = prev * v;
 			drawSettingsList(g, contentX + Math.round((1 - v) * Ui.px(30)), contentY, contentW, contentBottom, mx, my);
 		}
-		g.disableScissor();
+		g.endScissor();
 		RenderUtils.alpha = prev;
 	}
 
-	private void drawSearch(GuiGraphics g, int x, int y, int w, int h, double mx, double my) {
+	private void drawSearch(Gfx g, int x, int y, int w, int h, double mx, double my) {
 		boolean hover = Widgets.inside(mx, my, x, y, w, h);
 		int b = Math.max(1, Ui.px(1));
 		RenderUtils.roundedRect(g, x - b, y - b, w + b * 2, h + b * 2, Ui.px(Theme.RADIUS), searchFocused ? Theme.ACCENT : Theme.DIVIDER);
@@ -425,7 +413,7 @@ public class ClickGuiScreen extends Screen {
 		});
 	}
 
-	private void drawModList(GuiGraphics g, int x, int y, int w, int bottom, double mx, double my, boolean interactive) {
+	private void drawModList(Gfx g, int x, int y, int w, int bottom, double mx, double my, boolean interactive) {
 		List<Module> mods = visibleModules();
 		int gap = Ui.px(14);
 		int cols = listView ? 1 : 3;
@@ -453,7 +441,7 @@ public class ClickGuiScreen extends Screen {
 		drawScrollbar(g, x + w - Ui.px(4), y, bottom - y, scroll, contentH);
 	}
 
-	private void drawCard(GuiGraphics g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
+	private void drawCard(Gfx g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
 		boolean hover = interactive && Widgets.inside(mx, my, x, y, w, h);
 		Animation ha = hoverAnim(m);
 		ha.animateTo(hover ? 1f : 0f);
@@ -485,7 +473,7 @@ public class ClickGuiScreen extends Screen {
 		hit(tx - Ui.px(6), ty - Ui.px(8), tw + Ui.px(12), Widgets.toggleH() + Ui.px(16), true, m::toggle, m::toggle);
 	}
 
-	private void drawRow(GuiGraphics g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
+	private void drawRow(Gfx g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
 		boolean hover = interactive && Widgets.inside(mx, my, x, y, w, h);
 		Animation ha = hoverAnim(m);
 		ha.animateTo(hover ? 1f : 0f);
@@ -511,7 +499,7 @@ public class ClickGuiScreen extends Screen {
 		hit(tx - Ui.px(6), y, tw + Ui.px(24), h, true, m::toggle, m::toggle);
 	}
 
-	private void drawSettingsList(GuiGraphics g, int x, int y, int w, int bottom, double mx, double my) {
+	private void drawSettingsList(Gfx g, int x, int y, int w, int bottom, double mx, double my) {
 		int total = 0;
 		for (SettingComponent<?> c : components) if (c.visible()) total += c.height();
 		setContentH = total;
@@ -532,7 +520,7 @@ public class ClickGuiScreen extends Screen {
 	}
 
 	/** Sidebar "Settings": about the client, links and reset buttons. */
-	private void drawSettingsPage(GuiGraphics g, int px, int py, int pw, int ph, double mx, double my) {
+	private void drawSettingsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
 		drawTab(g, px, py, "Settings", false, mx, my);
 		int x = px + Ui.px(18), w = pw - Ui.px(36);
 		int y = py + Ui.px(86);
@@ -541,11 +529,7 @@ public class ClickGuiScreen extends Screen {
 		int ch = Ui.px(150);
 		RenderUtils.roundedRect(g, x, y, w, ch, Ui.px(Theme.RADIUS), Theme.PANEL);
 		int logo = Math.max(32, Ui.px(96) / 8 * 8);
-		g.pose().pushMatrix();
-		g.pose().translate(x + Ui.px(28), y + (ch - logo) / 2f);
-		g.pose().scale(logo / 64f, logo / 64f);
-		g.blit(RenderPipelines.GUI_TEXTURED, LOGO, 0, 0, 0f, 0f, 64, 64, 64, 64, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
-		g.pose().popMatrix();
+		g.logo(x + Ui.px(28), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = x + Ui.px(28) + logo + Ui.px(26);
 		UIFont.HUGE.draw(g, "tatnat client", tx, y + Ui.px(30), Theme.TEXT);
 		UIFont.BODY.draw(g, "Version " + TatnatClient.VERSION + "   ·   made by tatnat", tx, y + Ui.px(84), Theme.TEXT_MUTED);
@@ -554,7 +538,7 @@ public class ClickGuiScreen extends Screen {
 		RenderUtils.roundedRect(g, yx, yy, yw, yh, Ui.px(Theme.RADIUS), yHover ? Colors.shade(Theme.ACCENT, 1.15f) : Theme.ACCENT);
 		Icons.draw(g, Icon.YOUTUBE, yx + Ui.px(26), yy + yh / 2, Ui.px(24), 0xFFFFFFFF);
 		UIFont.BODY.drawMid(g, "Subscribe: @tatnatmc", yx + Ui.px(48), yy + yh / 2, 0xFFFFFFFF);
-		hit(yx, yy, yw, yh, false, () -> Util.getPlatform().openUri(URI.create(YOUTUBE)), null);
+		hit(yx, yy, yw, yh, false, () -> TatnatClient.game().openUrl(YOUTUBE), null);
 		y += ch + Ui.px(16);
 
 		// Info + actions.
@@ -596,19 +580,19 @@ public class ClickGuiScreen extends Screen {
 		}, null);
 	}
 
-	private void drawScrollbar(GuiGraphics g, int x, int top, int height, double scroll, int content) {
+	private void drawScrollbar(Gfx g, int x, int top, int height, double scroll, int content) {
 		if (content <= height) return;
 		int barH = Math.max(Ui.px(30), height * height / content);
 		int barY = top + (int) Math.round((height - barH) * (scroll / (content - height)));
 		RenderUtils.roundedRect(g, x, barY, Math.max(2, Ui.px(4)), barH, Math.max(1, Ui.px(2)), 0x50FFFFFF);
 	}
 
-	private void clip(GuiGraphics g, int x, int y, int w, int h) {
+	private void clip(Gfx g, int x, int y, int w, int h) {
 		clipX = x;
 		clipY = y;
 		clipW = w;
 		clipH = h;
-		g.enableScissor(x, y, x + w, y + h);
+		g.scissor(x, y, x + w, y + h);
 	}
 
 	private void hit(int x, int y, int w, int h, boolean clipped, Runnable left, Runnable right) {
@@ -621,19 +605,13 @@ public class ClickGuiScreen extends Screen {
 
 	// ---------------------------------------------------------------- input (GUI coords -> pixels)
 
-	private static double px(double gui) {
-		return gui * RenderUtils.guiScale();
-	}
-
 	private boolean settingsVisible() {
 		return page == Page.MODS && selected != null && view.target() > 0;
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+	public boolean mouseClicked(double mx, double my, int button) {
 		if (closing) return true;
-		double mx = px(event.x()), my = px(event.y());
-		int button = event.button();
 
 		// A key listener / text field that is capturing gets first go (it may bind mouse buttons).
 		if (settingsVisible()) {
@@ -664,61 +642,54 @@ public class ClickGuiScreen extends Screen {
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent event) {
-		double mx = px(event.x()), my = px(event.y());
-		for (SettingComponent<?> c : components) c.mouseReleased(mx, my, event.button());
-		return true;
+	public void mouseReleased(double mx, double my, int button) {
+		for (SettingComponent<?> c : components) c.mouseReleased(mx, my, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-		double mx = px(event.x()), my = px(event.y());
+	public void mouseDragged(double mx, double my, int button) {
 		if (settingsVisible()) for (SettingComponent<?> c : components) c.mouseDragged(mx, my);
-		return true;
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-		double step = Ui.px(90) * scrollY;
+	public void mouseScrolled(double mx, double my, double amount) {
+		double step = Ui.px(90) * amount;
 		if (settingsVisible()) setScrollTarget = clampScroll(setScrollTarget - step, setContentH, clipH);
 		else scrollTarget = clampScroll(scrollTarget - step, contentH, clipH);
-		return true;
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent event) {
-		int key = event.key();
+	public boolean keyPressed(int key, boolean shift) {
 		if (settingsVisible()) {
 			for (SettingComponent<?> c : components) {
 				if (c.isCapturingKeys() && c.keyPressed(key)) return true;
 			}
 		}
 		if (searchFocused) {
-			if (key == GLFW.GLFW_KEY_BACKSPACE && !search.isEmpty()) {
+			if (key == KeyCodes.BACKSPACE && !search.isEmpty()) {
 				search = search.substring(0, search.length() - 1);
 				scrollTarget = 0;
 				return true;
 			}
-			if (key == GLFW.GLFW_KEY_ESCAPE || key == GLFW.GLFW_KEY_ENTER) {
+			if (key == KeyCodes.ESCAPE || key == KeyCodes.ENTER) {
 				searchFocused = false;
 				return true;
 			}
 			if (key != TatnatClient.MENU_KEY) return true;
 		}
-		if (key == GLFW.GLFW_KEY_ESCAPE && settingsVisible()) {
+		if (key == KeyCodes.ESCAPE && settingsVisible()) {
 			closeSettings();
 			return true;
 		}
-		if (key == GLFW.GLFW_KEY_ESCAPE || key == TatnatClient.MENU_KEY) {
+		if (key == KeyCodes.ESCAPE || key == TatnatClient.MENU_KEY) {
 			close();
 			return true;
 		}
-		return super.keyPressed(event);
+		return false;
 	}
 
 	@Override
-	public boolean charTyped(CharacterEvent event) {
-		String chars = event.codepointAsString();
+	public boolean charTyped(String chars) {
 		if (settingsVisible()) {
 			for (SettingComponent<?> c : components) {
 				if (c.isCapturingKeys() && c.charTyped(chars)) return true;
@@ -726,7 +697,7 @@ public class ClickGuiScreen extends Screen {
 		}
 		// Start typing anywhere on the mod grid to search, like Feather.
 		if (page != Page.MODS || settingsVisible()) return false;
-		if (!searchFocused && Character.isLetterOrDigit(event.codepoint())) searchFocused = true;
+		if (!searchFocused && !chars.isEmpty() && Character.isLetterOrDigit(chars.codePointAt(0))) searchFocused = true;
 		if (searchFocused && search.length() < 32) {
 			search += chars;
 			scrollTarget = 0;

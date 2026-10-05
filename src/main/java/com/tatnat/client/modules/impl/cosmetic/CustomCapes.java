@@ -1,15 +1,18 @@
 package com.tatnat.client.modules.impl.cosmetic;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
 
-import com.mojang.blaze3d.platform.NativeImage;
+import javax.imageio.ImageIO;
+
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.Module;
@@ -19,11 +22,6 @@ import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.ui.render.Icons;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.core.ClientAsset;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.world.entity.player.PlayerSkin;
 
 /**
  * A cape on your own player, drawn on your screen only (other players can't see client-side
@@ -35,7 +33,6 @@ public class CustomCapes extends Module {
 
 	private static final String[] BUILT_IN = {"tatnat", "Crimson", "Midnight", "Ocean", "Forest", "Gold"};
 	private static final Path FOLDER = FabricLoader.getInstance().getConfigDir().resolve("tatnat-client").resolve("capes");
-	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(TatnatClient.ID, "cape/current");
 
 	public final ModeSetting cape = add(new ModeSetting("Cape", "Built-in design or a PNG from your capes folder", "tatnat", BUILT_IN));
 	public final SliderSetting physics = add(new SliderSetting("Physics", "How much the cape swings as you move", 100, 0, 250, 5, "%"));
@@ -43,8 +40,10 @@ public class CustomCapes extends Module {
 			() -> "Open folder", this::openFolder));
 	private final ActionSetting reload = add(new ActionSetting("Reload", "Look for new cape files", () -> "Reload", this::rescan));
 
-	private String loaded;
-	private ClientAsset.Texture asset;
+	/** Bumped whenever the picture changes so platforms know to re-upload their texture. */
+	private int revision;
+	private String pixelsFor;
+	private int[] pixels;
 
 	public CustomCapes() {
 		super("Custom Capes", "Wear a cape (visible to you)", Category.COSMETIC, false);
@@ -58,19 +57,23 @@ public class CustomCapes extends Module {
 	}
 
 	private void rescan() {
-		List<String> modes = new ArrayList<>(List.of(BUILT_IN));
+		List<String> modes = new ArrayList<>(Arrays.asList(BUILT_IN));
+		List<String> files = new ArrayList<>();
 		try {
 			Files.createDirectories(FOLDER);
-			try (Stream<Path> files = Files.list(FOLDER)) {
-				files.filter(p -> p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".png"))
-						.map(p -> "File: " + p.getFileName().toString())
-						.sorted().forEach(modes::add);
+			try (DirectoryStream<Path> dir = Files.newDirectoryStream(FOLDER)) {
+				for (Path p : dir) {
+					String n = p.getFileName().toString();
+					if (n.toLowerCase(Locale.ROOT).endsWith(".png")) files.add("File: " + n);
+				}
 			}
 		} catch (IOException e) {
-			TatnatClient.LOG.warn("Could not read capes folder", e);
+			TatnatClient.LOG.warn("Could not read capes folder: {}", e.toString());
 		}
+		Collections.sort(files);
+		modes.addAll(files);
 		cape.setModes(modes);
-		loaded = null;
+		pixelsFor = null;
 	}
 
 	private void openFolder() {
@@ -78,47 +81,31 @@ public class CustomCapes extends Module {
 			Files.createDirectories(FOLDER);
 		} catch (IOException ignored) {
 		}
-		Util.getPlatform().openPath(FOLDER);
+		game().openPath(FOLDER);
 	}
 
-	/** Your skin with the chosen cape (and matching elytra) swapped in. */
-	public PlayerSkin apply(PlayerSkin skin) {
-		ClientAsset.Texture t = texture();
-		if (t == null) return skin;
-		return new PlayerSkin(skin.body(), t, t, skin.model(), skin.secure());
+	/** Change counter for the current picture (platforms re-upload when it changes). */
+	public int revision() {
+		pixels();
+		return revision;
 	}
 
-	private ClientAsset.Texture texture() {
-		if (cape.get().equals(loaded)) return asset;
-		loaded = cape.get();
-		NativeImage img = null;
+	/** The chosen cape as 64x32 ARGB pixels, or null if it couldn't be loaded. */
+	public int[] pixels() {
+		if (cape.get().equals(pixelsFor)) return pixels;
+		pixelsFor = cape.get();
+		revision++;
 		try {
-			img = cape.get().startsWith("File: ") ? fromFile(cape.get().substring(6)) : CapeArt.draw(cape.get());
-		} catch (Exception e) {
-			TatnatClient.LOG.warn("Could not load cape {}", cape.get(), e);
-		}
-		if (img == null) {
-			asset = null;
-			return null;
-		}
-		DynamicTexture tex = new DynamicTexture(() -> "tatnat cape", img);
-		mc.getTextureManager().register(TEXTURE, tex);
-		asset = new ClientAsset.ResourceTexture(TEXTURE, TEXTURE);
-		return asset;
-	}
-
-	private static NativeImage fromFile(String name) throws IOException {
-		try (InputStream in = Files.newInputStream(FOLDER.resolve(name))) {
-			NativeImage raw = NativeImage.read(in);
-			// Old 22x17 capes: copy onto a proper 64x32 canvas.
-			if (raw.getWidth() < 64) {
-				NativeImage fixed = new NativeImage(64, 32, true);
-				for (int y = 0; y < Math.min(32, raw.getHeight()); y++)
-					for (int x = 0; x < Math.min(64, raw.getWidth()); x++) fixed.setPixel(x, y, raw.getPixel(x, y));
-				raw.close();
-				return fixed;
+			if (cape.get().startsWith("File: ")) {
+				BufferedImage img = ImageIO.read(FOLDER.resolve(cape.get().substring(6)).toFile());
+				pixels = img == null ? null : CapeArt.fromImage(img);
+			} else {
+				pixels = CapeArt.draw(cape.get());
 			}
-			return raw;
+		} catch (Exception e) {
+			TatnatClient.LOG.warn("Could not load cape {}: {}", cape.get(), e.toString());
+			pixels = null;
 		}
+		return pixels;
 	}
 }

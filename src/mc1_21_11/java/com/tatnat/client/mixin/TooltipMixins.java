@@ -55,7 +55,7 @@ public final class TooltipMixins {
 	public static class Lines {
 		@Inject(method = "getTooltipLines", at = @At("RETURN"), cancellable = true)
 		private void tatnat$lines(Item.TooltipContext ctx, Player player, TooltipFlag flag, CallbackInfoReturnable<List<Component>> cir) {
-			if (BetterTooltips.active()) cir.setReturnValue(BetterTooltips.INSTANCE.extend((ItemStack) (Object) this, cir.getReturnValue(), flag.isAdvanced()));
+			if (BetterTooltips.active()) cir.setReturnValue(com.tatnat.client.mc.TooltipLines.extend((ItemStack) (Object) this, cir.getReturnValue(), flag.isAdvanced()));
 		}
 	}
 

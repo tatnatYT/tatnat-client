@@ -19,7 +19,14 @@ import com.tatnat.client.TatnatClient;
  * bound {@link MethodHandle}s, which the JIT inlines about as well as a direct call.
  */
 public final class EventBus {
-	private record Handler(Object owner, MethodHandle handle) {
+	private static final class Handler {
+		final Object owner;
+		final MethodHandle handle;
+
+		Handler(Object owner, MethodHandle handle) {
+			this.owner = owner;
+			this.handle = handle;
+		}
 	}
 
 	private final Map<Class<?>, List<Handler>> handlers = new HashMap<>();
@@ -67,7 +74,7 @@ public final class EventBus {
 				h.handle.invoke(event);
 			} catch (Throwable t) {
 				// One broken module must never take the game down with it.
-				TatnatClient.LOG.error("Event handler in {} failed", h.owner.getClass().getSimpleName(), t);
+				TatnatClient.LOG.error("Event handler in " + h.owner.getClass().getSimpleName() + " failed", t);
 			}
 		}
 		return event;

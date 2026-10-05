@@ -8,11 +8,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.settings.KeybindSetting;
+import com.tatnat.client.platform.Game;
 import com.tatnat.client.modules.settings.Setting;
 import com.tatnat.client.ui.render.Icons;
 import com.tatnat.client.util.Keys;
-
-import net.minecraft.client.Minecraft;
 
 /**
  * Base class for every mod in the client.
@@ -22,7 +21,10 @@ import net.minecraft.client.Minecraft;
  * menu and the config file pick them up automatically.
  */
 public abstract class Module {
-	protected static final Minecraft mc = Minecraft.getInstance();
+	/** The running game (version-specific implementation). */
+	protected static Game game() {
+		return TatnatClient.game();
+	}
 
 	public final String name;
 	public final String description;

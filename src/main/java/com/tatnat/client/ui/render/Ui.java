@@ -1,6 +1,7 @@
 package com.tatnat.client.ui.render;
 
-import net.minecraft.client.Minecraft;
+import com.tatnat.client.TatnatClient;
+import com.tatnat.client.platform.Game;
 
 /**
  * UI scale for the menus. Layouts are written in "design pixels" for a 1920x1080 window;
@@ -15,8 +16,8 @@ public final class Ui {
 	public static float s = 1f;
 
 	public static void update() {
-		Minecraft mc = Minecraft.getInstance();
-		float w = mc.getWindow().getWidth() / 1920f, h = mc.getWindow().getHeight() / 1080f;
+		Game g = TatnatClient.game();
+		float w = g.windowWidth() / 1920f, h = g.windowHeight() / 1080f;
 		s = Math.max(0.55f, Math.min(w, h));
 	}
 

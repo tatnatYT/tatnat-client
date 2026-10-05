@@ -8,7 +8,7 @@ import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /** A cycle button: left-click goes to the next option, right-click to the previous one. */
 public class ModeComponent extends SettingComponent<ModeSetting> {
@@ -24,7 +24,7 @@ public class ModeComponent extends SettingComponent<ModeSetting> {
 	}
 
 	@Override
-	protected void renderControl(GuiGraphics g, int cx, int cy, double mx, double my) {
+	protected void renderControl(Gfx g, int cx, int cy, double mx, double my) {
 		int bw = controlWidth(), bh = Ui.px(32);
 		boolean hover = Widgets.inside(mx, my, cx, cy - bh / 2, bw, bh);
 		RenderUtils.roundedRect(g, cx, cy - bh / 2, bw, bh, Ui.px(Theme.RADIUS), hover ? Colors.shade(Theme.TRACK, 1.2f) : Theme.TRACK);

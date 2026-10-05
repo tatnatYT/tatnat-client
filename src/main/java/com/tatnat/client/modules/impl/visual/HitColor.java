@@ -19,13 +19,6 @@ public class HitColor extends Module {
 	/** Vanilla's hurt tint: red at 70% opacity. */
 	public static final int VANILLA = 0xB3FF0000;
 
-	/** Implemented by the overlay texture mixin. */
-	public interface Target {
-		void tatnat$setHurtColor(int argb);
-	}
-
-	public static Target target;
-
 	private final ColorSetting color = add(new ColorSetting("Color", "Colour of the hit flash", 0xFF4EB1FF, true));
 	private final SliderSetting opacity = add(new SliderSetting("Opacity", "How strong the flash is (vanilla is 30%)", 50, 0, 100, 5, "%"));
 
@@ -58,9 +51,8 @@ public class HitColor extends Module {
 	}
 
 	private void apply(int argb) {
-		if (target == null || argb == applied) return;
-		if (com.tatnat.client.util.DevTest.enabled()) com.tatnat.client.TatnatClient.LOG.info("[devtest] hit colour -> {} (target {})", Integer.toHexString(argb), target);
-		target.tatnat$setHurtColor(argb);
+		if (argb == applied) return;
+		com.tatnat.client.TatnatClient.features().setHurtColor(argb);
 		applied = argb;
 	}
 }

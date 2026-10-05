@@ -6,7 +6,7 @@ import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /**
  * "Scale: 1.25x" on the left, a draggable slider on the right. The knob glides while the stored
@@ -37,7 +37,7 @@ public class SliderComponent extends SettingComponent<SliderSetting> {
 	}
 
 	@Override
-	protected void renderControl(GuiGraphics g, int cx, int cy, double mx, double my) {
+	protected void renderControl(Gfx g, int cx, int cy, double mx, double my) {
 		trackX = cx;
 		int tw = trackW(), th = Math.max(4, Ui.px(6)), knob = Ui.px(9);
 		float target = (float) setting.fraction();

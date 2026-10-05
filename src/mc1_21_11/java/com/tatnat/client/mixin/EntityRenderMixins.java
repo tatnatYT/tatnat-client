@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.tatnat.client.mc.PlayerLooks;
 import com.tatnat.client.modules.impl.utility.Freecam;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
@@ -25,7 +26,7 @@ public final class EntityRenderMixins {
 		@Inject(method = "getNameTag", at = @At("RETURN"), cancellable = true)
 		private void tatnat$nameTag(Entity entity, CallbackInfoReturnable<Component> cir) {
 			if (NickHider.active() && entity == Minecraft.getInstance().player && cir.getReturnValue() != null) {
-				cir.setReturnValue(NickHider.INSTANCE.replace(cir.getReturnValue()));
+				cir.setReturnValue(PlayerLooks.replaceName(cir.getReturnValue()));
 			}
 		}
 	}

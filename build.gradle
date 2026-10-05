@@ -1,19 +1,39 @@
 plugins {
-	// 1.21.x is obfuscated, so mixin targets have to be remapped to intermediary names.
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	// Only one family is applied per build (chosen below from minecraft_version):
+	//  - 26.x is unobfuscated and uses plain fabric-loom;
+	//  - 1.14 - 1.21.11 are obfuscated and need the remapping plugin;
+	//  (1.8.9 - 1.13.2 build separately in legacy/, with Legacy Fabric's older plugin.)
+	id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}" apply false
 }
 
 version = project.mod_version
 group = project.maven_group
 
+def mcVersion = project.minecraft_version
+def unobfuscated = mcVersion.startsWith('26.')
+def platformDir = project.platform_source
+def javaVersion = project.java_version as int
+
+apply plugin: unobfuscated ? 'net.fabricmc.fabric-loom' : 'net.fabricmc.fabric-loom-remap'
+
 base {
-	archivesName = "${project.archives_base_name}-mc${project.minecraft_version}"
+	archivesName = "${project.archives_base_name}-mc${mcVersion}"
+}
+
+// Shared code lives in src/main/java (plain Java 8, no Minecraft); each version's layer in
+// src/<platform>/java with its own mixins and fabric.mod.json.
+sourceSets {
+	main {
+		java { srcDir "src/${platformDir}/java" }
+		resources { srcDir "src/${platformDir}/resources" }
+	}
 }
 
 loom {
 	runs {
 		client {
-			// Dev testing only (test.ps1): -Pdevtest=main runs the scripted test in DevTestSteps,
+			// Dev testing only: -Pdevtest=main runs the scripted test in DevTestSteps,
 			// -Pquickjoin=127.0.0.1:25599 joins the local dev server straight away.
 			programArgs "--username", "tatnat", "--width", "1600", "--height", "900"
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
@@ -26,26 +46,33 @@ loom {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	// Fabric Loader alone never loads a mod's assets (fonts, logo); Fabric API's resource loader
-	// does. Bundle just that module (and its base) inside our jar so the mod works on its own.
-	// If the player also has full Fabric API, Loader picks the newest copy, so they never clash.
-	modImplementation include(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
-	modImplementation include(fabricApi.module("fabric-api-base", project.fabric_api_version))
+	minecraft "com.mojang:minecraft:${mcVersion}"
+	if (unobfuscated) {
+		implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		// Fabric Loader alone never loads a mod's assets; bundle Fabric API's resource loader.
+		implementation include(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
+		implementation include(fabricApi.module("fabric-api-base", project.fabric_api_version))
+	} else {
+		mappings loom.officialMojangMappings()
+		modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		// Fabric Loader alone never loads a mod's assets (fonts, logo); Fabric API's resource
+		// loader does. Bundle just that module (and its base) inside our jar so the mod works on
+		// its own. If the player also has full Fabric API, Loader picks the newest copy.
+		modImplementation include(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
+		modImplementation include(fabricApi.module("fabric-api-base", project.fabric_api_version))
+	}
 }
 
 processResources {
 	inputs.property "version", project.version
-	filesMatching("fabric.mod.json") { expand "version": project.version }
+	inputs.property "mc", project.minecraft_dependency
+	filesMatching("fabric.mod.json") { expand "version": project.version, "minecraft_dependency": project.minecraft_dependency }
 }
 
-tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
+tasks.withType(JavaCompile).configureEach { it.options.release = javaVersion }
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.toVersion(javaVersion)
+	targetCompatibility = JavaVersion.toVersion(javaVersion)
 }
 
 tasks.register('collectJar', Copy) {

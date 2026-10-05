@@ -1,4 +1,4 @@
-package com.tatnat.client.util;
+package com.tatnat.client.mc;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public final class DevTest {
 		try {
 			s.action.run();
 		} catch (Throwable t) {
-			TatnatClient.LOG.error("[devtest] step {} FAILED", s.name, t);
+			TatnatClient.LOG.error("[devtest] step " + s.name + " FAILED", t);
 		}
 		wait = index < STEPS.size() ? STEPS.get(index).delayTicks : -1;
 	}

@@ -1,5 +1,8 @@
 package com.tatnat.client.modules.settings;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.JsonElement;
@@ -11,12 +14,12 @@ public class ModeSetting extends Setting<String> {
 
 	public ModeSetting(String name, String description, String defaultValue, String... modes) {
 		super(name, description, defaultValue);
-		this.modes = List.of(modes);
+		this.modes = Collections.unmodifiableList(Arrays.asList(modes));
 	}
 
 	/** Replaces the options (e.g. after rescanning a folder), keeping the value if it still exists. */
 	public void setModes(List<String> newModes) {
-		modes = List.copyOf(newModes);
+		modes = Collections.unmodifiableList(new ArrayList<>(newModes));
 		if (!modes.contains(value)) value = modes.contains(defaultValue) ? defaultValue : modes.get(0);
 	}
 

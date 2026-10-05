@@ -96,7 +96,7 @@ public final class ModuleManager {
 
 	public List<HudModule> hud() {
 		List<HudModule> list = new ArrayList<>();
-		for (Module m : modules) if (m instanceof HudModule h) list.add(h);
+		for (Module m : modules) if (m instanceof HudModule) list.add((HudModule) m);
 		return list;
 	}
 

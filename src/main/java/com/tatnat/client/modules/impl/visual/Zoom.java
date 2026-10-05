@@ -1,7 +1,5 @@
 package com.tatnat.client.modules.impl.visual;
 
-import org.lwjgl.glfw.GLFW;
-
 import com.tatnat.client.event.Events;
 import com.tatnat.client.event.Subscribe;
 import com.tatnat.client.modules.Category;
@@ -9,6 +7,7 @@ import com.tatnat.client.modules.Module;
 import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.KeybindSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
+import com.tatnat.client.util.KeyCodes;
 
 /**
  * OptiFine-style zoom: hold the key (C by default) and the field of view eases down.
@@ -19,7 +18,7 @@ import com.tatnat.client.modules.settings.SliderSetting;
 public class Zoom extends Module {
 	public static Zoom INSTANCE;
 
-	public final KeybindSetting key = add(new KeybindSetting("Zoom Key", "Hold this key to zoom", GLFW.GLFW_KEY_C));
+	public final KeybindSetting key = add(new KeybindSetting("Zoom Key", "Hold this key to zoom", KeyCodes.C));
 	public final SliderSetting amount = add(new SliderSetting("Zoom Amount", "How far to zoom in", 4.0, 1.5, 50.0, 0.5, "x"));
 	public final BooleanSetting smooth = add(new BooleanSetting("Smooth Zoom", "Glide in and out instead of snapping", true));
 	public final BooleanSetting cinematic = add(new BooleanSetting("Cinematic Camera", "Smooth, floaty camera while zoomed", false));
@@ -44,7 +43,7 @@ public class Zoom extends Module {
 	public static boolean devForce;
 
 	public boolean zooming() {
-		return isEnabled() && mc.screen == null && (key.isDown() || devForce);
+		return isEnabled() && !game().screenOpen() && (key.isDown() || devForce);
 	}
 
 	private double target() {
@@ -61,10 +60,10 @@ public class Zoom extends Module {
 		if (z != wasZooming) {
 			wasZooming = z;
 			if (z) {
-				savedSmoothCamera = mc.options.smoothCamera;
-				if (cinematic.on()) mc.options.smoothCamera = true;
+				savedSmoothCamera = game().smoothCamera();
+				if (cinematic.on()) game().setSmoothCamera(true);
 			} else {
-				mc.options.smoothCamera = savedSmoothCamera;
+				game().setSmoothCamera(savedSmoothCamera);
 				scrollFactor = 1.0;
 			}
 		}
@@ -88,7 +87,7 @@ public class Zoom extends Module {
 
 	@Override
 	protected void onDisable() {
-		if (wasZooming) mc.options.smoothCamera = savedSmoothCamera;
+		if (wasZooming) game().setSmoothCamera(savedSmoothCamera);
 		wasZooming = false;
 		current = 1.0;
 	}

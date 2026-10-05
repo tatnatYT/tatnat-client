@@ -13,7 +13,7 @@ import com.tatnat.client.ui.render.UIFont;
 import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Theme;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.tatnat.client.platform.Gfx;
 
 /**
  * One row in a mod's settings page. Rows draw the name and a muted description on the left and
@@ -30,13 +30,13 @@ public abstract class SettingComponent<S extends Setting<?>> {
 	}
 
 	public static SettingComponent<?> of(Setting<?> s) {
-		if (s instanceof BooleanSetting b) return new BooleanComponent(b);
-		if (s instanceof SliderSetting sl) return new SliderComponent(sl);
-		if (s instanceof ModeSetting m) return new ModeComponent(m);
-		if (s instanceof ColorSetting c) return new ColorComponent(c);
-		if (s instanceof TextSetting t) return new TextComponent(t);
-		if (s instanceof KeybindSetting k) return new KeybindComponent(k);
-		if (s instanceof com.tatnat.client.modules.settings.ActionSetting a) return new ActionComponent(a);
+		if (s instanceof BooleanSetting) return new BooleanComponent((BooleanSetting) s);
+		if (s instanceof SliderSetting) return new SliderComponent((SliderSetting) s);
+		if (s instanceof ModeSetting) return new ModeComponent((ModeSetting) s);
+		if (s instanceof ColorSetting) return new ColorComponent((ColorSetting) s);
+		if (s instanceof TextSetting) return new TextComponent((TextSetting) s);
+		if (s instanceof KeybindSetting) return new KeybindComponent((KeybindSetting) s);
+		if (s instanceof com.tatnat.client.modules.settings.ActionSetting) return new ActionComponent((com.tatnat.client.modules.settings.ActionSetting) s);
 		throw new IllegalArgumentException("No component for " + s.getClass().getSimpleName());
 	}
 
@@ -72,7 +72,7 @@ public abstract class SettingComponent<S extends Setting<?>> {
 		return setting.name;
 	}
 
-	public void render(GuiGraphics g, int x, int y, int w, double mx, double my) {
+	public void render(Gfx g, int x, int y, int w, double mx, double my) {
 		this.x = x;
 		this.y = y;
 		this.w = w;
@@ -86,7 +86,7 @@ public abstract class SettingComponent<S extends Setting<?>> {
 	}
 
 	/** Draws the control with its left edge at {@code cx} and vertically centred on {@code cy}. */
-	protected abstract void renderControl(GuiGraphics g, int cx, int cy, double mx, double my);
+	protected abstract void renderControl(Gfx g, int cx, int cy, double mx, double my);
 
 	public boolean mouseClicked(double mx, double my, int button) {
 		return false;

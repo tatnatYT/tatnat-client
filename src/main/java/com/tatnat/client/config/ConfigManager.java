@@ -42,7 +42,8 @@ public final class ConfigManager {
 			JsonObject root = new JsonObject();
 			if (Files.exists(file)) {
 				try (Reader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-					root = JsonParser.parseReader(r).getAsJsonObject();
+					// Instance parse(): the static parseReader() is missing from the older Gson in 1.8.9-1.12.2.
+					root = new JsonParser().parse(r).getAsJsonObject();
 				} catch (Exception e) {
 					TatnatClient.LOG.error("Config was unreadable, starting from defaults (old file kept as .broken)", e);
 					try {
@@ -55,8 +56,8 @@ public final class ConfigManager {
 			int version = root.has("version") ? root.get("version").getAsInt() : 0;
 			if (version < 2) {
 				// v2: brackets became opt-in, so drop the old saved "on" values.
-				for (String key : mods.keySet()) {
-					if (mods.get(key).isJsonObject() && mods.getAsJsonObject(key).has("settings")) mods.getAsJsonObject(key).getAsJsonObject("settings").remove("Brackets");
+				for (java.util.Map.Entry<String, com.google.gson.JsonElement> en : mods.entrySet()) {
+					if (en.getValue().isJsonObject() && en.getValue().getAsJsonObject().has("settings")) en.getValue().getAsJsonObject().getAsJsonObject("settings").remove("Brackets");
 				}
 			}
 			for (Module m : ModuleManager.get().all()) {

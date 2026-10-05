@@ -3,8 +3,6 @@ package com.tatnat.client.modules.impl.utility;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.glfw.GLFW;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,31 +17,41 @@ import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.KeybindSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.modules.settings.TextSetting;
+import com.tatnat.client.platform.Gfx;
 import com.tatnat.client.ui.render.Icons;
 import com.tatnat.client.ui.render.RenderUtils;
 import com.tatnat.client.ui.theme.Colors;
+import com.tatnat.client.util.KeyCodes;
 import com.tatnat.client.util.WorldProjector;
-
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.gizmos.Gizmos;
-import net.minecraft.gizmos.TextGizmo;
-import net.minecraft.world.phys.Vec3;
 
 /**
  * Named markers that stay visible through walls: a beam up to the sky, a floating name with the
  * distance, and an arrow on the screen edge when the waypoint is behind you or off-screen.
- * Waypoints belong to one world (server address or singleplayer world + dimension).
+ * Everything is projected onto the screen, so it looks the same on every version. Waypoints
+ * belong to one world (server address or singleplayer world + dimension).
  */
 public class Waypoints extends Module {
-	private record Waypoint(String name, double x, double y, double z, int color, String world) {
+	private static final class Waypoint {
+		final String name, world;
+		final double x, y, z;
+		final int color;
+
+		Waypoint(String name, double x, double y, double z, int color, String world) {
+			this.name = name;
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			this.color = color;
+			this.world = world;
+		}
 	}
 
 	private final List<Waypoint> waypoints = new ArrayList<>();
 
 	private final TextSetting newName = add(new TextSetting("Name", "Name for the next waypoint you add", "Home", 32));
 	private final ColorSetting color = add(new ColorSetting("Color", "Colour for new waypoints", 0xFFE5323E, true));
-	private final KeybindSetting addKey = add(new KeybindSetting("Quick Add Key", "Press in game to drop a waypoint where you stand", GLFW.GLFW_KEY_B));
-	private final ActionSetting add = add(new ActionSetting("Add Waypoint Here", "Drop a waypoint at your position", () -> "Add", this::addHere));
+	private final KeybindSetting addKey = add(new KeybindSetting("Quick Add Key", "Press in game to drop a waypoint where you stand", KeyCodes.B));
+	private final ActionSetting addHere = add(new ActionSetting("Add Waypoint Here", "Drop a waypoint at your position", () -> "Add", this::addHere));
 	private final ActionSetting removeNearest = add(new ActionSetting("Remove Nearest", "Delete the closest waypoint in this world", () -> "Remove", this::removeNearest));
 	private final ActionSetting clear = add(new ActionSetting("Clear This World", "Delete every waypoint in this world", () -> count() + " saved", this::clearWorld));
 	private final SliderSetting textScale = add(new SliderSetting("Text Scale", "Size of the floating names", 1.0, 0.5, 3, 0.1, "x"));
@@ -55,39 +63,32 @@ public class Waypoints extends Module {
 		icon = Icons.Icon.PIN;
 	}
 
-	private String worldKey() {
-		if (mc.level == null) return "";
-		String dim = mc.level.dimension().identifier().toString();
-		if (mc.getCurrentServer() != null) return mc.getCurrentServer().ip + "|" + dim;
-		if (mc.getSingleplayerServer() != null) return "sp:" + mc.getSingleplayerServer().getWorldData().getLevelName() + "|" + dim;
-		return "?|" + dim;
-	}
-
 	private List<Waypoint> here() {
-		String key = worldKey();
+		String key = game().worldKey();
 		List<Waypoint> out = new ArrayList<>();
 		for (Waypoint w : waypoints) if (w.world.equals(key)) out.add(w);
 		return out;
 	}
 
 	private int count() {
-		return mc.level == null ? 0 : here().size();
+		return game().inWorld() ? here().size() : 0;
 	}
 
 	private void addHere() {
-		if (mc.player == null) return;
-		String name = newName.get().isBlank() ? "Waypoint" : newName.get().trim();
-		waypoints.add(new Waypoint(name, Math.floor(mc.player.getX()) + 0.5, Math.floor(mc.player.getY()), Math.floor(mc.player.getZ()) + 0.5,
-				color.get(), worldKey()));
+		if (!game().inWorld()) return;
+		String name = newName.get().trim().isEmpty() ? "Waypoint" : newName.get().trim();
+		waypoints.add(new Waypoint(name, Math.floor(game().x()) + 0.5, Math.floor(game().y()), Math.floor(game().z()) + 0.5,
+				color.get(), game().worldKey()));
 		TatnatClient.CONFIG.markDirty();
 	}
 
 	private void removeNearest() {
-		if (mc.player == null) return;
+		if (!game().inWorld()) return;
 		Waypoint best = null;
 		double bd = Double.MAX_VALUE;
 		for (Waypoint w : here()) {
-			double d = mc.player.distanceToSqr(w.x, w.y, w.z);
+			double dx = w.x - game().x(), dy = w.y - game().y(), dz = w.z - game().z();
+			double d = dx * dx + dy * dy + dz * dz;
 			if (d < bd) {
 				bd = d;
 				best = w;
@@ -104,50 +105,65 @@ public class Waypoints extends Module {
 
 	@Subscribe
 	public void onKey(Events.Key e) {
-		if (e.inGame && e.action == GLFW.GLFW_PRESS && addKey.isBound() && e.key == addKey.get()) addHere();
-	}
-
-	@Subscribe
-	public void onGizmos(Events.Gizmos e) {
-		if (mc.level == null) return;
-		Vec3 cam = new Vec3(e.camX, e.camY, e.camZ);
-		for (Waypoint w : here()) {
-			Vec3 pos = new Vec3(w.x, w.y, w.z);
-			double dist = cam.distanceTo(pos);
-			if (beam.on()) {
-				Gizmos.line(new Vec3(w.x, mc.level.getMinY(), w.z), new Vec3(w.x, mc.level.getMaxY() + 64, w.z), Colors.withAlpha(w.color, 0xFF), 4f)
-						.setAlwaysOnTop();
-			}
-			// Far waypoints are drawn closer along the same line of sight (and scaled up to match),
-			// so they never fall outside the view distance.
-			Vec3 label = pos.add(0, 2.2, 0);
-			double shown = Math.min(dist, 48);
-			Vec3 dir = label.subtract(cam).normalize();
-			Vec3 at = cam.add(dir.scale(shown));
-			float scale = (float) (textScale.get() * Math.max(0.6, shown / 10.0));
-			String text = w.name + "  " + Math.round(dist) + "m";
-			Gizmos.billboardText(text, at, TextGizmo.Style.forColorAndCentered(0xFFFFFFFF).withScale(scale)).setAlwaysOnTop();
-		}
+		if (e.inGame && e.action == KeyCodes.PRESS && addKey.isBound() && e.key == addKey.get()) addHere();
 	}
 
 	@Subscribe
 	public void onRender(Events.Render2D e) {
-		if (!arrows.on() || mc.level == null || mc.options.hideGui) return;
-		int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
-		GuiGraphics g = e.graphics;
+		if (!game().inWorld() || game().hudHidden()) return;
+		Gfx g = e.gfx;
+		int w = game().guiWidth(), h = game().guiHeight();
+		double px = game().x(), py = game().eyeY(), pz = game().z();
 		for (Waypoint wp : here()) {
-			double[] p = WorldProjector.project(new Vec3(wp.x, wp.y + 1, wp.z));
-			if (p[2] == 1) continue;
-			double dx = p[0] - w / 2.0, dy = p[1] - h / 2.0;
-			double ang = Math.atan2(dy, dx);
-			double rx = w / 2.0 - 18, ry = h / 2.0 - 18;
-			// Point on the screen-edge rectangle in that direction.
-			double t = Math.min(rx / Math.max(1e-6, Math.abs(Math.cos(ang))), ry / Math.max(1e-6, Math.abs(Math.sin(ang))));
-			float ax = (float) (w / 2.0 + Math.cos(ang) * t), ay = (float) (h / 2.0 + Math.sin(ang) * t);
-			int scale = RenderUtils.beginPixels(g);
-			Icons.arrow(g, ax * scale, ay * scale, (float) ang, 11 * scale, wp.color);
-			RenderUtils.end(g);
+			double dist = Math.sqrt((wp.x - px) * (wp.x - px) + (wp.y - py) * (wp.y - py) + (wp.z - pz) * (wp.z - pz));
+			if (beam.on()) drawBeam(g, wp);
+			double[] p = WorldProjector.project(wp.x, wp.y + 2.2, wp.z);
+			if (p[2] == 1) {
+				drawLabel(g, wp, dist, p);
+			} else if (arrows.on()) {
+				double dx = p[0] - w / 2.0, dy = p[1] - h / 2.0;
+				double ang = Math.atan2(dy, dx);
+				double rx = w / 2.0 - 18, ry = h / 2.0 - 18;
+				// Point on the screen-edge rectangle in that direction.
+				double t = Math.min(rx / Math.max(1e-6, Math.abs(Math.cos(ang))), ry / Math.max(1e-6, Math.abs(Math.sin(ang))));
+				float ax = (float) (w / 2.0 + Math.cos(ang) * t), ay = (float) (h / 2.0 + Math.sin(ang) * t);
+				int scale = RenderUtils.beginPixels(g);
+				Icons.arrow(g, ax * scale, ay * scale, (float) ang, 11 * scale, wp.color);
+				RenderUtils.end(g);
+			}
 		}
+	}
+
+	/** Vertical beam: sampled up the column and drawn segment by segment where it's in view. */
+	private void drawBeam(Gfx g, Waypoint wp) {
+		int scale = RenderUtils.beginPixels(g);
+		double y0 = game().worldMinY(), y1 = game().worldMaxY() + 64;
+		double[] prev = null;
+		int steps = 48;
+		for (int i = 0; i <= steps; i++) {
+			double y = y0 + (y1 - y0) * i / steps;
+			double[] p = WorldProjector.project(wp.x, y, wp.z);
+			if (p[3] > 0.05 && prev != null && prev[3] > 0.05) {
+				float width = (float) Math.max(1.5, Math.min(6, 40 / Math.max(1, p[3]))) * scale / 2f;
+				Icons.thickLine(g, (float) prev[0] * scale, (float) prev[1] * scale, (float) p[0] * scale, (float) p[1] * scale, width,
+						Colors.withAlpha(wp.color, 0xC0));
+			}
+			prev = p;
+		}
+		RenderUtils.end(g);
+	}
+
+	private void drawLabel(Gfx g, Waypoint wp, double dist, double[] p) {
+		String text = wp.name + "  " + Math.round(dist) + "m";
+		float s = textScale.floatValue();
+		int tw = g.mcTextWidth(text, false);
+		g.push();
+		g.translate((float) p[0], (float) p[1]);
+		g.scale(s, s);
+		g.rect(-tw / 2 - 4, -6, tw / 2 + 4, 6, 0x90000000);
+		g.rect(-tw / 2 - 4, -6, -tw / 2 - 2, 6, wp.color);
+		g.mcText(text, -tw / 2, -4, 0xFFFFFFFF, false, false);
+		g.pop();
 	}
 
 	@Override
@@ -187,6 +203,6 @@ public class Waypoints extends Module {
 
 	/** Dev test hook. */
 	public void devAdd(String name, double x, double y, double z) {
-		waypoints.add(new Waypoint(name, x, y, z, color.get(), worldKey()));
+		waypoints.add(new Waypoint(name, x, y, z, color.get(), game().worldKey()));
 	}
 }
