@@ -32,10 +32,15 @@ sourceSets {
 
 loom {
 	runs {
+		// Each Minecraft version gets its own run folder (worlds can't be opened by older versions).
+		configureEach { runDir "run/${mcVersion}" }
 		client {
 			// Dev testing only: -Pdevtest=main runs the scripted test in DevTestSteps,
 			// -Pquickjoin=127.0.0.1:25599 joins the local dev server straight away.
 			programArgs "--username", "tatnat", "--width", "1600", "--height", "900"
+			// Report every broken hook in one run (logged as "Mixin apply failed") instead of
+			// crashing at the first; devtest.js fails the run if any are logged.
+			vmArg "-Dmixin.ignoreRequired=true"
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
 			if (project.hasProperty('quickjoin')) programArgs "--quickPlayMultiplayer", project.property('quickjoin').toString()
 		}

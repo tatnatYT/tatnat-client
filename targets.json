@@ -1,0 +1,19 @@
+{
+	"_comment": "One jar per entry. 'mc' is the version compiled against, 'dep' the range of Minecraft versions the jar declares it supports, 'src' the platform folder under src/.",
+	"targets": [
+		{
+			"mc": "1.21.11",
+			"dep": "~1.21.11",
+			"src": "mc1_21_11",
+			"java": 21,
+			"api": "0.141.6+1.21.11"
+		},
+		{
+			"mc": "1.21.10",
+			"dep": ">=1.21.9 <1.21.11",
+			"src": "mc1_21_9",
+			"java": 21,
+			"api": "0.138.4+1.21.10"
+		}
+	]
+}
