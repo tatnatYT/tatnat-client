@@ -75,11 +75,17 @@ public abstract class Module {
 		return Collections.unmodifiableList(settings);
 	}
 
+	/** False when this Minecraft version can't run the mod (it then shows greyed out and can't be turned on). */
+	public boolean available() {
+		return true;
+	}
+
 	public boolean isEnabled() {
 		return enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
+		if (enabled && !available()) enabled = false;
 		if (this.enabled == enabled) return;
 		this.enabled = enabled;
 		if (enabled) {

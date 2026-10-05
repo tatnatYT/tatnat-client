@@ -32,14 +32,6 @@ public final class HitboxMixins {
 	private HitboxMixins() {
 	}
 
-	static boolean wanted(Entity e) {
-		Hitboxes h = Hitboxes.INSTANCE;
-		if (e == Minecraft.getInstance().getCameraEntity() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) return false;
-		if (h.targets.is("Players")) return e instanceof Player;
-		if (h.targets.is("Living")) return e instanceof LivingEntity;
-		return true;
-	}
-
 	@Mixin(EntityRenderer.class)
 	public static class Enable {
 		@WrapOperation(method = "extractRenderState", at = @At(value = "INVOKE",
@@ -47,7 +39,7 @@ public final class HitboxMixins {
 		private boolean tatnat$hitboxes(DebugScreenEntryList list, ResourceLocation entry, Operation<Boolean> original,
 				@Local(argsOnly = true) Entity entity) {
 			boolean vanilla = original.call(list, entry);
-			if (Hitboxes.active() && entry.equals(DebugScreenEntries.ENTITY_HITBOXES)) return vanilla || wanted(entity);
+			if (Hitboxes.active() && entry.equals(DebugScreenEntries.ENTITY_HITBOXES)) return vanilla || com.tatnat.client.mc.HitboxFilter.wanted(entity);
 			return vanilla;
 		}
 	}

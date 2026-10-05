@@ -20,6 +20,9 @@ if (!fs.existsSync(props)) {
   fs.writeFileSync(props, ['online-mode=false', 'server-port=25599', 'spawn-protection=0', 'level-seed=tatnat',
     'difficulty=peaceful', 'view-distance=8', 'simulation-distance=6', 'motd=tatnat dev'].join('\n') + '\n');
 }
+// Skip first-launch screens (accessibility onboarding, multiplayer warning) that block auto-join.
+const opts = path.join(run, "options.txt");
+if (!fs.existsSync(opts)) fs.writeFileSync(opts, ["onboardAccessibility:false", "skipMultiplayerWarning:true", "joinedFirstServer:true", "tutorialStep:none", "narrator:0"].join("\n") + "\n");
 // Op the dev player ("tatnat", offline UUID) so the test can use commands.
 const h = crypto.createHash('md5').update('OfflinePlayer:tatnat').digest();
 h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80;

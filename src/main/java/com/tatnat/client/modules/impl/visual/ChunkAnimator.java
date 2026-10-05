@@ -34,6 +34,11 @@ public class ChunkAnimator extends Module {
 		INSTANCE = this;
 	}
 
+	@Override
+	public boolean available() {
+		return com.tatnat.client.TatnatClient.features().supports("chunk_animator");
+	}
+
 	public static boolean active() {
 		return INSTANCE != null && INSTANCE.isEnabled();
 	}

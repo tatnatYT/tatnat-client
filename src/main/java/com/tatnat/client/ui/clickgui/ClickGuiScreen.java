@@ -460,6 +460,16 @@ public class ClickGuiScreen implements UiScreen {
 		// Name + switch along the bottom.
 		int mid = y + h - Ui.px(30);
 		int tw = Widgets.toggleW();
+		if (!m.available()) {
+			// This Minecraft version can't run it: greyed out, no switch.
+			UIFont.TITLE.drawMid(g, UIFont.TITLE.trim(m.name, w - Ui.px(32)), x + Ui.px(16), mid - Ui.px(8), Theme.TEXT_MUTED);
+			UIFont.SMALL.drawMid(g, "Not on this version", x + Ui.px(16), mid + Ui.px(12), 0xFF6E6E73);
+			if (interactive) {
+				hit(x, y, w, h, true, () -> openSettings(m), null);
+				hit(hx - hs, hy - hs, hs * 2, hs * 2, true, () -> m.setFavorite(!m.isFavorite()), null);
+			}
+			return;
+		}
 		UIFont.TITLE.drawMid(g, UIFont.TITLE.trim(m.name, w - tw - Ui.px(44)), x + Ui.px(16), mid, Theme.TEXT);
 		Animation ta = toggleAnim(m);
 		ta.animateTo(m.isEnabled() ? 1f : 0f);
@@ -485,10 +495,15 @@ public class ClickGuiScreen implements UiScreen {
 		int hs = Ui.px(20), hx = tx - Ui.px(30), hy = y + h / 2;
 		int textW = hx - hs - (x + Ui.px(80)) - Ui.px(10);
 		UIFont.TITLE.draw(g, UIFont.TITLE.trim(m.name, textW), x + Ui.px(80), y + h / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
-		UIFont.SMALL.draw(g, UIFont.SMALL.trim(m.description, textW), x + Ui.px(80), y + h / 2 + Ui.px(4), Theme.TEXT_MUTED);
+		UIFont.SMALL.draw(g, UIFont.SMALL.trim(m.available() ? m.description : "Not available on this Minecraft version", textW),
+				x + Ui.px(80), y + h / 2 + Ui.px(4), Theme.TEXT_MUTED);
 		boolean heartHover = hover && Widgets.inside(mx, my, hx - hs, hy - hs, hs * 2, hs * 2);
 		Icons.draw(g, m.isFavorite() ? Icon.HEART_FILLED : Icon.HEART, hx, hy, hs,
 				m.isFavorite() ? Theme.ACCENT : heartHover ? 0xFFFFFFFF : 0xFF77777C);
+		if (!m.available()) {
+			if (interactive) hit(hx - hs, hy - hs, hs * 2, hs * 2, true, () -> m.setFavorite(!m.isFavorite()), null);
+			return;
+		}
 		Animation ta = toggleAnim(m);
 		ta.animateTo(m.isEnabled() ? 1f : 0f);
 		Widgets.toggle(g, tx, ty, ta, hover && Widgets.inside(mx, my, tx - Ui.px(6), y, tw + Ui.px(24), h));
