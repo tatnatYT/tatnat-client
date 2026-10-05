@@ -29,7 +29,6 @@
 		"TooltipMixins$Lines",
 		"TooltipMixins$Shift",
 		"TooltipMixins$Wheel",
-		"WorldLookMixins$Chunks",
 		"WorldLookMixins$DayTime",
 		"WorldLookMixins$Overlay",
 		"WorldLookMixins$WaterFog",

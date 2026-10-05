@@ -1,5 +1,7 @@
 package com.tatnat.client.mixin;
 
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Final;
@@ -13,11 +15,11 @@ import com.tatnat.client.mc.FeaturesImpl;
 import com.tatnat.client.modules.impl.visual.TimeChanger;
 
 import net.minecraft.client.Camera;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.fog.FogData;
-import net.minecraft.client.renderer.fog.environment.WaterFogEnvironment;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.renderer.FogRenderer;
+import net.minecraft.world.level.material.FogType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.Level;
@@ -27,15 +29,17 @@ public final class WorldLookMixins {
 	private WorldLookMixins() {
 	}
 
-	@Mixin(WaterFogEnvironment.class)
+	@Mixin(FogRenderer.class)
 	public static class WaterFog {
 		@Inject(method = "setupFog", at = @At("TAIL"))
-		private void tatnat$clearWater(FogData fog, net.minecraft.world.entity.Entity camera, net.minecraft.core.BlockPos pos, ClientLevel level, float renderDistance, DeltaTracker delta, CallbackInfo ci) {
-			if (!ClearWater.active()) return;
+		private static void tatnat$clearWater(Camera camera, FogRenderer.FogMode mode, float renderDistance, boolean thick, float partialTick,
+				CallbackInfo ci) {
+			if (!ClearWater.active() || camera.getFluidInCamera() != FogType.WATER) return;
 			float s = ClearWater.INSTANCE.strength.floatValue() / 100f;
-			float far = Math.max(fog.environmentalEnd, fog.renderDistanceEnd);
-			fog.environmentalEnd += (far - fog.environmentalEnd) * s;
-			fog.environmentalStart += (fog.environmentalEnd * 0.8f - fog.environmentalStart) * s;
+			float end0 = RenderSystem.getShaderFogEnd(), start0 = RenderSystem.getShaderFogStart();
+			float end = end0 + (Math.max(end0, renderDistance) - end0) * s;
+			RenderSystem.setShaderFogEnd(end);
+			RenderSystem.setShaderFogStart(start0 + (end * 0.8f - start0) * s);
 		}
 	}
 
@@ -53,7 +57,7 @@ public final class WorldLookMixins {
 		@Override
 		public void tatnat$setHurtColor(int argb) {
 			// Rows 0-7 are the "hurt" half of the 16x16 overlay texture.
-			for (int y = 0; y < 8; y++) for (int x = 0; x < 16; x++) texture.getPixels().setPixel(x, y, argb);
+			for (int y = 0; y < 8; y++) for (int x = 0; x < 16; x++) texture.getPixels().setPixelRGBA(x, y, FeaturesImpl.toAbgr(argb));
 			texture.upload();
 		}
 	}

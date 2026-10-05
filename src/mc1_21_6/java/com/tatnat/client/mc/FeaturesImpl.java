@@ -132,4 +132,10 @@ public final class FeaturesImpl implements Features {
 	public float freecamYaw() {
 		return camera == null ? 0f : camera.getYRot();
 	}
+
+	@Override
+	public boolean supports(String feature) {
+		// Chunk Animator hooks a renderer that only exists from 1.21.11 on.
+		return !"chunk_animator".equals(feature);
+	}
 }

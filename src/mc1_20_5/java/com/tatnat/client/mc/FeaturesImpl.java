@@ -27,6 +27,16 @@ public final class FeaturesImpl implements Features {
 	private FeaturesImpl() {
 	}
 
+	/** NativeImage on this version stores ABGR; shared code works in ARGB. */
+	public static int toAbgr(int argb) {
+		return (argb & 0xFF00FF00) | ((argb >> 16) & 0xFF) | ((argb & 0xFF) << 16);
+	}
+
+	public static int toArgb(int abgr) {
+		return toAbgr(abgr);
+	}
+
+
 	// ------------------------------------------------------------ Hit Color
 
 	@Override
@@ -37,8 +47,8 @@ public final class FeaturesImpl implements Features {
 	// ------------------------------------------------------------ Enchant Glint
 
 	private static final ResourceLocation[] GLINT = {
-			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_item.png"),
-			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_armor.png")};
+			new ResourceLocation("minecraft", "textures/misc/enchanted_glint_item.png"),
+			new ResourceLocation("minecraft", "textures/misc/enchanted_glint_armor.png")};
 	// Sized literally: these are created with INSTANCE, before the static GLINT array exists.
 	private final NativeImage[] glintOriginals = new NativeImage[2];
 	private final DynamicTexture[] glintTinted = new DynamicTexture[2];
@@ -67,17 +77,17 @@ public final class FeaturesImpl implements Features {
 				}
 				NativeImage src = glintOriginals[i];
 				if (glintTinted[i] == null) {
-					glintTinted[i] = new DynamicTexture(() -> "tatnat glint", new NativeImage(src.getWidth(), src.getHeight(), true));
+					glintTinted[i] = new DynamicTexture(new NativeImage(src.getWidth(), src.getHeight(), true));
 					mc.getTextureManager().register(GLINT[i], glintTinted[i]);
 				}
 				NativeImage dst = glintTinted[i].getPixels();
 				float r = Colors.red(argb) / 255f, g = Colors.green(argb) / 255f, b = Colors.blue(argb) / 255f;
 				for (int y = 0; y < src.getHeight(); y++) {
 					for (int x = 0; x < src.getWidth(); x++) {
-						int p = src.getPixel(x, y);
+						int p = toArgb(src.getPixelRGBA(x, y));
 						// Brightness of the original purple shimmer drives the new colour.
 						float lum = Math.max(Colors.red(p), Math.max(Colors.green(p), Colors.blue(p))) / 255f;
-						dst.setPixel(x, y, Colors.argb(Colors.alpha(p), Math.round(r * lum * 255), Math.round(g * lum * 255), Math.round(b * lum * 255)));
+						dst.setPixelRGBA(x, y, toAbgr(Colors.argb(Colors.alpha(p), Math.round(r * lum * 255), Math.round(g * lum * 255), Math.round(b * lum * 255))));
 					}
 				}
 				glintTinted[i].upload();
@@ -135,7 +145,7 @@ public final class FeaturesImpl implements Features {
 
 	@Override
 	public boolean supports(String feature) {
-		// Chunk Animator hooks a renderer that only exists from 1.21.11 on.
-		return !"chunk_animator".equals(feature);
+		// Chunk Animator needs the 1.21.5+ renderer; cape physics needs 1.21.2+ render states.
+		return !"chunk_animator".equals(feature) && !"cape_physics".equals(feature);
 	}
 }

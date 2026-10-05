@@ -1,18 +1,13 @@
 package com.tatnat.client.mixin;
 
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.llamalad7.mixinextras.sugar.Local;
-import com.tatnat.client.modules.impl.visual.ChunkAnimator;
 import com.tatnat.client.modules.impl.visual.ClearWater;
 import com.tatnat.client.mc.FeaturesImpl;
 import com.tatnat.client.modules.impl.visual.TimeChanger;
@@ -21,7 +16,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 import net.minecraft.client.renderer.FogParameters;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.world.level.material.FogType;
@@ -88,22 +82,6 @@ public final class WorldLookMixins {
 		private void tatnat$thunder(float partialTick, CallbackInfoReturnable<Float> cir) {
 			if (!((Object) this instanceof ClientLevel) || !TimeChanger.active() || TimeChanger.INSTANCE.weather.is("Server")) return;
 			cir.setReturnValue(TimeChanger.INSTANCE.weather.is("Thunder") ? 1f : 0f);
-		}
-	}
-
-	/**
-	 * Chunk Animator: offsets each section's model-view matrix while it slides in. Optional
-	 * ({@code require = 0}) because Sodium replaces this code path.
-	 */
-	@Mixin(LevelRenderer.class)
-	public static class Chunks {
-		@ModifyArg(method = "prepareChunkRenders", require = 0, at = @At(value = "INVOKE",
-				target = "Lnet/minecraft/client/renderer/DynamicUniforms$ChunkSectionInfo;<init>(Lorg/joml/Matrix4fc;IIIFII)V"), index = 0)
-		private Matrix4fc tatnat$slide(Matrix4fc modelView, @Local SectionRenderDispatcher.RenderSection section) {
-			if (!ChunkAnimator.active()) return modelView;
-			float off = ChunkAnimator.INSTANCE.offset(section, section.getRenderOrigin().getY());
-			if (off == 0f) return modelView;
-			return new Matrix4f(modelView).translate(0f, off, 0f);
 		}
 	}
 }
