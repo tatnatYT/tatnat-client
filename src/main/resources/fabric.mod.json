@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "tatnatclient",
+	"version": "${version}",
+	"name": "tatnat client",
+	"description": "The in-game side of the tatnat launcher: a Right Shift mod menu, a drag-and-drop HUD editor and PvP / quality-of-life mods.",
+	"authors": ["tatnat"],
+	"contact": { "homepage": "https://www.youtube.com/@tatnatmc" },
+	"license": "All-Rights-Reserved",
+	"icon": "assets/tatnatclient/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["com.tatnat.client.TatnatClient"]
+	},
+	"mixins": [
+		{ "config": "tatnatclient.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.11",
+		"java": ">=21"
+	}
+}

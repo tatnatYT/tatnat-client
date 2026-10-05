@@ -1,0 +1,57 @@
+plugins {
+	// 1.21.x is obfuscated, so mixin targets have to be remapped to intermediary names.
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = "${project.archives_base_name}-mc${project.minecraft_version}"
+}
+
+loom {
+	runs {
+		client {
+			// Dev testing only (test.ps1): -Pdevtest=main runs the scripted test in DevTestSteps,
+			// -Pquickjoin=127.0.0.1:25599 joins the local dev server straight away.
+			programArgs "--username", "tatnat", "--width", "1600", "--height", "900"
+			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
+			if (project.hasProperty('quickjoin')) programArgs "--quickPlayMultiplayer", project.property('quickjoin').toString()
+		}
+	}
+	mods {
+		"tatnatclient" { sourceSet sourceSets.main }
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric Loader alone never loads a mod's assets (fonts, logo); Fabric API's resource loader
+	// does. Bundle just that module (and its base) inside our jar so the mod works on its own.
+	// If the player also has full Fabric API, Loader picks the newest copy, so they never clash.
+	modImplementation include(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
+	modImplementation include(fabricApi.module("fabric-api-base", project.fabric_api_version))
+}
+
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") { expand "version": project.version }
+}
+
+tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.register('collectJar', Copy) {
+	dependsOn tasks.named('build')
+	from layout.buildDirectory.dir('libs')
+	include '*.jar'
+	exclude '*-sources.jar'
+	into rootProject.layout.projectDirectory.dir('dist')
+}
