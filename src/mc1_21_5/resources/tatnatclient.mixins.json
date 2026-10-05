@@ -1,0 +1,41 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.tatnat.client.mixin",
+	"plugin": "com.tatnat.client.mixin.MixinPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ChatComponentMixin",
+		"EntityRenderMixins$HideBody",
+		"EntityRenderMixins$NameTag",
+		"GameRendererMixin",
+		"GameplayHooksMixin",
+		"GuiMixin",
+		"HitboxMixins$Colors",
+		"HitboxMixins$Enable",
+		"KeyboardHandlerMixin",
+		"LevelRendererMixin",
+		"LightTextureMixin",
+		"MinecraftMixin",
+		"MiscMixins$CapePhysics",
+		"MiscMixins$FreezePlayer",
+		"MiscMixins$GlintSpeed",
+		"MiscMixins$InputAccess",
+		"MouseHandlerMixin",
+		"NameMixins",
+		"PlayerInfoMixin",
+		"PlayerLookMixins",
+		"TooltipMixins$Background",
+		"TooltipMixins$Lines",
+		"TooltipMixins$Shift",
+		"TooltipMixins$Wheel",
+		"WorldLookMixins$Chunks",
+		"WorldLookMixins$DayTime",
+		"WorldLookMixins$Overlay",
+		"WorldLookMixins$WaterFog",
+		"WorldLookMixins$Weather"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
