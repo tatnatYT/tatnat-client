@@ -31,7 +31,7 @@ function range(dep) {
 }
 
 const builds = [];
-fs.rmSync(DIST, { recursive: true, force: true });
+if (!skipBuild) fs.rmSync(DIST, { recursive: true, force: true });
 
 // Fabric (1.14.4 - 26.x)
 const fabric = JSON.parse(fs.readFileSync(path.join(__dirname, 'targets.json'), 'utf8')).targets;

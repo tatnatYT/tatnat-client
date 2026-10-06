@@ -22,7 +22,10 @@ public final class FeaturesImpl implements Features {
 
 	public static HurtOverlay overlay;
 
-	private final Minecraft mc = Minecraft.getInstance();
+	/** Looked up on use: NeoForge constructs mods before the client exists. */
+	private static Minecraft mc() {
+		return Minecraft.getInstance();
+	}
 
 	private FeaturesImpl() {
 	}
@@ -62,7 +65,7 @@ public final class FeaturesImpl implements Features {
 		if (argb == 0) {
 			for (int i = 0; i < GLINT.length; i++) {
 				if (glintTinted[i] != null) {
-					mc.getTextureManager().release(GLINT[i]);
+					mc().getTextureManager().release(GLINT[i]);
 					glintTinted[i] = null;
 				}
 			}
@@ -71,14 +74,14 @@ public final class FeaturesImpl implements Features {
 		for (int i = 0; i < GLINT.length; i++) {
 			try {
 				if (glintOriginals[i] == null) {
-					try (InputStream in = mc.getResourceManager().getResource(GLINT[i]).getInputStream()) {
+					try (InputStream in = mc().getResourceManager().getResource(GLINT[i]).getInputStream()) {
 						glintOriginals[i] = NativeImage.read(in);
 					}
 				}
 				NativeImage src = glintOriginals[i];
 				if (glintTinted[i] == null) {
 					glintTinted[i] = new DynamicTexture(new NativeImage(src.getWidth(), src.getHeight(), true));
-					mc.getTextureManager().register(GLINT[i], glintTinted[i]);
+					mc().getTextureManager().register(GLINT[i], glintTinted[i]);
 				}
 				NativeImage dst = glintTinted[i].getPixels();
 				float r = Colors.red(argb) / 255f, g = Colors.green(argb) / 255f, b = Colors.blue(argb) / 255f;
@@ -107,34 +110,34 @@ public final class FeaturesImpl implements Features {
 
 	@Override
 	public boolean startFreecam() {
-		if (mc.player == null || mc.level == null) return false;
-		camera = new FreeCamera(mc.level);
-		camera.setPos(mc.player.getX(), mc.player.getEyeY(), mc.player.getZ());
+		if (mc().player == null || mc().level == null) return false;
+		camera = new FreeCamera(mc().level);
+		camera.setPos(mc().player.getX(), mc().player.getEyeY(), mc().player.getZ());
 		camera.xo = camera.getX();
 		camera.yo = camera.getY();
 		camera.zo = camera.getZ();
-		camera.yRot = mc.player.yRot;
-		camera.xRot = mc.player.xRot;
+		camera.yRot = mc().player.yRot;
+		camera.xRot = mc().player.xRot;
 		camera.yRotO = camera.yRot;
 		camera.xRotO = camera.xRot;
-		mc.setCameraEntity(camera);
+		mc().setCameraEntity(camera);
 		return true;
 	}
 
 	@Override
 	public void stopFreecam() {
 		camera = null;
-		if (mc.player != null) mc.setCameraEntity(mc.player);
+		if (mc().player != null) mc().setCameraEntity(mc().player);
 	}
 
 	@Override
 	public void moveFreecam(double dx, double dy, double dz) {
 		if (camera == null) return;
-		if (camera.level != mc.level) {
+		if (camera.level != mc().level) {
 			stopFreecam();
 			return;
 		}
-		if (mc.getCameraEntity() != camera) mc.setCameraEntity(camera);
+		if (mc().getCameraEntity() != camera) mc().setCameraEntity(camera);
 		camera.moveBy(dx, dy, dz);
 	}
 

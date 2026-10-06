@@ -41,22 +41,25 @@ public final class GameImpl implements Game {
 	/** Vertical FOV of the last rendered frame (set by GameRendererMixin). */
 	public static volatile float lastFov = 70f;
 
-	private final Minecraft mc = Minecraft.getInstance();
+	/** Looked up on use: NeoForge constructs mods before the client exists. */
+	private static Minecraft mc() {
+		return Minecraft.getInstance();
+	}
 
 	private GameImpl() {
 	}
 
 	private KeyMapping key(Bind b) {
 		switch (b) {
-			case FORWARD: return mc.options.keyUp;
-			case BACK: return mc.options.keyDown;
-			case LEFT: return mc.options.keyLeft;
-			case RIGHT: return mc.options.keyRight;
-			case JUMP: return mc.options.keyJump;
-			case SNEAK: return mc.options.keyShift;
-			case SPRINT: return mc.options.keySprint;
-			case ATTACK: return mc.options.keyAttack;
-			default: return mc.options.keyUse;
+			case FORWARD: return mc().options.keyUp;
+			case BACK: return mc().options.keyDown;
+			case LEFT: return mc().options.keyLeft;
+			case RIGHT: return mc().options.keyRight;
+			case JUMP: return mc().options.keyJump;
+			case SNEAK: return mc().options.keyShift;
+			case SPRINT: return mc().options.keySprint;
+			case ATTACK: return mc().options.keyAttack;
+			default: return mc().options.keyUse;
 		}
 	}
 
@@ -64,188 +67,188 @@ public final class GameImpl implements Game {
 
 	@Override
 	public int windowWidth() {
-		return mc.getWindow().getWidth();
+		return mc().getWindow().getWidth();
 	}
 
 	@Override
 	public int windowHeight() {
-		return mc.getWindow().getHeight();
+		return mc().getWindow().getHeight();
 	}
 
 	@Override
 	public int guiScale() {
-		return mc.getWindow().getGuiScale();
+		return mc().getWindow().getGuiScale();
 	}
 
 	@Override
 	public int guiWidth() {
-		return mc.getWindow().getGuiScaledWidth();
+		return mc().getWindow().getGuiScaledWidth();
 	}
 
 	@Override
 	public int guiHeight() {
-		return mc.getWindow().getGuiScaledHeight();
+		return mc().getWindow().getGuiScaledHeight();
 	}
 
 	@Override
 	public double mouseX() {
-		return mc.mouseHandler.xpos() * mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getScreenWidth());
+		return mc().mouseHandler.xpos() * mc().getWindow().getWidth() / Math.max(1, mc().getWindow().getScreenWidth());
 	}
 
 	@Override
 	public double mouseY() {
-		return mc.mouseHandler.ypos() * mc.getWindow().getHeight() / Math.max(1, mc.getWindow().getScreenHeight());
+		return mc().mouseHandler.ypos() * mc().getWindow().getHeight() / Math.max(1, mc().getWindow().getScreenHeight());
 	}
 
 	@Override
 	public boolean inWorld() {
-		return mc.player != null && mc.level != null;
+		return mc().player != null && mc().level != null;
 	}
 
 	@Override
 	public boolean screenOpen() {
-		return mc.gui.screen() != null;
+		return mc().gui.screen() != null;
 	}
 
 	@Override
 	public boolean ourScreenOpen() {
-		return mc.gui.screen() instanceof ScreenBridge;
+		return mc().gui.screen() instanceof ScreenBridge;
 	}
 
 	@Override
 	public boolean hudHidden() {
-		return mc.gui.hud.isHidden();
+		return mc().gui.hud.isHidden();
 	}
 
 	@Override
 	public boolean firstPerson() {
-		return mc.options.getCameraType().isFirstPerson();
+		return mc().options.getCameraType().isFirstPerson();
 	}
 
 	@Override
 	public int fps() {
-		return mc.getFps();
+		return mc().getFps();
 	}
 
 	@Override
 	public boolean smoothCamera() {
-		return mc.options.smoothCamera;
+		return mc().options.smoothCamera;
 	}
 
 	@Override
 	public void setSmoothCamera(boolean on) {
-		mc.options.smoothCamera = on;
+		mc().options.smoothCamera = on;
 	}
 
 	@Override
 	public int uiTextWidth(int weight, int px, String s) {
-		return mc.font.width(GfxImpl.uiComponent(weight, px, s));
+		return mc().font.width(GfxImpl.uiComponent(weight, px, s));
 	}
 
 	@Override
 	public int mcTextWidth(String s, boolean bold) {
-		return bold ? mc.font.width(GfxImpl.mcComponent(s, true)) : mc.font.width(s);
+		return bold ? mc().font.width(GfxImpl.mcComponent(s, true)) : mc().font.width(s);
 	}
 
 	// ------------------------------------------------------------ player
 
 	@Override
 	public double x() {
-		return mc.player.getX();
+		return mc().player.getX();
 	}
 
 	@Override
 	public double y() {
-		return mc.player.getY();
+		return mc().player.getY();
 	}
 
 	@Override
 	public double z() {
-		return mc.player.getZ();
+		return mc().player.getZ();
 	}
 
 	@Override
 	public double eyeY() {
-		return mc.player.getEyeY();
+		return mc().player.getEyeY();
 	}
 
 	@Override
 	public float yaw() {
-		return mc.player.getYRot();
+		return mc().player.getYRot();
 	}
 
 	@Override
 	public float pitch() {
-		return mc.player.getXRot();
+		return mc().player.getXRot();
 	}
 
 	@Override
 	public boolean onGround() {
-		return mc.player.onGround();
+		return mc().player.onGround();
 	}
 
 	@Override
 	public double horizontalSpeed() {
-		return mc.player.getDeltaMovement().horizontalDistance();
+		return mc().player.getDeltaMovement().horizontalDistance();
 	}
 
 	@Override
 	public int hurtTime() {
-		return mc.player.hurtTime;
+		return mc().player.hurtTime;
 	}
 
 	@Override
 	public boolean sprinting() {
-		return mc.player.isSprinting();
+		return mc().player.isSprinting();
 	}
 
 	@Override
 	public String playerName() {
-		return mc.getUser().getName();
+		return mc().getUser().getName();
 	}
 
 	// ------------------------------------------------------------ server / world
 
 	@Override
 	public int ping() {
-		if (mc.getConnection() == null || mc.player == null) return 0;
-		PlayerInfo info = mc.getConnection().getPlayerInfo(mc.player.getUUID());
+		if (mc().getConnection() == null || mc().player == null) return 0;
+		PlayerInfo info = mc().getConnection().getPlayerInfo(mc().player.getUUID());
 		return info == null ? 0 : info.getLatency();
 	}
 
 	@Override
 	public boolean connected() {
-		return mc.getConnection() != null;
+		return mc().getConnection() != null;
 	}
 
 	@Override
 	public String serverIp() {
-		ServerData server = mc.getCurrentServer();
+		ServerData server = mc().getCurrentServer();
 		return server == null ? null : server.ip;
 	}
 
 	@Override
 	public boolean singleplayer() {
-		return mc.hasSingleplayerServer();
+		return mc().hasSingleplayerServer();
 	}
 
 	@Override
 	public String worldKey() {
-		if (mc.level == null) return "";
-		String dim = mc.level.dimension().identifier().toString();
-		if (mc.getCurrentServer() != null) return mc.getCurrentServer().ip + "|" + dim;
-		if (mc.getSingleplayerServer() != null) return "sp:" + mc.getSingleplayerServer().getWorldData().getLevelName() + "|" + dim;
+		if (mc().level == null) return "";
+		String dim = mc().level.dimension().identifier().toString();
+		if (mc().getCurrentServer() != null) return mc().getCurrentServer().ip + "|" + dim;
+		if (mc().getSingleplayerServer() != null) return "sp:" + mc().getSingleplayerServer().getWorldData().getLevelName() + "|" + dim;
 		return "?|" + dim;
 	}
 
 	@Override
 	public int worldMinY() {
-		return mc.level == null ? -64 : mc.level.getMinY();
+		return mc().level == null ? -64 : mc().level.getMinY();
 	}
 
 	@Override
 	public int worldMaxY() {
-		return mc.level == null ? 320 : mc.level.getMaxY();
+		return mc().level == null ? 320 : mc().level.getMaxY();
 	}
 
 	// ------------------------------------------------------------ keys
@@ -279,9 +282,9 @@ public final class GameImpl implements Game {
 	@Override
 	public boolean rawMouseDown(int button) {
 		switch (button) {
-			case 0: return mc.mouseHandler.isLeftPressed();
-			case 1: return mc.mouseHandler.isRightPressed();
-			case 2: return mc.mouseHandler.isMiddlePressed();
+			case 0: return mc().mouseHandler.isLeftPressed();
+			case 1: return mc().mouseHandler.isRightPressed();
+			case 2: return mc().mouseHandler.isMiddlePressed();
 			default: return false;
 		}
 	}
@@ -295,10 +298,10 @@ public final class GameImpl implements Game {
 	@Override
 	public List<ItemInfo> armor(boolean includeHeld, boolean preview) {
 		List<ItemInfo> list = new ArrayList<>();
-		if (mc.player != null) {
-			if (includeHeld && !mc.player.getMainHandItem().isEmpty()) list.add(info(mc.player.getMainHandItem()));
+		if (mc().player != null) {
+			if (includeHeld && !mc().player.getMainHandItem().isEmpty()) list.add(info(mc().player.getMainHandItem()));
 			for (EquipmentSlot slot : ARMOR) {
-				ItemStack s = mc.player.getItemBySlot(slot);
+				ItemStack s = mc().player.getItemBySlot(slot);
 				if (!s.isEmpty()) list.add(info(s));
 			}
 		}
@@ -315,12 +318,12 @@ public final class GameImpl implements Game {
 
 	@Override
 	public List<EffectInfo> effects(boolean preview) {
-		List<MobEffectInstance> raw = mc.player == null ? new ArrayList<>() : new ArrayList<>(mc.player.getActiveEffects());
+		List<MobEffectInstance> raw = mc().player == null ? new ArrayList<>() : new ArrayList<>(mc().player.getActiveEffects());
 		if (raw.isEmpty() && preview) {
 			raw.add(new MobEffectInstance(MobEffects.SPEED, 20 * 90, 1));
 			raw.add(new MobEffectInstance(MobEffects.STRENGTH, 20 * 45, 0));
 		}
-		float tickRate = mc.level != null ? mc.level.tickRateManager().tickrate() : 20f;
+		float tickRate = mc().level != null ? mc().level.tickRateManager().tickrate() : 20f;
 		List<EffectInfo> out = new ArrayList<>();
 		for (MobEffectInstance e : raw) {
 			boolean ending = !e.isInfiniteDuration() && e.getDuration() < 200;
@@ -349,9 +352,9 @@ public final class GameImpl implements Game {
 
 	@Override
 	public double reachTo(Object target) {
-		HitResult hit = mc.hitResult;
-		if (mc.player == null || !(hit instanceof EntityHitResult) || ((EntityHitResult) hit).getEntity() != target) return -1;
-		return mc.player.getEyePosition().distanceTo(hit.getLocation());
+		HitResult hit = mc().hitResult;
+		if (mc().player == null || !(hit instanceof EntityHitResult) || ((EntityHitResult) hit).getEntity() != target) return -1;
+		return mc().player.getEyePosition().distanceTo(hit.getLocation());
 	}
 
 	@Override
@@ -364,7 +367,7 @@ public final class GameImpl implements Game {
 
 	@Override
 	public CameraInfo camera() {
-		Camera cam = mc.gameRenderer.mainCamera();
+		Camera cam = mc().gameRenderer.mainCamera();
 		return new CameraInfo(cam.position().x, cam.position().y, cam.position().z, cam.yRot(), cam.xRot(), lastFov);
 	}
 
@@ -372,22 +375,22 @@ public final class GameImpl implements Game {
 
 	@Override
 	public void sendChat(String message) {
-		if (mc.player != null) mc.player.connection.sendChat(message);
+		if (mc().player != null) mc().player.connection.sendChat(message);
 	}
 
 	@Override
 	public void sendCommand(String command) {
-		if (mc.player != null) mc.player.connection.sendCommand(command);
+		if (mc().player != null) mc().player.connection.sendCommand(command);
 	}
 
 	@Override
 	public void openChat(String prefill) {
-		mc.gui.setScreen(new ChatScreen(prefill, false));
+		mc().gui.setScreen(new ChatScreen(prefill, false));
 	}
 
 	@Override
 	public void openScreen(UiScreen screen) {
-		mc.gui.setScreen(new ScreenBridge(screen));
+		mc().gui.setScreen(new ScreenBridge(screen));
 	}
 
 	/** What the title-screen button does. */
@@ -397,7 +400,7 @@ public final class GameImpl implements Game {
 
 	@Override
 	public void closeScreen() {
-		mc.gui.setScreen(null);
+		mc().gui.setScreen(null);
 	}
 
 	@Override
@@ -412,7 +415,7 @@ public final class GameImpl implements Game {
 
 	@Override
 	public void execute(Runnable r) {
-		mc.execute(r);
+		mc().execute(r);
 	}
 
 	// ------------------------------------------------------------ environment
