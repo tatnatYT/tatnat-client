@@ -17,7 +17,8 @@ if (!list.length) {
 
 // Run the Gradle wrapper through Java directly: no shell, so version ranges like ">=1.21.9 <1.21.11"
 // are passed as-is instead of being read as redirects by cmd.exe.
-const java = path.join(process.env.JAVA_HOME || '', 'bin', process.platform === 'win32' ? 'java.exe' : 'java');
+// Java 25 targets (26.x) build with JAVA25_HOME when set; everything else with JAVA_HOME.
+const javaFor = t => path.join((t.java >= 25 && process.env.JAVA25_HOME) || process.env.JAVA_HOME || '', 'bin', process.platform === 'win32' ? 'java.exe' : 'java');
 const wrapper = ['-cp', path.join(__dirname, 'gradle', 'wrapper', 'gradle-wrapper.jar'), 'org.gradle.wrapper.GradleWrapperMain'];
 const failed = [];
 for (const t of list) {
@@ -25,7 +26,7 @@ for (const t of list) {
   const args = [task, '--no-daemon', '-q',
     `-Pminecraft_version=${t.mc}`, `-Pminecraft_dependency=${t.dep}`, `-Pplatform_source=${t.src}`,
     `-Pjava_version=${t.java}`, `-Pfabric_api_version=${t.api}`, ...extra];
-  const r = spawnSync(java, [...wrapper, ...args], { cwd: __dirname, stdio: 'inherit' });
+  const r = spawnSync(javaFor(t), [...wrapper, ...args], { cwd: __dirname, stdio: 'inherit' });
   if (r.status !== 0) failed.push(t.mc);
 }
 if (failed.length) {

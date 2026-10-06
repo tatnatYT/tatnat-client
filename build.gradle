@@ -33,6 +33,11 @@ sourceSets {
 // root path, which in dev is the classes folder. Put the resources there too (jars are unaffected).
 if (mcVersion.startsWith('1.') && mcVersion.tokenize('.')[1].toInteger() < 18) {
 	sourceSets.main.output.resourcesDir = sourceSets.main.java.classesDirectory.get().asFile
+} else {
+	// An earlier old-version build may have left its resources (fabric.mod.json...) there; clear them.
+	tasks.named('processResources') {
+		doFirst { project.delete(project.fileTree(sourceSets.main.java.classesDirectory.get().asFile) { exclude '**/*.class' }) }
+	}
 }
 
 loom {
