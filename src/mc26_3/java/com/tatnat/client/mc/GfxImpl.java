@@ -72,14 +72,28 @@ public final class GfxImpl implements Gfx {
 		g.pose().scale(x, y);
 	}
 
+	/** Mirror of the graphics' private scissor stack, for {@link #rects}. */
+	private final java.util.ArrayDeque<net.minecraft.client.gui.navigation.ScreenRectangle> clips = new java.util.ArrayDeque<>();
+
 	@Override
 	public void scissor(int x1, int y1, int x2, int y2) {
 		g.enableScissor(x1, y1, x2, y2);
+		net.minecraft.client.gui.navigation.ScreenRectangle r = new net.minecraft.client.gui.navigation.ScreenRectangle(x1, y1, x2 - x1, y2 - y1).transformAxisAligned(g.pose());
+		net.minecraft.client.gui.navigation.ScreenRectangle top = clips.peekLast();
+		clips.addLast(top == null ? r : java.util.Objects.requireNonNullElse(r.intersection(top), net.minecraft.client.gui.navigation.ScreenRectangle.empty()));
 	}
 
 	@Override
 	public void endScissor() {
 		g.disableScissor();
+		clips.pollLast();
+	}
+
+	@Override
+	public void rects(int[] data, int n) {
+		if (n == 0) return;
+		((com.tatnat.client.mixin.GuiGraphicsAccess) (Object) g).tatnat$guiRenderState().addGuiElement(
+				new GuiRects(new org.joml.Matrix3x2f(g.pose()), java.util.Arrays.copyOf(data, n * 5), n, clips.peekLast()));
 	}
 
 	@Override

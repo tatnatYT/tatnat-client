@@ -204,6 +204,43 @@ public final class GfxImpl implements Gfx {
 		end();
 	}
 
+	/** Uploaded coverage masks (icons, rounded corners) by key. */
+	private static final java.util.Map<String, Identifier> MASKS = new java.util.HashMap<>();
+
+	@Override
+	public boolean masks() {
+		return true;
+	}
+
+	@Override
+	public void mask(String key, int w, int h, java.util.function.Supplier<byte[]> alpha, int x, int y, int argb) {
+		Identifier id = MASKS.get(key);
+		if (id == null) {
+			byte[] a = alpha.get();
+			BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			for (int i = 0; i < w * h; i++) img.setRGB(i % w, i / w, ((a[i] & 255) << 24) | 0xFFFFFF);
+			id = new Identifier(TatnatClient.ID, "mask/" + MASKS.size());
+			mc.getTextureManager().loadTexture(id, new NativeImageBackedTexture(img));
+			MASKS.put(key, id);
+		}
+		begin();
+		GlStateManager.enableTexture();
+		GlStateManager.enableBlend();
+		GlStateManager.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+		GlStateManager.color(((argb >> 16) & 255) / 255f, ((argb >> 8) & 255) / 255f, (argb & 255) / 255f, ((argb >>> 24) & 255) / 255f);
+		mc.getTextureManager().bindTexture(id);
+		Tessellator t = Tessellator.getInstance();
+		BufferBuilder b = t.getBuffer();
+		b.begin(GL11.GL_QUADS, VertexFormats.POSITION_TEXTURE);
+		b.vertex(x, y + h, 0).texture(0, 1).next();
+		b.vertex(x + w, y + h, 0).texture(1, 1).next();
+		b.vertex(x + w, y, 0).texture(1, 0).next();
+		b.vertex(x, y, 0).texture(0, 0).next();
+		t.draw();
+		GlStateManager.color(1f, 1f, 1f, 1f);
+		end();
+	}
+
 	@Override
 	public void item(Object stack, int x, int y) {
 		ItemStack s = (ItemStack) stack;

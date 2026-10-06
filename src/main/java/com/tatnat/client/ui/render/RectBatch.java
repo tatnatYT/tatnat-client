@@ -46,6 +46,17 @@ public final class RectBatch implements Gfx {
 	}
 
 	@Override
+	public boolean masks() {
+		return g.masks();
+	}
+
+	@Override
+	public void mask(String key, int w, int h, java.util.function.Supplier<byte[]> alpha, int x, int y, int argb) {
+		flush();
+		g.mask(key, w, h, alpha, x, y, argb);
+	}
+
+	@Override
 	public void gradient(int x1, int y1, int x2, int y2, int top, int bottom) {
 		flush();
 		g.gradient(x1, y1, x2, y2, top, bottom);

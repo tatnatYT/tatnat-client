@@ -17,6 +17,7 @@ import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.Module;
 import com.tatnat.client.modules.settings.ActionSetting;
+import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.ModeSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.ui.render.Icons;
@@ -25,19 +26,21 @@ import com.tatnat.client.ui.render.Icons;
 /**
  * A cape on your own player, drawn on your screen only (other players can't see client-side
  * capes; for a real cape everyone sees, use the launcher's Skins tab). Pick a built-in design or
- * drop 64x32 cape PNGs into the capes folder. Physics scales how much the cape swings.
+ * drop cape PNGs (64x32 or HD 128x64) into the capes folder. Physics scales how much the cape swings.
  */
 public class CustomCapes extends Module {
 	public static CustomCapes INSTANCE;
 
-	private static final String[] BUILT_IN = {"tatnat", "Crimson", "Midnight", "Ocean", "Forest", "Gold"};
+	private static final String[] BUILT_IN = CapeArt.DESIGNS;
 	private static Path folder() {
 		return game().configDir().resolve("tatnat-client").resolve("capes");
 	}
 
-	public final ModeSetting cape = add(new ModeSetting("Cape", "Built-in design or a PNG from your capes folder", "tatnat", BUILT_IN));
+	public final ModeSetting cape = add(new ModeSetting("Cape", "Built-in design or a PNG from your capes folder", "Signature", BUILT_IN));
+	public final ColorSetting mainColor = add(new ColorSetting("Custom Color", "Colour of the Custom cape (Chroma cycles the rainbow)", 0xFF2F6FE0, true));
+	public final ColorSetting accentColor = add(new ColorSetting("Custom Accent", "Logo and hem of the Custom cape", 0xFFE0E0E0, true));
 	public final SliderSetting physics = add(new SliderSetting("Physics", "How much the cape swings as you move", 100, 0, 250, 5, "%"));
-	private final ActionSetting openFolder = add(new ActionSetting("Your Own Capes", "Put 64x32 cape PNGs in this folder, then press Reload",
+	private final ActionSetting openFolder = add(new ActionSetting("Your Own Capes", "Put cape PNGs (64x32 or 128x64) in this folder, then press Reload",
 			() -> "Open folder", this::openFolder));
 	private final ActionSetting reload = add(new ActionSetting("Reload", "Look for new cape files", () -> "Reload", this::rescan));
 
@@ -91,17 +94,23 @@ public class CustomCapes extends Module {
 		return revision;
 	}
 
-	/** The chosen cape as 64x32 ARGB pixels, or null if it couldn't be loaded. */
+	/** The chosen cape as 128x64 ARGB pixels (see CapeArt), or null if it couldn't be loaded. */
 	public int[] pixels() {
-		if (cape.get().equals(pixelsFor)) return pixels;
-		pixelsFor = cape.get();
+		String design = cape.get();
+		boolean custom = design.equals("Custom");
+		boolean anim = CapeArt.animated(design, mainColor.chroma() || accentColor.chroma());
+		long now = System.currentTimeMillis();
+		// Animated capes are re-drawn ~10 times a second; the rest only when a setting changes.
+		String key = design + (custom ? "|" + mainColor.get() + "|" + accentColor.get() : "") + (anim ? "|" + now / 100 : "");
+		if (key.equals(pixelsFor)) return pixels;
+		pixelsFor = key;
 		revision++;
 		try {
 			if (cape.get().startsWith("File: ")) {
 				BufferedImage img = ImageIO.read(folder().resolve(cape.get().substring(6)).toFile());
 				pixels = img == null ? null : CapeArt.fromImage(img);
 			} else {
-				pixels = CapeArt.draw(cape.get());
+				pixels = CapeArt.draw(design, mainColor.color(0), accentColor.color(0.5), now);
 			}
 		} catch (Exception e) {
 			TatnatClient.LOG.warn("Could not load cape {}: {}", cape.get(), e.toString());

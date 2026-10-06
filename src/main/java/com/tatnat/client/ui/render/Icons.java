@@ -27,8 +27,163 @@ public final class Icons {
 	private static float ox, oy, k;
 	private static int color;
 
-	/** Draws {@code icon} centred on (cx, cy), {@code size} pixels across, in pixel space. */
+	/** A rasterised icon: its coverage grid (dim x dim, centred) and the same as merged spans. */
+	private static final class Raster {
+		final int half, dim;
+		final float[] cov;
+		/** {dx, dy, dx2, alpha} spans relative to the centre. */
+		final int[] spans;
+		byte[] alpha;
+
+		Raster(int half, int dim, float[] cov, int[] spans) {
+			this.half = half;
+			this.dim = dim;
+			this.cov = cov;
+			this.spans = spans;
+		}
+
+		byte[] alpha() {
+			if (alpha == null) {
+				alpha = new byte[cov.length];
+				for (int i = 0; i < cov.length; i++) alpha[i] = (byte) Math.round(Math.min(1f, cov[i]) * 255);
+			}
+			return alpha;
+		}
+	}
+
+	private static final java.util.Map<Long, Raster> CACHE = new java.util.HashMap<>();
+
+	/**
+	 * Draws {@code icon} centred on (cx, cy), {@code size} pixels across, in pixel space.
+	 * The stroke geometry is rasterised once per size into merged spans and replayed from a cache:
+	 * drawn live, overlapping strokes cost hundreds to thousands of tiny fills per icon per frame.
+	 */
 	public static void draw(Gfx graphics, Icon icon, int cx, int cy, int size, int argb) {
+		if (icon == Icon.MONITOR || icon == Icon.CHAT || icon == Icon.YOUTUBE) {
+			// Text or a second colour, which a one-colour coverage raster cannot hold.
+			drawLive(graphics, icon, cx, cy, size, argb);
+			return;
+		}
+		long key = ((long) icon.ordinal() << 20) | ((long) size << 1) | (com.tatnat.client.modules.Performance.roundedCorners() ? 1 : 0);
+		Raster r = CACHE.get(key);
+		if (r == null) {
+			r = rasterise(icon, size);
+			CACHE.put(key, r);
+		}
+		if (graphics.masks()) {
+			// One textured quad for the whole icon.
+			Raster raster = r;
+			graphics.mask("icon/" + key, r.dim, r.dim, raster::alpha, cx - r.half, cy - r.half, Colors.fade(argb, RenderUtils.alpha));
+			return;
+		}
+		int[] spans = r.spans;
+		int baseA = argb >>> 24, rgb = argb & 0xFFFFFF;
+		for (int i = 0; i < spans.length; i += 4) {
+			int a = spans[i + 3] * baseA / 255;
+			if (a > 0) RenderUtils.rect(graphics, cx + spans[i], cy + spans[i + 1], cx + spans[i + 2], cy + spans[i + 1] + 1, (a << 24) | rgb);
+		}
+	}
+
+	/** Draws the icon at (0, 0) into a coverage grid, then encodes each row as runs of equal alpha. */
+	private static Raster rasterise(Icon icon, int size) {
+		int half = size + 2, dim = half * 2;
+		float[] cov = new float[dim * dim];
+		Gfx rec = new Gfx() {
+			@Override
+			public void rect(int x1, int y1, int x2, int y2, int argb) {
+				float a = (argb >>> 24) / 255f;
+				for (int y = Math.max(y1 + half, 0); y < Math.min(y2 + half, dim); y++) {
+					for (int x = Math.max(x1 + half, 0); x < Math.min(x2 + half, dim); x++) {
+						int i = y * dim + x;
+						cov[i] = cov[i] + a * (1 - cov[i]);
+					}
+				}
+			}
+
+			@Override
+			public void gradient(int x1, int y1, int x2, int y2, int top, int bottom) {
+				rect(x1, y1, x2, y2, top);
+			}
+
+			@Override
+			public void push() {
+			}
+
+			@Override
+			public void pop() {
+			}
+
+			@Override
+			public void translate(float x, float y) {
+			}
+
+			@Override
+			public void scale(float x, float y) {
+			}
+
+			@Override
+			public void scissor(int x1, int y1, int x2, int y2) {
+			}
+
+			@Override
+			public void endScissor() {
+			}
+
+			@Override
+			public void uiText(int weight, int px, String s, int x, int y, int argb) {
+			}
+
+			@Override
+			public int uiTextWidth(int weight, int px, String s) {
+				return 0;
+			}
+
+			@Override
+			public void mcText(String s, int x, int y, int argb, boolean shadow, boolean bold) {
+			}
+
+			@Override
+			public int mcTextWidth(String s, boolean bold) {
+				return 0;
+			}
+
+			@Override
+			public void logo(int x, int y, int sz, int argb) {
+			}
+
+			@Override
+			public void item(Object stack, int x, int y) {
+			}
+
+			@Override
+			public void effectIcon(Object effect, int x, int y, int sz) {
+			}
+		};
+		float fade = RenderUtils.alpha;
+		RenderUtils.alpha = 1f;
+		try {
+			drawLive(rec, icon, 0, 0, size, 0xFFFFFFFF);
+		} finally {
+			RenderUtils.alpha = fade;
+		}
+		java.util.List<int[]> out = new java.util.ArrayList<>();
+		for (int y = 0; y < dim; y++) {
+			int x = 0;
+			while (x < dim) {
+				// 16 alpha levels, so neighbouring edge pixels merge into one span.
+				int q = Math.round(cov[y * dim + x] * 15);
+				int end = x + 1;
+				while (end < dim && Math.round(cov[y * dim + end] * 15) == q) end++;
+				if (q > 0) out.add(new int[] {x - half, y - half, end - half, Math.min(255, Math.round(q * 255f / 15))});
+				x = end;
+			}
+		}
+		int[] spans = new int[out.size() * 4];
+		for (int i = 0; i < out.size(); i++) System.arraycopy(out.get(i), 0, spans, i * 4, 4);
+		return new Raster(half, dim, cov, spans);
+	}
+
+	private static void drawLive(Gfx graphics, Icon icon, int cx, int cy, int size, int argb) {
 		g = graphics;
 		k = size / 64f;
 		ox = cx - size / 2f;

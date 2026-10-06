@@ -81,6 +81,16 @@ public final class RenderUtils {
 		if (!bl) rect(g, x, y + h - r, x + r, y + h, color);
 		if (!br) rect(g, x + w - r, y + h - r, x + w, y + h, color);
 
+		if (g.masks()) {
+			// One textured quad per corner instead of a fill per anti-aliased pixel.
+			int c = Colors.fade(color, alpha);
+			if (Colors.alpha(c) == 0) return;
+			if (tl) cornerMask(g, r, 0, x, y, c);
+			if (tr) cornerMask(g, r, 1, x + w - r, y, c);
+			if (bl) cornerMask(g, r, 2, x, y + h - r, c);
+			if (br) cornerMask(g, r, 3, x + w - r, y + h - r, c);
+			return;
+		}
 		float[][] mask = mask(r);
 		if (tl) corner(g, mask, r, x, y, false, false, color);
 		if (tr) corner(g, mask, r, x + w - r, y, true, false, color);
@@ -131,7 +141,31 @@ public final class RenderUtils {
 			float t = 1f - (i - 1) / (float) layers;
 			int a = Math.round(255 * strength * t * t / layers * 2.2f);
 			int grow = i * 2;
-			roundedRect(g, x - grow, y - grow + i / 2 + 2, w + grow * 2, h + grow * 2, radius + grow, Colors.argb(a, 0, 0, 0));
+			softRoundedRect(g, x - grow, y - grow + i / 2 + 2, w + grow * 2, h + grow * 2, radius + grow, Colors.argb(a, 0, 0, 0));
+		}
+	}
+
+	/**
+	 * Rounded rectangle without the anti-aliased edge pixels: one span per corner row. Plenty for
+	 * faint shadow layers and far fewer fills than {@link #roundedRect}.
+	 */
+	private static void softRoundedRect(Gfx g, int x, int y, int w, int h, int radius, int color) {
+		if (w <= 0 || h <= 0) return;
+		int r = com.tatnat.client.modules.Performance.roundedCorners() ? Math.max(0, Math.min(radius, Math.min(w, h) / 2)) : 0;
+		rect(g, x, y + r, x + w, y + h - r, color);
+		if (r == 0) return;
+		float[][] mask = mask(r);
+		for (int j = 0; j < r; j++) {
+			// First column whose coverage is at least half, on this row of the top-left corner.
+			int from = r;
+			for (int i = 0; i < r; i++) {
+				if (mask[j][i] >= 0.5f) {
+					from = i;
+					break;
+				}
+			}
+			rect(g, x + from, y + j, x + w - from, y + j + 1, color);
+			rect(g, x + from, y + h - 1 - j, x + w - from, y + h - j, color);
 		}
 	}
 
@@ -172,6 +206,19 @@ public final class RenderUtils {
 				rect(g, x + w - thickness, y + a, x + w, y + b, color);
 			}
 		}
+	}
+
+	/** A corner as a cached coverage mask; {@code q} is 0 top-left, 1 top-right, 2 bottom-left, 3 bottom-right. */
+	private static void cornerMask(Gfx g, int r, int q, int x, int y, int color) {
+		g.mask("corner/" + r + "/" + q, r, r, () -> {
+			float[][] m = mask(r);
+			boolean flipX = q == 1 || q == 3, flipY = q >= 2;
+			byte[] a = new byte[r * r];
+			for (int j = 0; j < r; j++) {
+				for (int i = 0; i < r; i++) a[j * r + i] = (byte) Math.round(m[flipY ? r - 1 - j : j][flipX ? r - 1 - i : i] * 255);
+			}
+			return a;
+		}, x, y, color);
 	}
 
 	/** Draws one corner's arc spans. (ox, oy) is the corner square's top-left. */

@@ -22,6 +22,21 @@ public interface Gfx {
 		for (int i = 0; i < n; i++) rect(data[i * 5], data[i * 5 + 1], data[i * 5 + 2], data[i * 5 + 3], data[i * 5 + 4]);
 	}
 
+	/**
+	 * True when {@link #mask} draws from a cached texture (one quad per shape). Platforms without
+	 * it draw anti-aliased shapes from many small fills instead.
+	 */
+	default boolean masks() {
+		return false;
+	}
+
+	/**
+	 * Draws a coverage mask ({@code w * h} alpha bytes, row by row) tinted with {@code argb}, its
+	 * top-left at (x, y). {@code key} names the mask; {@code alpha} is only called the first time.
+	 */
+	default void mask(String key, int w, int h, java.util.function.Supplier<byte[]> alpha, int x, int y, int argb) {
+	}
+
 	/** Top-to-bottom gradient. */
 	void gradient(int x1, int y1, int x2, int y2, int top, int bottom);
 
