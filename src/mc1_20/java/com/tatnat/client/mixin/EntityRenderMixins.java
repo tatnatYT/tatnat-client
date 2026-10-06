@@ -23,11 +23,10 @@ public final class EntityRenderMixins {
 
 	@Mixin(EntityRenderer.class)
 	public static class NameTag {
-		@Inject(method = "getNameTag", at = @At("RETURN"), cancellable = true)
-		private void tatnat$nameTag(Entity entity, CallbackInfoReturnable<Component> cir) {
-			if (NickHider.active() && entity == Minecraft.getInstance().player && cir.getReturnValue() != null) {
-				cir.setReturnValue(PlayerLooks.replaceName(cir.getReturnValue()));
-			}
+		@org.spongepowered.asm.mixin.injection.ModifyVariable(method = "renderNameTag", at = @At("HEAD"), argsOnly = true)
+		private Component tatnat$nameTag(Component name, @com.llamalad7.mixinextras.sugar.Local(argsOnly = true) Entity entity) {
+			if (NickHider.active() && entity == Minecraft.getInstance().player && name != null) return PlayerLooks.replaceName(name);
+			return name;
 		}
 	}
 

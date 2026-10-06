@@ -8,10 +8,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.authlib.GameProfile;
 import com.tatnat.client.mc.PlayerLooks;
-import com.tatnat.client.modules.impl.visual.NickHider;
 
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.resources.ResourceLocation;
 
 /** Nick Hider: your head in the tab list uses the default skin too. */
 @Mixin(PlayerInfo.class)
@@ -19,10 +18,13 @@ public abstract class PlayerInfoMixin {
 	@Shadow
 	public abstract GameProfile getProfile();
 
-	@Inject(method = "getSkin", at = @At("RETURN"), cancellable = true)
-	private void tatnat$skin(CallbackInfoReturnable<PlayerSkin> cir) {
-		if (NickHider.active() && NickHider.INSTANCE.hideSkin.on() && PlayerLooks.isMe(getProfile().getId())) {
-			cir.setReturnValue(PlayerLooks.replacementSkin());
-		}
+	@Inject(method = "getSkinLocation", at = @At("RETURN"), cancellable = true)
+	private void tatnat$skin(CallbackInfoReturnable<ResourceLocation> cir) {
+		if (PlayerLooks.isMe(getProfile().getId())) cir.setReturnValue(PlayerLooks.skin(cir.getReturnValue()));
+	}
+
+	@Inject(method = "getModelName", at = @At("RETURN"), cancellable = true)
+	private void tatnat$model(CallbackInfoReturnable<String> cir) {
+		if (PlayerLooks.isMe(getProfile().getId())) cir.setReturnValue(PlayerLooks.model(cir.getReturnValue()));
 	}
 }

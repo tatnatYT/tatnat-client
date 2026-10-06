@@ -20,7 +20,6 @@
 		"MiscMixins$CapePhysics",
 		"MiscMixins$FreezePlayer",
 		"MiscMixins$GlintSpeed",
-		"MiscMixins$InputAccess",
 		"MouseHandlerMixin",
 		"NameMixins",
 		"PlayerInfoMixin",

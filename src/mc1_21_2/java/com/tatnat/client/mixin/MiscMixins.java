@@ -1,7 +1,6 @@
 package com.tatnat.client.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,17 +20,10 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.phys.Vec2;
 
 /** Freecam input blocking, cape physics and glint speed. */
 public final class MiscMixins {
 	private MiscMixins() {
-	}
-
-	@Mixin(ClientInput.class)
-	public interface InputAccess {
-		@Accessor("moveVector")
-		void tatnat$setMoveVector(Vec2 v);
 	}
 
 	/** While Freecam is on, your player gets no movement input at all. */
@@ -42,7 +34,8 @@ public final class MiscMixins {
 			if (!Freecam.active()) return;
 			ClientInput self = (ClientInput) (Object) this;
 			self.keyPresses = Input.EMPTY;
-			((InputAccess) self).tatnat$setMoveVector(Vec2.ZERO);
+			self.leftImpulse = 0f;
+			self.forwardImpulse = 0f;
 		}
 	}
 

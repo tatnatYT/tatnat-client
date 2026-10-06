@@ -37,7 +37,7 @@ public final class TooltipMixins {
 	@Mixin(TooltipRenderUtil.class)
 	public static class Background {
 		@Inject(method = "renderTooltipBackground", at = @At("HEAD"), cancellable = true)
-		private static void tatnat$background(GuiGraphics g, int x, int y, int w, int h, ResourceLocation style, CallbackInfo ci) {
+		private static void tatnat$background(GuiGraphics g, int x, int y, int w, int h, int z, CallbackInfo ci) {
 			if (!BetterTooltips.active()) return;
 			BetterTooltips bt = BetterTooltips.INSTANCE;
 			int x0 = x - 4, y0 = y - 4, x1 = x + w + 4, y1 = y + h + 4;
@@ -59,18 +59,17 @@ public final class TooltipMixins {
 		}
 	}
 
+	/** Lets the mouse handler see which slot is hovered (this version has no screen scroll hook). */
+	@Mixin(AbstractContainerScreen.class)
+	public interface SlotAccess {
+		@org.spongepowered.asm.mixin.gen.Accessor("hoveredSlot")
+		Slot tatnat$hovered();
+	}
+
 	@Mixin(AbstractContainerScreen.class)
 	public static class Wheel {
 		@Shadow
 		protected Slot hoveredSlot;
-
-		@Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
-		private void tatnat$scroll(double mx, double my, double sx, double sy, CallbackInfoReturnable<Boolean> cir) {
-			if (!ScrollableTooltips.active() || hoveredSlot == null || !hoveredSlot.hasItem()) return;
-			ScrollableTooltips.INSTANCE.hovering(hoveredSlot.getItem());
-			ScrollableTooltips.INSTANCE.scroll(sy);
-			cir.setReturnValue(true);
-		}
 
 		@Inject(method = "render", at = @At("HEAD"))
 		private void tatnat$hover(GuiGraphics g, int mx, int my, float pt, CallbackInfo ci) {
@@ -80,12 +79,12 @@ public final class TooltipMixins {
 
 	@Mixin(GuiGraphics.class)
 	public static class Shift {
-		@WrapMethod(method = "renderTooltip")
+		@WrapMethod(method = "renderTooltipInternal")
 		private void tatnat$shift(Font font, List<ClientTooltipComponent> lines, int x, int y, ClientTooltipPositioner positioner,
-				ResourceLocation style, Operation<Void> original) {
+				Operation<Void> original) {
 			GuiGraphics g = (GuiGraphics) (Object) this;
 			if (!ScrollableTooltips.active() || lines.isEmpty()) {
-				original.call(font, lines, x, y, positioner, style);
+				original.call(font, lines, x, y, positioner);
 				return;
 			}
 			int w = 0, h = 0;
@@ -99,12 +98,12 @@ public final class TooltipMixins {
 			float max = Math.max(0, h + 16 - screenH);
 			st.offset = Math.max(-max, Math.min(0, st.offset));
 			if (max <= 0) {
-				original.call(font, lines, x, y, positioner, style);
+				original.call(font, lines, x, y, positioner);
 				return;
 			}
 			g.pose().pushPose();
 			g.pose().translate(0, st.offset, 0);
-			original.call(font, lines, x, y, positioner, style);
+			original.call(font, lines, x, y, positioner);
 			g.pose().popPose();
 			Vector2ic pos = positioner.positionTooltip(g.guiWidth(), screenH, x, y, w, h);
 			int bw = st.barWidth.intValue();

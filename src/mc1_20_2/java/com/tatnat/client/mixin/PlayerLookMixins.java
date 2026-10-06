@@ -25,7 +25,7 @@ public abstract class PlayerLookMixins {
 	}
 
 	@Inject(method = "getFieldOfViewModifier", at = @At("RETURN"), cancellable = true)
-	private void tatnat$staticFov(boolean firstPerson, float effectScale, CallbackInfoReturnable<Float> cir) {
+	private void tatnat$staticFov(CallbackInfoReturnable<Float> cir) {
 		if (FovModifier.active() && FovModifier.INSTANCE.staticFov.on()) cir.setReturnValue(1.0f);
 	}
 }

@@ -34,7 +34,7 @@ public class GameRendererMixin {
 
 	/** No floating hand while flying around in Freecam. */
 	@Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
-	private void tatnat$hideHand(float partialTick, boolean sleeping, Matrix4f projection, CallbackInfo ci) {
+	private void tatnat$hideHand(net.minecraft.client.Camera camera, float partialTick, Matrix4f projection, CallbackInfo ci) {
 		if (Freecam.active()) ci.cancel();
 	}
 }

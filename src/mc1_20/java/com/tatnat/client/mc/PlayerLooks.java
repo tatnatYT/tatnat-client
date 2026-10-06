@@ -14,12 +14,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.client.resources.PlayerSkin;
 
-/** Nick Hider and Custom Capes for 1.21.11: text replacement in components, skins and capes. */
+/**
+ * Nick Hider and Custom Capes for 1.20 - 1.20.1, where a player's look is a set of separate
+ * texture getters (skin, cape, elytra, model) rather than one skin record.
+ */
 public final class PlayerLooks {
 	private PlayerLooks() {
 	}
@@ -33,25 +35,29 @@ public final class PlayerLooks {
 		return mc.player != null && mc.player.getUUID().equals(id) || mc.getUser().getProfileId().equals(id);
 	}
 
-	/** Your skin as you see it: default skin (Nick Hider) and/or your chosen cape. */
-	public static PlayerSkin apply(PlayerSkin skin) {
-		if (NickHider.active() && NickHider.INSTANCE.hideSkin.on()) skin = replacementSkin();
-		if (CustomCapes.active()) {
-			ResourceLocation cape = cape();
-			if (cape != null) skin = new PlayerSkin(skin.texture(), skin.textureUrl(), cape, cape, skin.model(), skin.secure());
-		}
-		return skin;
+	private static boolean hideSkin() {
+		return NickHider.active() && NickHider.INSTANCE.hideSkin.on();
 	}
 
-	public static PlayerSkin replacementSkin() {
+	public static ResourceLocation skin(ResourceLocation original) {
+		if (!hideSkin()) return original;
 		boolean alex = NickHider.INSTANCE.skin.is("Alex");
-		String path = alex ? "entity/player/slim/alex" : "entity/player/wide/steve";
-		return new PlayerSkin(new ResourceLocation("minecraft", "textures/" + path + ".png"), null, null, null,
-				alex ? PlayerSkin.Model.SLIM : PlayerSkin.Model.WIDE, false);
+		return new ResourceLocation("minecraft", alex ? "textures/entity/player/slim/alex.png" : "textures/entity/player/wide/steve.png");
 	}
 
-	/** The cape texture, re-uploaded whenever the chosen design changes. */
-	private static ResourceLocation cape() {
+	public static String model(String original) {
+		if (!hideSkin()) return original;
+		return NickHider.INSTANCE.skin.is("Alex") ? "slim" : "default";
+	}
+
+	/** Your cape (also used for the elytra) when Custom Capes is on. */
+	public static ResourceLocation cape(ResourceLocation original) {
+		if (!CustomCapes.active()) return original;
+		ResourceLocation c = capeTexture();
+		return c != null ? c : original;
+	}
+
+	private static ResourceLocation capeTexture() {
 		CustomCapes c = CustomCapes.INSTANCE;
 		int rev = c.revision();
 		if (rev == capeRevision) return capeTexture;
@@ -77,8 +83,8 @@ public final class PlayerLooks {
 
 	private static Component rebuild(Component c, String from, String to) {
 		MutableComponent out;
-		if (c.getContents() instanceof PlainTextContents.LiteralContents) {
-			out = Component.literal(((PlainTextContents.LiteralContents) c.getContents()).text().replace(from, to));
+		if (c.getContents() instanceof LiteralContents) {
+			out = Component.literal(((LiteralContents) c.getContents()).text().replace(from, to));
 		} else if (c.getContents() instanceof TranslatableContents) {
 			TranslatableContents tr = (TranslatableContents) c.getContents();
 			Object[] args = tr.getArgs().clone();

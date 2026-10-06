@@ -26,6 +26,7 @@
 		"TooltipMixins$Background",
 		"TooltipMixins$Lines",
 		"TooltipMixins$Shift",
+		"TooltipMixins$SlotAccess",
 		"TooltipMixins$Wheel",
 		"WorldLookMixins$DayTime",
 		"WorldLookMixins$Overlay",

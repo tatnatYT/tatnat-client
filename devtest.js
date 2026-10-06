@@ -37,8 +37,11 @@ const wrapper = ['-cp', path.join(__dirname, 'gradle', 'wrapper', 'gradle-wrappe
 const props2 = [`-Pminecraft_version=${t.mc}`, `-Pminecraft_dependency=${t.dep}`, `-Pplatform_source=${t.src}`,
   `-Pjava_version=${t.java}`, `-Pfabric_api_version=${t.api}`];
 
+const audit = mode === 'audit';
+let server = { kill() {} };
+if (!audit) {
 const log = fs.openSync(path.join(__dirname, 'build', `server-${version}.log`), 'w');
-const server = spawn(java, [...wrapper, 'runServer', '--no-daemon', ...props2], { cwd: __dirname, stdio: ['ignore', log, log] });
+server = spawn(java, [...wrapper, 'runServer', '--no-daemon', ...props2], { cwd: __dirname, stdio: ['ignore', log, log] });
 const serverLog = path.join(__dirname, 'build', `server-${version}.log`);
 const deadline = Date.now() + 600000;
 while (Date.now() < deadline) {
@@ -48,8 +51,9 @@ while (Date.now() < deadline) {
   spawnSync(process.platform === 'win32' ? 'timeout' : 'sleep', process.platform === 'win32' ? ['/t', '3', '/nobreak'] : ['3'], { stdio: 'ignore', shell: true });
 }
 console.log('server up for ' + version);
+}
 
-const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, '-Pquickjoin=127.0.0.1:25599'],
+const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, ...(audit ? [] : ['-Pquickjoin=127.0.0.1:25599'])],
   { cwd: __dirname, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 900000 });
 fs.writeFileSync(path.join(__dirname, 'build', `client-${version}.log`), (client.stdout || '') + (client.stderr || ''));
 server.kill();

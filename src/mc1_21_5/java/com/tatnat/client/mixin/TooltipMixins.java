@@ -37,7 +37,7 @@ public final class TooltipMixins {
 	@Mixin(TooltipRenderUtil.class)
 	public static class Background {
 		@Inject(method = "renderTooltipBackground", at = @At("HEAD"), cancellable = true)
-		private static void tatnat$background(GuiGraphics g, int x, int y, int w, int h, ResourceLocation style, CallbackInfo ci) {
+		private static void tatnat$background(GuiGraphics g, int x, int y, int w, int h, int z, ResourceLocation style, CallbackInfo ci) {
 			if (!BetterTooltips.active()) return;
 			BetterTooltips bt = BetterTooltips.INSTANCE;
 			int x0 = x - 4, y0 = y - 4, x1 = x + w + 4, y1 = y + h + 4;
@@ -80,7 +80,7 @@ public final class TooltipMixins {
 
 	@Mixin(GuiGraphics.class)
 	public static class Shift {
-		@WrapMethod(method = "renderTooltip")
+		@WrapMethod(method = "renderTooltipInternal")
 		private void tatnat$shift(Font font, List<ClientTooltipComponent> lines, int x, int y, ClientTooltipPositioner positioner,
 				ResourceLocation style, Operation<Void> original) {
 			GuiGraphics g = (GuiGraphics) (Object) this;

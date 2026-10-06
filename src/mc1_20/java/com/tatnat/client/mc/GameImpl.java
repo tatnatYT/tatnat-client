@@ -316,12 +316,11 @@ public final class GameImpl implements Game {
 			raw.add(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 20 * 90, 1));
 			raw.add(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 20 * 45, 0));
 		}
-		float tickRate = mc.level != null ? mc.level.tickRateManager().tickrate() : 20f;
 		List<EffectInfo> out = new ArrayList<>();
 		for (MobEffectInstance e : raw) {
 			boolean ending = !e.isInfiniteDuration() && e.getDuration() < 200;
 			out.add(new EffectInfo(e.getEffect(), e.getEffect().getDisplayName().getString(), e.getAmplifier() + 1,
-					MobEffectUtil.formatDuration(e, 1f, tickRate).getString(), ending));
+					MobEffectUtil.formatDuration(e, 1f).getString(), ending));
 		}
 		return out;
 	}

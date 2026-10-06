@@ -23,7 +23,7 @@ public class GuiMixin {
 
 	/** The Crosshair mod draws its own, so vanilla's is skipped. */
 	@Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
-	private void tatnat$crosshair(GuiGraphics graphics, float partialTick, CallbackInfo ci) {
+	private void tatnat$crosshair(GuiGraphics graphics, CallbackInfo ci) {
 		if (Crosshair.active()) ci.cancel();
 	}
 }

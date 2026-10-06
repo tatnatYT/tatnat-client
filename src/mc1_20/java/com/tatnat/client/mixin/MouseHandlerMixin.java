@@ -32,6 +32,17 @@ public class MouseHandlerMixin {
 	@Inject(method = "onScroll", at = @At("HEAD"), cancellable = true)
 	private void tatnat$scroll(long window, double xOffset, double yOffset, CallbackInfo ci) {
 		Minecraft mc = Minecraft.getInstance();
+		// Scrollable Tooltips: the wheel scrolls the hovered item's tooltip inside inventories.
+		if (window == mc.getWindow().getWindow() && yOffset != 0 && com.tatnat.client.modules.impl.utility.ScrollableTooltips.active()
+				&& mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen) {
+			net.minecraft.world.inventory.Slot slot = ((TooltipMixins.SlotAccess) mc.screen).tatnat$hovered();
+			if (slot != null && slot.hasItem()) {
+				com.tatnat.client.modules.impl.utility.ScrollableTooltips.INSTANCE.hovering(slot.getItem());
+				com.tatnat.client.modules.impl.utility.ScrollableTooltips.INSTANCE.scroll(yOffset);
+				ci.cancel();
+				return;
+			}
+		}
 		if (window != mc.getWindow().getWindow() || mc.screen != null || yOffset == 0) return;
 		Events.Scroll e = TatnatClient.EVENTS.post(new Events.Scroll(yOffset));
 		if (e.isCancelled()) ci.cancel();

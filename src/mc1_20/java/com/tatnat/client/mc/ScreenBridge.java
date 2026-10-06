@@ -25,11 +25,10 @@ public final class ScreenBridge extends Screen {
 		return ui.pausesGame();
 	}
 
-	@Override
-	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+	/** 1.20.1 screens draw their own background from render(). */
+	private void background(GuiGraphics g) {
 		if (minecraft.level == null) {
-			// Title screen: the usual panorama behind the menu.
-			super.renderBackground(g, mouseX, mouseY, partialTick);
+			super.renderBackground(g);
 		} else if (ui.backdrop() == UiScreen.Backdrop.DIM) {
 			g.fill(0, 0, width, height, 0x3C000000);
 		}
@@ -37,6 +36,7 @@ public final class ScreenBridge extends Screen {
 
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+		background(g);
 		GfxImpl gfx = new GfxImpl(g);
 		double mx = GameImpl.INSTANCE.mouseX(), my = GameImpl.INSTANCE.mouseY();
 		ui.render(gfx, mx, my);
@@ -61,7 +61,7 @@ public final class ScreenBridge extends Screen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
+	public boolean mouseScrolled(double x, double y, double scrollY) {
 		ui.mouseScrolled(px(x), px(y), scrollY);
 		return true;
 	}
