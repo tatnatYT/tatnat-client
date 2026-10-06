@@ -6,7 +6,7 @@ import java.util.List;
 import com.tatnat.client.modules.impl.utility.BetterTooltips;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -27,7 +27,7 @@ public final class TooltipLines {
 					.append(Component.literal(left + " / " + stack.getMaxDamage()).withStyle(c)));
 		}
 		if (bt.itemId.on() && !advanced) {
-			out.add(Component.literal(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()).withStyle(ChatFormatting.DARK_GRAY));
+			out.add(Component.literal(Registry.ITEM.getKey(stack.getItem()).toString()).withStyle(ChatFormatting.DARK_GRAY));
 		}
 		if (bt.components.on()) {
 			int tags = stack.getTag() == null ? 0 : stack.getTag().size();

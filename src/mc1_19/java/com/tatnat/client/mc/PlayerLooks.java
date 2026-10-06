@@ -92,7 +92,7 @@ public final class PlayerLooks {
 				if (args[i] instanceof Component) args[i] = rebuild((Component) args[i], from, to);
 				else if (args[i] instanceof String) args[i] = ((String) args[i]).replace(from, to);
 			}
-			out = Component.translatableWithFallback(tr.getKey(), tr.getFallback(), args);
+			out = Component.translatable(tr.getKey(), args);
 		} else {
 			out = c.plainCopy();
 		}

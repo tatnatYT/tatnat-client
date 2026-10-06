@@ -34,4 +34,9 @@ public class FreeCamera extends Entity {
 	@Override
 	protected void addAdditionalSaveData(CompoundTag tag) {
 	}
+
+	@Override
+	public net.minecraft.network.protocol.Packet<?> getAddEntityPacket() {
+		return new net.minecraft.network.protocol.game.ClientboundAddEntityPacket(this);
+	}
 }

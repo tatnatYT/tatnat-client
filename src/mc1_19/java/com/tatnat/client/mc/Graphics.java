@@ -1,8 +1,6 @@
 package com.tatnat.client.mc;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import java.util.ArrayDeque;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
@@ -42,32 +40,7 @@ public final class Graphics extends GuiComponent {
 	}
 
 	public void fillGradient(int x1, int y1, int x2, int y2, int top, int bottom) {
-		GuiComponent.fillGradient(pose, x1, y1, x2, y2, top, bottom);
-	}
-
-	private static final ArrayDeque<int[]> CLIPS = new ArrayDeque<>();
-
-	/** Scissor in GUI units, nested boxes intersect (this version has no scissor stack). */
-	public void enableScissor(int x1, int y1, int x2, int y2) {
-		int[] r = {x1, y1, x2, y2};
-		int[] top = CLIPS.peek();
-		if (top != null) r = new int[] {Math.max(r[0], top[0]), Math.max(r[1], top[1]), Math.min(r[2], top[2]), Math.min(r[3], top[3])};
-		CLIPS.push(r);
-		applyScissor(r);
-	}
-
-	public void disableScissor() {
-		CLIPS.poll();
-		int[] top = CLIPS.peek();
-		if (top == null) RenderSystem.disableScissor();
-		else applyScissor(top);
-	}
-
-	private void applyScissor(int[] r) {
-		double s = mc.getWindow().getGuiScale();
-		int h = mc.getWindow().getHeight();
-		int x = (int) (r[0] * s), y = (int) (h - r[3] * s);
-		RenderSystem.enableScissor(x, y, Math.max(0, (int) ((r[2] - r[0]) * s)), Math.max(0, (int) ((r[3] - r[1]) * s)));
+		GuiComponent.fillGradient(pose, x1, y1, x2, y2, top, bottom, 0);
 	}
 
 	public void drawString(Font font, Component s, int x, int y, int argb, boolean shadow) {
@@ -91,7 +64,7 @@ public final class Graphics extends GuiComponent {
 	}
 
 	public void blit(int x, int y, int z, int w, int h, TextureAtlasSprite sprite) {
-		RenderSystem.setShaderTexture(0, sprite.atlasLocation());
+		RenderSystem.setShaderTexture(0, sprite.atlas().location());
 		RenderSystem.enableBlend();
 		GuiComponent.blit(pose, x, y, z, w, h, sprite);
 	}

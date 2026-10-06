@@ -27,7 +27,7 @@ final class DevTestSteps {
 	}
 
 	private static void cmd(String c) {
-		mc().player.connection.sendCommand(c);
+		mc().player.commandSigned(c, null);
 	}
 
 	private static ClickGuiScreen gui;

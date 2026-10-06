@@ -35,11 +35,11 @@ public final class MiscMixins {
 	/** Enchant Glint speed multiplier on top of vanilla's Glint Speed option. */
 	@Mixin(RenderStateShard.class)
 	public static class GlintSpeed {
-		@WrapOperation(method = "setupGlintTexturing", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;"))
-		private static Object tatnat$speed(OptionInstance<?> option, Operation<Object> original) {
-			Object v = original.call(option);
-			if (EnchantGlint.active() && v instanceof Double d) return d * EnchantGlint.INSTANCE.speed.get();
-			return v;
+		/** No glint speed option on this version: the scroll is driven by the clock, so scale that. */
+		@WrapOperation(method = "setupGlintTexturing", at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;getMillis()J"))
+		private static long tatnat$speed(Operation<Long> original) {
+			long t = original.call();
+			return EnchantGlint.active() ? (long) (t * EnchantGlint.INSTANCE.speed.get()) : t;
 		}
 	}
 }

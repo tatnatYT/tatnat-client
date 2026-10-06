@@ -13,7 +13,6 @@ import com.tatnat.client.modules.impl.visual.BlockOverlay;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -39,18 +38,18 @@ public abstract class LevelRendererMixin {
 		Minecraft mc = Minecraft.getInstance();
 		VoxelShape shape = block.getShape(mc.level, pos, CollisionContext.of(viewer));
 		if (shape.isEmpty()) return;
-		VertexConsumer quads = mc.renderBuffers().bufferSource().getBuffer(RenderType.debugQuads());
+		com.mojang.blaze3d.vertex.BufferBuilder quads = com.tatnat.client.mc.ImmediateQuads.begin();
 		AABB box = shape.bounds().move(pos.getX() - camX, pos.getY() - camY, pos.getZ() - camZ);
 		double dist = Math.sqrt(box.getCenter().lengthSqr());
 		float t = (float) (overlay.thickness.get() * 0.0028 * Math.max(1.0, dist));
 		EdgeBox.draw(quads, pose.last().pose(), box, t, overlay.outline());
 
-		if (!overlay.fillFace.on() || overlay.fillOpacity.get() <= 0) return;
 		HitResult hit = mc.hitResult;
-		if (!(hit instanceof BlockHitResult) || hit.getType() != HitResult.Type.BLOCK) return;
-		BlockHitResult bhr = (BlockHitResult) hit;
-		if (!bhr.getBlockPos().equals(pos)) return;
-		face(quads, pose.last().pose(), box, bhr.getDirection(), overlay.fill());
+		if (overlay.fillFace.on() && overlay.fillOpacity.get() > 0 && hit instanceof BlockHitResult && hit.getType() == HitResult.Type.BLOCK
+				&& ((BlockHitResult) hit).getBlockPos().equals(pos)) {
+			face(quads, pose.last().pose(), box, ((BlockHitResult) hit).getDirection(), overlay.fill());
+		}
+		com.tatnat.client.mc.ImmediateQuads.draw(quads);
 	}
 
 	/** One quad on the given side of {@code b}, pushed out a hair to avoid z-fighting. */

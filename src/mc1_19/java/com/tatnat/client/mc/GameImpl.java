@@ -126,7 +126,14 @@ public final class GameImpl implements Game {
 
 	@Override
 	public int fps() {
-		return mc.getFps();
+		// The fps counter is private here; the debug string starts with it ("123 fps ...").
+		String s = mc.fpsString;
+		int sp = s.indexOf(' ');
+		try {
+			return Integer.parseInt(sp > 0 ? s.substring(0, sp) : s);
+		} catch (NumberFormatException e) {
+			return 0;
+		}
 	}
 
 	@Override
@@ -318,9 +325,9 @@ public final class GameImpl implements Game {
 		}
 		List<EffectInfo> out = new ArrayList<>();
 		for (MobEffectInstance e : raw) {
-			boolean ending = !e.isInfiniteDuration() && e.getDuration() < 200;
+			boolean ending = e.getDuration() < 200;
 			out.add(new EffectInfo(e.getEffect(), e.getEffect().getDisplayName().getString(), e.getAmplifier() + 1,
-					MobEffectUtil.formatDuration(e, 1f).getString(), ending));
+					MobEffectUtil.formatDuration(e, 1f), ending));
 		}
 		return out;
 	}
@@ -367,12 +374,12 @@ public final class GameImpl implements Game {
 
 	@Override
 	public void sendChat(String message) {
-		if (mc.player != null) mc.player.connection.sendChat(message);
+		if (mc.player != null) mc.player.chatSigned(message, null);
 	}
 
 	@Override
 	public void sendCommand(String command) {
-		if (mc.player != null) mc.player.connection.sendCommand(command);
+		if (mc.player != null) mc.player.commandSigned(command, null);
 	}
 
 	@Override
