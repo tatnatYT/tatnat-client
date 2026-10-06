@@ -77,6 +77,7 @@ public final class EventBus {
 				TatnatClient.LOG.error("Event handler in " + h.owner.getClass().getSimpleName() + " failed", t);
 			}
 		}
+		if (event instanceof Events.Render2D) ((com.tatnat.client.ui.render.RectBatch) ((Events.Render2D) event).gfx).flush();
 		return event;
 	}
 }

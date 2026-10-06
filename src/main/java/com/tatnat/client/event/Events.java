@@ -18,7 +18,8 @@ public final class Events {
 		public final float partialTick;
 
 		public Render2D(Gfx gfx, float partialTick) {
-			this.gfx = gfx;
+			// Batched: HUD extras like waypoint beams are thousands of small fills (see RectBatch).
+			this.gfx = com.tatnat.client.ui.render.RectBatch.of(gfx);
 			this.partialTick = partialTick;
 		}
 	}

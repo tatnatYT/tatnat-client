@@ -24,6 +24,8 @@ public final class Icons {
 	}
 
 	private static Gfx g;
+	/** Rows a stroke may cover (pixel space); thickLine limits it to the screen. */
+	private static int rowMin = Integer.MIN_VALUE / 2, rowMax = Integer.MAX_VALUE / 2;
 	private static float ox, oy, k;
 	private static int color;
 
@@ -568,7 +570,14 @@ public final class Icons {
 		ox = 0;
 		oy = 0;
 		k = 1;
-		capsule(x1, y1, x2, y2, width / 2f);
+		rowMin = -64;
+		rowMax = com.tatnat.client.TatnatClient.game().windowHeight() + 64;
+		try {
+			capsule(x1, y1, x2, y2, width / 2f);
+		} finally {
+			rowMin = Integer.MIN_VALUE / 2;
+			rowMax = Integer.MAX_VALUE / 2;
+		}
 		g = null;
 	}
 
@@ -621,6 +630,9 @@ public final class Icons {
 		float dx = bx - ax, dy = by - ay;
 		float len2 = dx * dx + dy * dy;
 		int top = (int) Math.floor(Math.min(ay, by) - h), bottom = (int) Math.ceil(Math.max(ay, by) + h);
+		// Lines that run far off screen (a waypoint beam right next to the camera) only draw visible rows.
+		top = Math.max(top, rowMin);
+		bottom = Math.min(bottom, rowMax);
 		for (int row = top; row < bottom; row++) {
 			float yc = row + 0.5f;
 			float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
