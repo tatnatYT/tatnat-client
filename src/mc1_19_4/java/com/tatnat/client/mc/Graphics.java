@@ -1,0 +1,79 @@
+package com.tatnat.client.mc;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+
+/**
+ * 1.19.4 has no GuiGraphics: GUI drawing is static GuiComponent helpers on a PoseStack. This gives
+ * the rest of the platform the same small surface the newer versions have.
+ */
+public final class Graphics extends GuiComponent {
+	private final PoseStack pose;
+	private final Minecraft mc = Minecraft.getInstance();
+
+	public Graphics(PoseStack pose) {
+		this.pose = pose;
+	}
+
+	public PoseStack pose() {
+		return pose;
+	}
+
+	public int guiWidth() {
+		return mc.getWindow().getGuiScaledWidth();
+	}
+
+	public int guiHeight() {
+		return mc.getWindow().getGuiScaledHeight();
+	}
+
+	public void fill(int x1, int y1, int x2, int y2, int argb) {
+		GuiComponent.fill(pose, x1, y1, x2, y2, argb);
+	}
+
+	public void fillGradient(int x1, int y1, int x2, int y2, int top, int bottom) {
+		GuiComponent.fillGradient(pose, x1, y1, x2, y2, top, bottom);
+	}
+
+	public void drawString(Font font, Component s, int x, int y, int argb, boolean shadow) {
+		if (shadow) font.drawShadow(pose, s, x, y, argb);
+		else font.draw(pose, s, x, y, argb);
+	}
+
+	public void drawString(Font font, String s, int x, int y, int argb, boolean shadow) {
+		if (shadow) font.drawShadow(pose, s, x, y, argb);
+		else font.draw(pose, s, x, y, argb);
+	}
+
+	public void setColor(float r, float g, float b, float a) {
+		RenderSystem.setShaderColor(r, g, b, a);
+	}
+
+	public void blit(ResourceLocation texture, int x, int y, float u, float v, int w, int h, int texW, int texH) {
+		RenderSystem.setShaderTexture(0, texture);
+		RenderSystem.enableBlend();
+		GuiComponent.blit(pose, x, y, u, v, w, h, texW, texH);
+	}
+
+	public void blit(int x, int y, int z, int w, int h, TextureAtlasSprite sprite) {
+		RenderSystem.setShaderTexture(0, sprite.atlasLocation());
+		RenderSystem.enableBlend();
+		GuiComponent.blit(pose, x, y, z, w, h, sprite);
+	}
+
+	public void renderItem(ItemStack s, int x, int y) {
+		mc.getItemRenderer().renderAndDecorateItem(pose, s, x, y);
+	}
+
+	public void renderItemDecorations(Font font, ItemStack s, int x, int y, String text) {
+		mc.getItemRenderer().renderGuiItemDecorations(pose, font, s, x, y, text);
+	}
+}

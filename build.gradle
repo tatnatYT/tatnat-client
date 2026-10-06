@@ -42,7 +42,14 @@ loom {
 			// crashing at the first; devtest.js fails the run if any are logged.
 			vmArg "-Dmixin.ignoreRequired=true"
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
-			if (project.hasProperty('quickjoin')) programArgs "--quickPlayMultiplayer", project.property('quickjoin').toString()
+			if (project.hasProperty('quickjoin')) {
+				def target = project.property('quickjoin').toString()
+				// Quick Play arrived in 1.20; older versions take --server/--port.
+				def parts = mcVersion.tokenize('.')
+				boolean quickPlay = parts[0] != '1' || parts[1].toInteger() >= 20
+				if (quickPlay) programArgs "--quickPlayMultiplayer", target
+				else programArgs "--server", target.tokenize(':')[0], "--port", target.tokenize(':')[1]
+			}
 		}
 	}
 	mods {
@@ -71,7 +78,25 @@ dependencies {
 processResources {
 	inputs.property "version", project.version
 	inputs.property "mc", project.minecraft_dependency
+	// The font filters below depend on the version; bump fontFix when they change.
+	inputs.property "mcVersion", mcVersion
+	inputs.property "fontFix", 2
 	filesMatching("fabric.mod.json") { expand "version": project.version, "minecraft_dependency": project.minecraft_dependency }
+	// The "reference" font provider (fallback to the vanilla font) only exists from 1.20; older
+	// versions reject the whole definition, so drop it there (Inter covers everything we draw).
+	def v = mcVersion.tokenize('.')
+	int minor = v[0] == '1' ? v[1].toInteger() : 99
+	int patch = v.size() > 2 ? v[2].toInteger() : 0
+	if (minor < 20) {
+		filesMatching("assets/tatnatclient/font/w*.json") { filter { line -> line.startsWith(',{"type":"reference"') ? null : line } }
+	}
+	// Before 1.20.5 TTF fonts go through stb_truetype, which fits ascent-to-descent (not the em)
+	// into "size". Scale by Inter's (ascent - descent) / em so text matches the FreeType versions.
+	if (minor < 20 || (minor == 20 && patch < 5)) {
+		filesMatching("assets/tatnatclient/font/w*.json") {
+			filter { line -> line.replaceAll(/"size":(\d+)/) { all, n -> '"size":' + String.format(Locale.ROOT, "%.3f", n.toInteger() * 1.20996) } }
+		}
+	}
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.release = javaVersion }

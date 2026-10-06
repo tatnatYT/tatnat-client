@@ -71,7 +71,12 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public void scissor(int x1, int y1, int x2, int y2) {
-		g.enableScissor(x1, y1, x2, y2);
+		// This version's scissor ignores the pose; the menu draws at 1/guiScale, so map the box first.
+		org.joml.Matrix4f m = g.pose().last().pose();
+		org.joml.Vector3f a = m.transformPosition(x1, y1, 0f, new org.joml.Vector3f());
+		org.joml.Vector3f b = m.transformPosition(x2, y2, 0f, new org.joml.Vector3f());
+		g.enableScissor((int) Math.floor(Math.min(a.x(), b.x())), (int) Math.floor(Math.min(a.y(), b.y())),
+				(int) Math.ceil(Math.max(a.x(), b.x())), (int) Math.ceil(Math.max(a.y(), b.y())));
 	}
 
 	@Override
@@ -81,8 +86,9 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public void uiText(int weight, int px, String s, int x, int y, int argb) {
-		// Minecraft puts every font's baseline 7px below the given y; move it to ~80% of the em box.
-		g.drawString(mc.font, uiComponent(weight, px, s), x, y + Math.round(px * 0.8f) - 7, argb, false);
+		// stb_truetype (before 1.20.5) puts the baseline at y - 3 + ascent (Inter: 0.969 em); move it
+		// to ~80% of the em box like the FreeType versions.
+		g.drawString(mc.font, uiComponent(weight, px, s), x, y + Math.round(3 - px * 0.169f), argb, false);
 	}
 
 	@Override

@@ -21,14 +21,14 @@ import net.minecraft.client.renderer.GameRenderer;
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
 	@Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
-	private void tatnat$zoom(Camera camera, float partialTick, boolean useFovSetting, CallbackInfoReturnable<Float> cir) {
+	private void tatnat$zoom(Camera camera, float partialTick, boolean useFovSetting, CallbackInfoReturnable<Double> cir) {
 		if (!useFovSetting) return;
-		float fov = cir.getReturnValue();
+		double fov = cir.getReturnValue();
 		// FOV Modifier scales by custom / vanilla setting, so underwater and similar effects still apply.
 		if (FovModifier.active()) fov *= FovModifier.INSTANCE.fov.floatValue() / Minecraft.getInstance().options.fov().get();
 		Zoom zoom = Zoom.INSTANCE;
 		if (zoom != null && zoom.isEnabled()) fov /= (float) zoom.update();
-		GameImpl.lastFov = fov;
+		GameImpl.lastFov = (float) fov;
 		cir.setReturnValue(fov);
 	}
 

@@ -31,6 +31,8 @@ const uuid = `${x.slice(0, 8)}-${x.slice(8, 12)}-${x.slice(12, 16)}-${x.slice(16
 fs.writeFileSync(path.join(run, 'ops.json'), JSON.stringify([{ uuid, name: 'tatnat', level: 4, bypassesPlayerLimit: false }]));
 for (const f of fs.readdirSync(path.join(run, 'screenshots'))) if (f.startsWith('devtest-')) fs.rmSync(path.join(run, 'screenshots', f));
 fs.rmSync(path.join(run, 'config', 'tatnat-client.json'), { force: true });
+// Every run starts at world spawn (the test moves the player 400 blocks at the end).
+fs.rmSync(path.join(run, 'world', 'playerdata'), { recursive: true, force: true });
 
 const java = path.join(process.env.JAVA_HOME, 'bin', 'java.exe');
 const wrapper = ['-cp', path.join(__dirname, 'gradle', 'wrapper', 'gradle-wrapper.jar'), 'org.gradle.wrapper.GradleWrapperMain'];

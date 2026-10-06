@@ -1,18 +1,4 @@
-{
- "providers": [
-  {
-   "type": "ttf",
-   "file": "tatnatclient:inter-700.ttf",
-   "size": 46,
-   "oversample": 1,
-   "shift": [
-    0,
-    0
-   ]
-  },
-  {
-   "type": "reference",
-   "id": "minecraft:default"
-  }
- ]
-}
+{"providers": [
+{"type":"ttf","file":"tatnatclient:inter-700.ttf","size":46,"oversample":1,"shift":[0,0]}
+,{"type":"reference","id":"minecraft:default"}
+]}

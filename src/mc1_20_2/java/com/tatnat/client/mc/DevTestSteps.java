@@ -140,11 +140,11 @@ final class DevTestSteps {
 			cmd("kill @e[type=pig]");
 			cmd("effect give @s speed 120 1");
 			cmd("effect give @s strength 45 0");
-			cmd("item replace entity @s weapon.mainhand with diamond_sword[enchantments={sharpness:5}]");
+			cmd("item replace entity @s weapon.mainhand with diamond_sword{Enchantments:[{id:\"minecraft:sharpness\",lvl:5s}]}");
 			// A pig 3 blocks in front, frozen, so the attacks land.
 			double yaw = Math.toRadians(mc().player.getYRot());
 			double px = mc().player.getX() - Math.sin(yaw) * 2.8, pz = mc().player.getZ() + Math.cos(yaw) * 2.8;
-			cmd(String.format(java.util.Locale.ROOT, "summon pig %.2f %.2f %.2f {NoAI:1b,attributes:[{id:\"minecraft:max_health\",base:400d}],Health:400f}",
+			cmd(String.format(java.util.Locale.ROOT, "summon pig %.2f %.2f %.2f {NoAI:1b,Attributes:[{Name:\"generic.max_health\",Base:400d}],Health:400f}",
 					px, mc().player.getY(), pz));
 			cmd("tp @s ~ ~ ~ ~ 20");
 			mod(com.tatnat.client.modules.impl.hud.ComboCounter.class).setEnabled(true);
