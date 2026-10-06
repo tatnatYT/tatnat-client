@@ -49,6 +49,9 @@ final class DevTestSteps {
 			cmd("time set 6000");
 			cmd("weather clear");
 			cmd("gamemode creative");
+			// Same open scene on every version/seed: clear a small arena with a grass floor.
+			cmd("fill ~-6 ~ ~-6 ~6 ~6 ~6 air");
+			cmd("fill ~-6 ~-1 ~-6 ~6 ~-1 ~6 grass_block");
 			cmd("item replace entity @s armor.head with diamond_helmet");
 			cmd("item replace entity @s armor.chest with diamond_chestplate");
 			cmd("item replace entity @s armor.legs with iron_leggings");

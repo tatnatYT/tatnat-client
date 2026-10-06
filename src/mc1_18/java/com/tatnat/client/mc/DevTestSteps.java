@@ -27,7 +27,7 @@ final class DevTestSteps {
 	}
 
 	private static void cmd(String c) {
-		mc().player.connection.sendCommand(c);
+		mc().player.chat("/" + c);
 	}
 
 	private static ClickGuiScreen gui;
@@ -103,7 +103,7 @@ final class DevTestSteps {
 			Clock clock = ModuleManager.get().get(Clock.class);
 			int w = editor.width, h = editor.height;
 			double sx = clock.screenX(w) + 3, sy = clock.screenY(h) + 3;
-			int sc = mc().getWindow().getGuiScale();
+			int sc = (int) mc().getWindow().getGuiScale();
 			editor.mouseClicked(sx * sc, sy * sc, 0);
 			// Aim 2 GUI px off the exact centre: the snap should pull it in and show guides.
 			double tx = w / 2.0 - clock.scaledWidth() / 2 + 2 + 3, ty = h / 2.0 - clock.scaledHeight() / 2 - 1 + 3;
@@ -143,11 +143,11 @@ final class DevTestSteps {
 			cmd("kill @e[type=pig]");
 			cmd("effect give @s speed 120 1");
 			cmd("effect give @s strength 45 0");
-			cmd("item replace entity @s weapon.mainhand with diamond_sword[enchantments={sharpness:5}]");
+			cmd("item replace entity @s weapon.mainhand with diamond_sword{Enchantments:[{id:\"minecraft:sharpness\",lvl:5s}]}");
 			// A pig 3 blocks in front, frozen, so the attacks land.
 			double yaw = Math.toRadians(mc().player.getYRot());
 			double px = mc().player.getX() - Math.sin(yaw) * 2.8, pz = mc().player.getZ() + Math.cos(yaw) * 2.8;
-			cmd(String.format(java.util.Locale.ROOT, "summon pig %.2f %.2f %.2f {NoAI:1b,attributes:[{id:\"minecraft:max_health\",base:400d}],Health:400f}",
+			cmd(String.format(java.util.Locale.ROOT, "summon pig %.2f %.2f %.2f {NoAI:1b,Attributes:[{Name:\"generic.max_health\",Base:400d}],Health:400f}",
 					px, mc().player.getY(), pz));
 			cmd("tp @s ~ ~ ~ ~ 20");
 			mod(com.tatnat.client.modules.impl.hud.ComboCounter.class).setEnabled(true);
@@ -224,11 +224,11 @@ final class DevTestSteps {
 			mc().setScreen(inv);
 		});
 		step(5, "hover sword", () -> {
-			int scale = mc().getWindow().getGuiScale();
+			int scale = (int) mc().getWindow().getGuiScale();
 			int gw = mc().getWindow().getGuiScaledWidth(), gh = mc().getWindow().getGuiScaledHeight();
 			int left = (gw - 176) / 2, top = (gh - 166) / 2;
-			double sx = (left + 8 + 8 + 18 * mc().player.getInventory().getSelectedSlot()) * scale, sy = (top + 142 + 8) * scale;
-			org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc().getWindow().handle(),
+			double sx = (left + 8 + 8 + 18 * mc().player.getInventory().selected) * scale, sy = (top + 142 + 8) * scale;
+			org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc().getWindow().getWindow(),
 					sx * mc().getWindow().getScreenWidth() / mc().getWindow().getWidth(), sy * mc().getWindow().getScreenHeight() / mc().getWindow().getHeight());
 		});
 		step(10, "shot tooltip", () -> shot("15-tooltip"));

@@ -38,7 +38,7 @@ public final class FeaturesImpl implements Features {
 
 	private static final ResourceLocation[] GLINT = {
 			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_item.png"),
-			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_armor.png")};
+			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_entity.png")};
 	// Sized literally: these are created with INSTANCE, before the static GLINT array exists.
 	private final NativeImage[] glintOriginals = new NativeImage[2];
 	private final DynamicTexture[] glintTinted = new DynamicTexture[2];

@@ -46,9 +46,9 @@ public final class FeaturesImpl implements Features {
 
 	// ------------------------------------------------------------ Enchant Glint
 
+	// One glint texture for items and armour on this version.
 	private static final ResourceLocation[] GLINT = {
-			new ResourceLocation("minecraft", "textures/misc/enchanted_glint_item.png"),
-			new ResourceLocation("minecraft", "textures/misc/enchanted_glint_armor.png")};
+			new ResourceLocation("minecraft", "textures/misc/enchanted_item_glint.png")};
 	// Sized literally: these are created with INSTANCE, before the static GLINT array exists.
 	private final NativeImage[] glintOriginals = new NativeImage[2];
 	private final DynamicTexture[] glintTinted = new DynamicTexture[2];

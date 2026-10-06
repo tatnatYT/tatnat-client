@@ -46,9 +46,9 @@ public final class FeaturesImpl implements Features {
 
 	// ------------------------------------------------------------ Enchant Glint
 
+	// One glint texture for items and armour on this version.
 	private static final ResourceLocation[] GLINT = {
-			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_item.png"),
-			ResourceLocation.withDefaultNamespace("textures/misc/enchanted_glint_entity.png")};
+			new ResourceLocation("minecraft", "textures/misc/enchanted_item_glint.png")};
 	// Sized literally: these are created with INSTANCE, before the static GLINT array exists.
 	private final NativeImage[] glintOriginals = new NativeImage[2];
 	private final DynamicTexture[] glintTinted = new DynamicTexture[2];
@@ -71,7 +71,7 @@ public final class FeaturesImpl implements Features {
 		for (int i = 0; i < GLINT.length; i++) {
 			try {
 				if (glintOriginals[i] == null) {
-					try (InputStream in = mc.getResourceManager().open(GLINT[i])) {
+					try (InputStream in = mc.getResourceManager().getResource(GLINT[i]).getInputStream()) {
 						glintOriginals[i] = NativeImage.read(in);
 					}
 				}
@@ -130,7 +130,7 @@ public final class FeaturesImpl implements Features {
 	@Override
 	public void moveFreecam(double dx, double dy, double dz) {
 		if (camera == null) return;
-		if (camera.level() != mc.level) {
+		if (camera.level != mc.level) {
 			stopFreecam();
 			return;
 		}

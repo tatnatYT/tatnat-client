@@ -10,12 +10,12 @@ import com.tatnat.client.modules.impl.cosmetic.CapeArt;
 import com.tatnat.client.modules.impl.cosmetic.CustomCapes;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.LiteralContents;
-import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -32,7 +32,7 @@ public final class PlayerLooks {
 
 	public static boolean isMe(UUID id) {
 		Minecraft mc = Minecraft.getInstance();
-		return mc.player != null && mc.player.getUUID().equals(id) || mc.getUser().getProfileId().equals(id);
+		return mc.player != null && mc.player.getUUID().equals(id) || mc.getUser().getGameProfile().getId().equals(id);
 	}
 
 	private static boolean hideSkin() {
@@ -83,16 +83,16 @@ public final class PlayerLooks {
 
 	private static Component rebuild(Component c, String from, String to) {
 		MutableComponent out;
-		if (c.getContents() instanceof LiteralContents) {
-			out = Component.literal(((LiteralContents) c.getContents()).text().replace(from, to));
-		} else if (c.getContents() instanceof TranslatableContents) {
-			TranslatableContents tr = (TranslatableContents) c.getContents();
+		if (c instanceof TextComponent) {
+			out = new TextComponent(((TextComponent) c).getText().replace(from, to));
+		} else if (c instanceof TranslatableComponent) {
+			TranslatableComponent tr = (TranslatableComponent) c;
 			Object[] args = tr.getArgs().clone();
 			for (int i = 0; i < args.length; i++) {
 				if (args[i] instanceof Component) args[i] = rebuild((Component) args[i], from, to);
 				else if (args[i] instanceof String) args[i] = ((String) args[i]).replace(from, to);
 			}
-			out = Component.translatable(tr.getKey(), args);
+			out = new TranslatableComponent(tr.getKey(), args);
 		} else {
 			out = c.plainCopy();
 		}
