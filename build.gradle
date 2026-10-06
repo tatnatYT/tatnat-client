@@ -29,6 +29,11 @@ sourceSets {
 		resources { srcDir "src/${platformDir}/resources" }
 	}
 }
+// Dev runs only: the resource loader shipped for 1.17 and older reads assets from a mod's first
+// root path, which in dev is the classes folder. Put the resources there too (jars are unaffected).
+if (mcVersion.startsWith('1.') && mcVersion.tokenize('.')[1].toInteger() < 18) {
+	sourceSets.main.output.resourcesDir = sourceSets.main.java.classesDirectory.get().asFile
+}
 
 loom {
 	runs {
