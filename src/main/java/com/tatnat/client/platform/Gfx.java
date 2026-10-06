@@ -14,6 +14,14 @@ public interface Gfx {
 	/** Solid rectangle from (x1, y1) to (x2, y2), ARGB. */
 	void rect(int x1, int y1, int x2, int y2, int argb);
 
+	/**
+	 * {@code n} solid rectangles packed as {x1, y1, x2, y2, argb} in {@code data}, ideally in one
+	 * draw call (see RectBatch). The default draws them one by one.
+	 */
+	default void rects(int[] data, int n) {
+		for (int i = 0; i < n; i++) rect(data[i * 5], data[i * 5 + 1], data[i * 5 + 2], data[i * 5 + 3], data[i * 5 + 4]);
+	}
+
 	/** Top-to-bottom gradient. */
 	void gradient(int x1, int y1, int x2, int y2, int top, int bottom);
 

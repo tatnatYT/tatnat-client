@@ -21,7 +21,12 @@ public final class HudRenderer {
 		Game game = TatnatClient.game();
 		// F1 hides everything; the HUD editor draws the elements itself (on top of its backdrop).
 		if (game.hudHidden() || HudEditorScreen.isOpen()) return;
-		renderAll(e.gfx, false);
+		com.tatnat.client.ui.render.RectBatch g = com.tatnat.client.ui.render.RectBatch.of(e.gfx);
+		try {
+			renderAll(g, false);
+		} finally {
+			g.flush();
+		}
 	}
 
 	public static void renderAll(Gfx g, boolean preview) {

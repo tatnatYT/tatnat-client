@@ -44,6 +44,11 @@ public final class GfxImpl implements Gfx {
 	}
 
 	@Override
+	public void rects(int[] data, int n) {
+		g.fillBatch(data, n);
+	}
+
+	@Override
 	public void gradient(int x1, int y1, int x2, int y2, int top, int bottom) {
 		g.fillGradient(x1, y1, x2, y2, top, bottom);
 	}

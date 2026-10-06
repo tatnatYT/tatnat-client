@@ -37,10 +37,11 @@ public final class Icons {
 		float w = 4.2f; // default stroke width on the 64 grid
 		switch (icon) {
 			case KEYBOARD: {
-				box(23, 12, 18, 18, 3, w);
-				box(3, 34, 18, 18, 3, w);
-				box(23, 34, 18, 18, 3, w);
-				box(43, 34, 18, 18, 3, w);
+				// W over A S D
+				box(22, 6, 20, 20, 2, w);
+				box(1, 32, 20, 20, 2, w);
+				box(22, 32, 20, 20, 2, w);
+				box(43, 32, 20, 20, 2, w);
 			}
 			break;
 			case MONITOR: {
@@ -62,7 +63,13 @@ public final class Icons {
 				line(42, 14, 42, 58, w);
 			}
 			break;
-			case ARMOR: poly(w, 18, 6, 26, 6, 32, 14, 38, 6, 46, 6, 60, 16, 54, 30, 48, 26, 48, 58, 16, 58, 16, 26, 10, 30, 4, 16, 18, 6); break;
+			case ARMOR: {
+				// A shield: protection at a glance.
+				poly(w, 32, 4, 56, 12, 55, 34, 46, 49, 32, 60, 18, 49, 9, 34, 8, 12, 32, 4);
+				line(32, 14, 32, 49, 3.4f);
+				line(18, 27, 46, 27, 3.4f);
+			}
+			break;
 			case CLOCK: {
 				ring(32, 32, 27, w);
 				line(32, 32, 32, 15, w);
@@ -115,19 +122,23 @@ public final class Icons {
 			}
 			break;
 			case RUN: {
-				poly(w + 1, 10, 14, 28, 32, 10, 50);
-				poly(w + 1, 30, 14, 48, 32, 30, 50);
-				line(52, 12, 52, 52, w + 1);
+				// A running figure.
+				disc(42, 9, 6);
+				line(39, 18, 30, 36, w);
+				poly(w, 37, 22, 48, 28, 54, 22);
+				poly(w, 37, 22, 26, 22, 18, 30);
+				poly(w, 30, 36, 40, 45, 37, 58);
+				poly(w, 30, 36, 20, 46, 8, 45);
 			}
 			break;
 			case COMBO: {
-				text("x3", 32, 30, 30);
-				poly(w, 8, 50, 20, 44, 32, 50, 44, 44, 56, 50);
+				// A lightning bolt: hit after hit.
+				poly(w, 38, 4, 14, 36, 30, 36, 24, 60, 50, 26, 34, 26, 38, 4);
 			}
 			break;
 			case RULER: {
-				box(4, 22, 56, 20, 3, w);
-				for (int i = 0; i < 5; i++) line(12 + i * 10, 22, 12 + i * 10, i % 2 == 0 ? 33 : 29, 3.2f);
+				box(2, 18, 60, 28, 3, w);
+				for (int i = 0; i < 6; i++) line(11 + i * 8.4f, 18, 11 + i * 8.4f, i % 2 == 0 ? 32 : 26, 3.4f);
 			}
 			break;
 			case POTION: {
@@ -162,11 +173,13 @@ public final class Icons {
 			}
 			break;
 			case BOX: {
-				box(10, 6, 30, 30, 1, w);
-				box(24, 20, 30, 38, 1, w);
-				line(10, 6, 24, 20, 3.2f);
-				line(40, 6, 54, 20, 3.2f);
-				line(10, 36, 24, 50, 3.2f);
+				// A figure inside its hitbox.
+				box(12, 2, 40, 60, 1, 3.4f);
+				ring(32, 15, 6, 3.6f);
+				line(32, 22, 32, 40, 3.6f);
+				line(22, 28, 42, 28, 3.6f);
+				line(32, 40, 25, 54, 3.6f);
+				line(32, 40, 39, 54, 3.6f);
 			}
 			break;
 			case MASK: {
@@ -175,11 +188,7 @@ public final class Icons {
 				fillRect(40, 28, 10, 6);
 			}
 			break;
-			case MOON: {
-				arc(30, 32, 24, 0.35, 1.65, w);
-				arc(42, 26, 18, 0.62, 1.37, w);
-			}
-			break;
+			case MOON: crescent(30, 34, 25, 42, 24, 21, w); break;
 			case LAYERS: {
 				poly(w, 32, 6, 58, 18, 32, 30, 6, 18, 32, 6);
 				poly(w, 6, 30, 32, 42, 58, 30);
@@ -306,7 +315,32 @@ public final class Icons {
 
 	private static void box(float x, float y, float w, float h, float r, float width) {
 		int t = Math.max(1, Math.round(width * k));
-		RenderUtils.roundedOutline(g, Math.round(ox + x * k), Math.round(oy + y * k), Math.round(w * k), Math.round(h * k), Math.round(r * k) + t, t, color);
+		// Corner radius measured to the stroke centre, so small boxes stay boxes instead of circles.
+		RenderUtils.roundedOutline(g, Math.round(ox + x * k), Math.round(oy + y * k), Math.round(w * k), Math.round(h * k), Math.round(r * k + t / 2f), t, color);
+	}
+
+	/** Crescent: the part of circle 1 outside circle 2, outlined. */
+	private static void crescent(float x1, float y1, float r1, float x2, float y2, float r2, float width) {
+		double dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy);
+		double a = (r1 * r1 - r2 * r2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, r1 * r1 - a * a));
+		double mx = x1 + a * dx / d, my = y1 + a * dy / d;
+		double px = mx - h * dy / d, py = my + h * dx / d, qx = mx + h * dy / d, qy = my - h * dx / d;
+		double p1 = Math.atan2(py - y1, px - x1), q1 = Math.atan2(qy - y1, qx - x1);
+		double p2 = Math.atan2(py - y2, px - x2), q2 = Math.atan2(qy - y2, qx - x2);
+		// Outer arc: the long way round circle 1 (away from circle 2); inner arc: inside circle 1.
+		double outer = q1 - p1;
+		while (outer <= 0) outer += 2 * Math.PI;
+		if (outer < Math.PI) outer -= 2 * Math.PI;
+		double inner = q2 - p2;
+		while (inner <= 0) inner += 2 * Math.PI;
+		if (inner > Math.PI) inner -= 2 * Math.PI;
+		int steps = 28;
+		for (int i = 0; i < steps; i++) {
+			double t0 = p1 + outer * i / steps, t1 = p1 + outer * (i + 1) / steps;
+			line(x1 + (float) (Math.cos(t0) * r1), y1 + (float) (Math.sin(t0) * r1), x1 + (float) (Math.cos(t1) * r1), y1 + (float) (Math.sin(t1) * r1), width);
+			double u0 = p2 + inner * i / steps, u1 = p2 + inner * (i + 1) / steps;
+			line(x2 + (float) (Math.cos(u0) * r2), y2 + (float) (Math.sin(u0) * r2), x2 + (float) (Math.cos(u1) * r2), y2 + (float) (Math.sin(u1) * r2), width);
+		}
 	}
 
 	private static void ring(float cx, float cy, float r, float width) {

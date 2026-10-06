@@ -36,5 +36,23 @@ public final class ForgeEntry {
 		if (FMLEnvironment.dist != Dist.CLIENT) return;
 		TatnatClient.init(GameImpl.INSTANCE, FeaturesImpl.INSTANCE, LOG);
 		DevTest.init();
+		if ("audit".equals(System.getProperty("tatnat.devtest"))) {
+			// Release check: apply every hook now so broken ones (e.g. a bad refmap) show up at the menu.
+			TatnatClient.EVENTS.register(new Object() {
+				private boolean done;
+
+				@com.tatnat.client.event.Subscribe
+				public void onTick(com.tatnat.client.event.Events.Tick e) {
+					if (done) return;
+					done = true;
+					try {
+						org.spongepowered.asm.mixin.MixinEnvironment.getCurrentEnvironment().audit();
+						LOG.info("[audit] mixin audit finished");
+					} catch (Throwable t) {
+						LOG.error("[audit] mixin audit failed", t);
+					}
+				}
+			});
+		}
 	}
 }

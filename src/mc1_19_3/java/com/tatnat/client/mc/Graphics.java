@@ -39,6 +39,28 @@ public final class Graphics extends GuiComponent {
 		GuiComponent.fill(pose, x1, y1, x2, y2, argb);
 	}
 
+	/** Many fills in one draw call (RectBatch): data = {x1, y1, x2, y2, argb} * n. */
+	public void fillBatch(int[] d, int n) {
+		com.mojang.blaze3d.vertex.BufferBuilder b = com.mojang.blaze3d.vertex.Tesselator.getInstance().getBuilder();
+		com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+		com.mojang.blaze3d.systems.RenderSystem.disableTexture();
+		com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
+		com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.renderer.GameRenderer::getPositionColorShader);
+		b.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
+		for (int i = 0; i < n; i++) {
+			int o = i * 5, col = d[o + 4];
+			int a = col >>> 24, r = col >> 16 & 255, gr = col >> 8 & 255, bl = col & 255;
+			float x1 = d[o], y1 = d[o + 1], x2 = d[o + 2], y2 = d[o + 3];
+			b.vertex(pose.last().pose(), x1, y2, 0f).color(r, gr, bl, a).endVertex();
+			b.vertex(pose.last().pose(), x2, y2, 0f).color(r, gr, bl, a).endVertex();
+			b.vertex(pose.last().pose(), x2, y1, 0f).color(r, gr, bl, a).endVertex();
+			b.vertex(pose.last().pose(), x1, y1, 0f).color(r, gr, bl, a).endVertex();
+		}
+		com.mojang.blaze3d.vertex.Tesselator.getInstance().end();
+		com.mojang.blaze3d.systems.RenderSystem.enableTexture();
+		com.mojang.blaze3d.systems.RenderSystem.disableBlend();
+	}
+
 	public void fillGradient(int x1, int y1, int x2, int y2, int top, int bottom) {
 		GuiComponent.fillGradient(pose, x1, y1, x2, y2, top, bottom, 0);
 	}

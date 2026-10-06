@@ -10,6 +10,7 @@ import com.tatnat.client.ui.clickgui.ClickGuiScreen;
 import com.tatnat.client.ui.clickgui.Widgets;
 import com.tatnat.client.ui.render.Animation;
 import com.tatnat.client.ui.render.RenderUtils;
+import com.tatnat.client.ui.render.RectBatch;
 import com.tatnat.client.ui.render.UIFont;
 import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
@@ -89,7 +90,17 @@ public class HudEditorScreen implements UiScreen {
 	}
 
 	@Override
-	public void render(Gfx g, double mouseX, double mouseY) {
+	public void render(Gfx raw, double mouseX, double mouseY) {
+		// Thousands of tiny fills per frame: batch them (see RectBatch).
+		RectBatch g = RectBatch.of(raw);
+		try {
+			renderBatched(g, mouseX, mouseY);
+		} finally {
+			g.flush();
+		}
+	}
+
+	private void renderBatched(Gfx g, double mouseX, double mouseY) {
 		open_ = true;
 		width = TatnatClient.game().guiWidth();
 		height = TatnatClient.game().guiHeight();

@@ -60,6 +60,30 @@ public final class GfxImpl implements Gfx {
 		end();
 	}
 
+	/** Many fills in one draw call (RectBatch): data = {x1, y1, x2, y2, argb} * n. */
+	@Override
+	public void rects(int[] d, int n) {
+		begin();
+		GlStateManager.enableBlend();
+		GlStateManager.disableTexture();
+		GlStateManager.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+		Tessellator t = Tessellator.getInstance();
+		BufferBuilder b = t.getBuffer();
+		b.begin(GL11.GL_QUADS, VertexFormats.POSITION_COLOR);
+		for (int i = 0; i < n; i++) {
+			int o = i * 5, c = d[o + 4];
+			int a = c >>> 24, r = c >> 16 & 255, gr = c >> 8 & 255, bl = c & 255;
+			b.vertex(d[o], d[o + 3], 0).color(r, gr, bl, a).next();
+			b.vertex(d[o + 2], d[o + 3], 0).color(r, gr, bl, a).next();
+			b.vertex(d[o + 2], d[o + 1], 0).color(r, gr, bl, a).next();
+			b.vertex(d[o], d[o + 1], 0).color(r, gr, bl, a).next();
+		}
+		t.draw();
+		GlStateManager.enableTexture();
+		GlStateManager.disableBlend();
+		end();
+	}
+
 	@Override
 	public void gradient(int x1, int y1, int x2, int y2, int top, int bottom) {
 		begin();

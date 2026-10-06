@@ -45,6 +45,14 @@ public final class GfxImpl implements Gfx {
 	}
 
 	@Override
+	public void rects(int[] data, int n) {
+		// GuiGraphics flushes after every fill on these versions unless the calls are "managed".
+		g.drawManaged(() -> {
+			for (int i = 0; i < n; i++) g.fill(data[i * 5], data[i * 5 + 1], data[i * 5 + 2], data[i * 5 + 3], data[i * 5 + 4]);
+		});
+	}
+
+	@Override
 	public void gradient(int x1, int y1, int x2, int y2, int top, int bottom) {
 		g.fillGradient(x1, y1, x2, y2, top, bottom);
 	}

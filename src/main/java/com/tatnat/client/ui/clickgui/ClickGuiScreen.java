@@ -20,6 +20,7 @@ import com.tatnat.client.ui.render.Animation;
 import com.tatnat.client.ui.render.Icons;
 import com.tatnat.client.ui.render.Icons.Icon;
 import com.tatnat.client.ui.render.RenderUtils;
+import com.tatnat.client.ui.render.RectBatch;
 import com.tatnat.client.ui.render.UIFont;
 import com.tatnat.client.ui.render.Ui;
 import com.tatnat.client.ui.theme.Colors;
@@ -70,6 +71,9 @@ public class ClickGuiScreen implements UiScreen {
 	private long confirmResetAll;
 
 	private double scroll, scrollTarget, setScroll, setScrollTarget;
+	/** Share of the remaining scroll distance covered this frame (time-based, same feel at any FPS). */
+	private double scrollEase = 1;
+	private long lastFrame;
 	private int contentH, setContentH;
 	private int clipX, clipY, clipW, clipH;
 
@@ -201,7 +205,21 @@ public class ClickGuiScreen implements UiScreen {
 	// ---------------------------------------------------------------- drawing
 
 	@Override
-	public void render(Gfx g, double mouseX, double mouseY) {
+	public void render(Gfx raw, double mouseX, double mouseY) {
+		// Thousands of tiny fills per frame: batch them (see RectBatch).
+		RectBatch g = RectBatch.of(raw);
+		try {
+			renderBatched(g, mouseX, mouseY);
+		} finally {
+			g.flush();
+		}
+	}
+
+	private void renderBatched(Gfx g, double mouseX, double mouseY) {
+		long now = System.nanoTime();
+		double dt = lastFrame == 0 ? 1 / 60.0 : Math.min(0.1, (now - lastFrame) / 1e9);
+		lastFrame = now;
+		scrollEase = Performance.smoothScroll() ? 1 - Math.exp(-dt * 18) : 1;
 		if (closing && open.isDone()) {
 			TatnatClient.game().closeScreen();
 			return;
@@ -429,7 +447,7 @@ public class ClickGuiScreen implements UiScreen {
 		int rows = (mods.size() + cols - 1) / cols;
 		contentH = Math.max(0, rows * (cardH + gap) - gap);
 		scrollTarget = clampScroll(scrollTarget, contentH, bottom - y);
-		scroll += (scrollTarget - scroll) * (Performance.smoothScroll() ? 0.3 : 1);
+		scroll += (scrollTarget - scroll) * scrollEase;
 		if (Math.abs(scrollTarget - scroll) < 0.5) scroll = scrollTarget;
 
 		boolean inArea = Widgets.inside(mx, my, clipX, clipY, clipW, clipH);
@@ -526,7 +544,7 @@ public class ClickGuiScreen implements UiScreen {
 		for (SettingComponent<?> c : components) if (c.visible()) total += c.height();
 		setContentH = total;
 		setScrollTarget = clampScroll(setScrollTarget, setContentH, bottom - y);
-		setScroll += (setScrollTarget - setScroll) * (Performance.smoothScroll() ? 0.3 : 1);
+		setScroll += (setScrollTarget - setScroll) * scrollEase;
 		if (Math.abs(setScrollTarget - setScroll) < 0.5) setScroll = setScrollTarget;
 
 		boolean inArea = Widgets.inside(mx, my, clipX, clipY, clipW, clipH);
