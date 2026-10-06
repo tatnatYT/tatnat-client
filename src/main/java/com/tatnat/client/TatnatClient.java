@@ -68,6 +68,8 @@ public final class TatnatClient {
 			if (!e.inGame || e.action != KeyCodes.PRESS) return;
 			if (e.key == MENU_KEY) {
 				game.openScreen(new ClickGuiScreen());
+				// Consume it, or the game hands this same press to the menu that just opened (which closes it).
+				e.cancel();
 				return;
 			}
 			for (Module m : ModuleManager.get().all()) {

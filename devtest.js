@@ -33,6 +33,7 @@ for (const f of fs.readdirSync(path.join(run, 'screenshots'))) if (f.startsWith(
 fs.rmSync(path.join(run, 'config', 'tatnat-client.json'), { force: true });
 // Every run starts at world spawn (the test moves the player 400 blocks at the end).
 fs.rmSync(path.join(run, 'world', 'playerdata'), { recursive: true, force: true });
+fs.rmSync(path.join(run, 'world', 'players'), { recursive: true, force: true }); // 26.x
 
 const java = path.join((t.java >= 25 && process.env.JAVA25_HOME) || process.env.JAVA_HOME, 'bin', 'java.exe');
 const wrapper = ['-cp', path.join(__dirname, 'gradle', 'wrapper', 'gradle-wrapper.jar'), 'org.gradle.wrapper.GradleWrapperMain'];
