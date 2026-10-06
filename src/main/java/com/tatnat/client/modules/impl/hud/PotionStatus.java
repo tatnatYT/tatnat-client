@@ -14,12 +14,21 @@ public class PotionStatus extends HudModule {
 	private final BooleanSetting background = add(new BooleanSetting("Background", "Dark box behind the list", false));
 	private final BooleanSetting shadow = add(new BooleanSetting("Text Shadow", "Drop shadow under the text", true));
 	private final BooleanSetting blink = add(new BooleanSetting("Blink When Ending", "Flash the timer in the last 10 seconds", true));
+	public final BooleanSetting hideVanilla = add(new BooleanSetting("Hide Vanilla Icons", "Hide the game's own effect icons in the top right", true));
+
+	public static PotionStatus INSTANCE;
 
 	private static final String[] ROMAN = {"", "", " II", " III", " IV", " V", " VI", " VII", " VIII", " IX", " X"};
 
 	public PotionStatus() {
 		super("Potion Status", "Shows your active effects and how long they last", false, 1.0, 0.25);
 		icon = Icons.Icon.POTION;
+		INSTANCE = this;
+	}
+
+	/** True while this list replaces the game's own top-right effect icons. */
+	public static boolean hidesVanilla() {
+		return INSTANCE != null && INSTANCE.isEnabled() && INSTANCE.hideVanilla.on();
 	}
 
 	@Override

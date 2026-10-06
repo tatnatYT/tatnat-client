@@ -10,7 +10,6 @@ import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.ui.render.Easing;
 import com.tatnat.client.ui.render.Icons;
 
-import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * Newly loaded chunks slide into place instead of popping in. Works on Minecraft's own chunk
@@ -19,7 +18,7 @@ import net.fabricmc.loader.api.FabricLoader;
  */
 public class ChunkAnimator extends Module {
 	public static ChunkAnimator INSTANCE;
-	public static final boolean SODIUM = FabricLoader.getInstance().isModLoaded("sodium");
+	public static final boolean SODIUM = com.tatnat.client.TatnatClient.game().modLoaded("sodium");
 
 	public final SliderSetting duration = add(new SliderSetting("Duration", "How long a chunk takes to slide in", 700, 100, 3000, 50, "ms"));
 	public final ModeSetting mode = add(new ModeSetting("Mode", "Where new chunks come from", "From Below", "From Below", "From Above", "From Y 0"));

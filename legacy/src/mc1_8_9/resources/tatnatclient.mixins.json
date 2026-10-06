@@ -1,0 +1,33 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.tatnat.client.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"client": [
+		"CoreMixins$Tick",
+		"CoreMixins$Input",
+		"CoreMixins$Wheel",
+		"CoreMixins$Hud",
+		"CoreMixins$View",
+		"CoreMixins$Attack",
+		"WorldMixins$Light",
+		"WorldMixins$Outline",
+		"WorldMixins$HitboxesOn",
+		"WorldMixins$HitFlash",
+		"WorldMixins$GlintSpeed",
+		"WorldMixins$DayTime",
+		"WorldMixins$Weather",
+		"PlayerMixins$Looks",
+		"PlayerMixins$TabName",
+		"PlayerMixins$NameTag",
+		"PlayerMixins$Chat",
+		"PlayerMixins$FreezePlayer",
+		"PlayerMixins$TooltipText",
+		"PlayerMixins$TooltipHover",
+		"PlayerMixins$Tooltip",
+		"TitleButtonMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

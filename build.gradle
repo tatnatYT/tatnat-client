@@ -112,6 +112,14 @@ processResources {
 	}
 }
 
+// Versions that ship with Java 8 are also run on Java 8 in dev, like players run them
+// (pass -Porg.gradle.java.installations.paths=<jdk8>; devtest.js does this from JAVA8_HOME).
+if (javaVersion == 8) {
+	tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+		javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(8) }
+	}
+}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = javaVersion
 	it.options.encoding = 'UTF-8'

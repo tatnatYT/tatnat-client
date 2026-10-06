@@ -386,6 +386,11 @@ public final class GameImpl implements Game {
 		mc.gui.setScreen(new ScreenBridge(screen));
 	}
 
+	/** What the title-screen button does. */
+	public static void openModMenu() {
+		INSTANCE.openScreen(new com.tatnat.client.ui.clickgui.ClickGuiScreen());
+	}
+
 	@Override
 	public void closeScreen() {
 		mc.gui.setScreen(null);

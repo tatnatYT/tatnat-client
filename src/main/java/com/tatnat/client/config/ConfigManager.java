@@ -16,7 +16,6 @@ import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.Module;
 import com.tatnat.client.modules.ModuleManager;
 
-import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * Saves every module's state to {@code config/tatnat-client.json}.
@@ -27,7 +26,13 @@ import net.fabricmc.loader.api.FabricLoader;
  */
 public final class ConfigManager {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-	private final Path file = FabricLoader.getInstance().getConfigDir().resolve("tatnat-client.json");
+	private Path file;
+
+	/** Resolved on first use: the loader's config folder comes from the platform. */
+	private Path file() {
+		if (file == null) file = TatnatClient.game().configDir().resolve("tatnat-client.json");
+		return file;
+	}
 	private boolean dirty;
 	private boolean loading;
 	private long lastSave;
@@ -40,14 +45,14 @@ public final class ConfigManager {
 		loading = true;
 		try {
 			JsonObject root = new JsonObject();
-			if (Files.exists(file)) {
-				try (Reader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+			if (Files.exists(file())) {
+				try (Reader r = Files.newBufferedReader(file(), StandardCharsets.UTF_8)) {
 					// Instance parse(): the static parseReader() is missing from the older Gson in 1.8.9-1.12.2.
 					root = new JsonParser().parse(r).getAsJsonObject();
 				} catch (Exception e) {
 					TatnatClient.LOG.error("Config was unreadable, starting from defaults (old file kept as .broken)", e);
 					try {
-						Files.copy(file, file.resolveSibling("tatnat-client.json.broken"), StandardCopyOption.REPLACE_EXISTING);
+						Files.copy(file(), file().resolveSibling("tatnat-client.json.broken"), StandardCopyOption.REPLACE_EXISTING);
 					} catch (IOException ignored) {
 					}
 				}
@@ -60,6 +65,8 @@ public final class ConfigManager {
 					if (en.getValue().isJsonObject() && en.getValue().getAsJsonObject().has("settings")) en.getValue().getAsJsonObject().getAsJsonObject("settings").remove("Brackets");
 				}
 			}
+			if (root.has("options") && root.get("options").isJsonObject()) com.tatnat.client.modules.ClientOptions.INSTANCE.load(root.getAsJsonObject("options"));
+			if (root.has("performance") && root.get("performance").isJsonObject()) com.tatnat.client.modules.Performance.INSTANCE.load(root.getAsJsonObject("performance"));
 			for (Module m : ModuleManager.get().all()) {
 				JsonObject o = mods.has(m.id()) && mods.get(m.id()).isJsonObject() ? mods.getAsJsonObject(m.id()) : new JsonObject();
 				m.load(o);
@@ -67,7 +74,7 @@ public final class ConfigManager {
 		} finally {
 			loading = false;
 		}
-		if (!Files.exists(file)) save();
+		if (!Files.exists(file())) save();
 	}
 
 	public void save() {
@@ -76,13 +83,15 @@ public final class ConfigManager {
 		JsonObject mods = new JsonObject();
 		for (Module m : ModuleManager.get().all()) mods.add(m.id(), m.save());
 		root.add("modules", mods);
+		root.add("performance", com.tatnat.client.modules.Performance.INSTANCE.save());
+		root.add("options", com.tatnat.client.modules.ClientOptions.INSTANCE.save());
 		try {
-			Files.createDirectories(file.getParent());
-			Path tmp = file.resolveSibling("tatnat-client.json.tmp");
+			Files.createDirectories(file().getParent());
+			Path tmp = file().resolveSibling("tatnat-client.json.tmp");
 			try (Writer w = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8)) {
 				GSON.toJson(root, w);
 			}
-			Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+			Files.move(tmp, file(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 			dirty = false;
 		} catch (IOException e) {
 			TatnatClient.LOG.error("Could not save config", e);

@@ -1,0 +1,79 @@
+// Tatnat Client for Minecraft 1.8.9 - 1.13.2 (Legacy Fabric, Yarn names, Java 8).
+// Shares the version-independent core with the main build (../src/main); each version's platform
+// lives in legacy/src/<platform_source>.
+plugins {
+	id "net.fabricmc.fabric-loom-remap" version "${loom_version}"
+	id "legacy-looming" version "${loom_version}"
+}
+
+def mcVersion = project.minecraft_version
+def platformDir = project.platform_source
+
+version = project.mod_version
+base { archivesName = "tatnat-client-mc${mcVersion}" }
+
+sourceSets {
+	main {
+		java {
+			srcDir "../src/main/java"
+			srcDir "src/${platformDir}/java"
+		}
+		resources {
+			srcDir "../src/main/resources"
+			srcDir "src/${platformDir}/resources"
+		}
+	}
+}
+
+loom {
+	// 1.8 - 1.12 ship an old log4j that can't read Loom's generated dev config.
+	log4jConfigs.setFrom(file('log4j-dev.xml'))
+	runs {
+		configureEach { runDir "run/${mcVersion}" }
+		client {
+			programArgs "--username", "tatnat", "--width", "1600", "--height", "900"
+			vmArg "-Dmixin.ignoreRequired=true"
+			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
+			if (project.hasProperty('quickjoin')) vmArg "-Dtatnat.join=${project.property('quickjoin')}"
+		}
+	}
+	mods {
+		"tatnatclient" { sourceSet sourceSets.main }
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${mcVersion}"
+	mappings(legacy.yarn(mcVersion, project.yarn_build))
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+	inputs.property "mc", project.minecraft_dependency
+	// The JSON font definitions are for Minecraft's TTF provider (1.13+); legacy draws Inter itself.
+	exclude "assets/tatnatclient/font/*.json"
+	filesMatching("fabric.mod.json") { expand "version": project.version, "minecraft_dependency": project.minecraft_dependency }
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 8
+	it.options.encoding = 'UTF-8'
+}
+java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+// Dev runs need Java 8 (LWJGL 2). Point Gradle at a JDK 8 with -Porg.gradle.java.installations.paths=...
+tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+	javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(8) }
+}
+
+tasks.register('collectJar', Copy) {
+	dependsOn tasks.named('build')
+	from layout.buildDirectory.dir('libs')
+	include '*.jar'
+	exclude '*-sources.jar'
+	into rootProject.file('../dist')
+}

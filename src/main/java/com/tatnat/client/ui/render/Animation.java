@@ -32,6 +32,8 @@ public final class Animation {
 	}
 
 	public float get() {
+		// Performance tab: with menu animations off everything lands straight away.
+		if (!com.tatnat.client.modules.Performance.animations()) return to;
 		long elapsed = System.currentTimeMillis() - start;
 		if (elapsed >= durationMs) return to;
 		float t = elapsed / (float) durationMs;
@@ -43,6 +45,6 @@ public final class Animation {
 	}
 
 	public boolean isDone() {
-		return System.currentTimeMillis() - start >= durationMs;
+		return !com.tatnat.client.modules.Performance.animations() || System.currentTimeMillis() - start >= durationMs;
 	}
 }

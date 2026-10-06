@@ -15,7 +15,6 @@ import com.tatnat.client.util.CpsTracker;
 import com.tatnat.client.util.KeyCodes;
 import com.tatnat.client.util.Keys;
 
-import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * The shared core. Each Minecraft version's entry point calls {@link #init} with its own
@@ -51,14 +50,15 @@ public final class TatnatClient {
 		game = g;
 		if (f != null) features = f;
 		if (log != null) LOG = log;
-		VERSION = FabricLoader.getInstance().getModContainer(ID).map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("dev");
+		VERSION = g.modVersion();
 		EVENTS.register(new Hotkeys());
 		EVENTS.register(CpsTracker.INSTANCE);
 		EVENTS.register(HudRenderer.INSTANCE);
 		ModuleManager.get();
 		CONFIG.load();
 		Runtime.getRuntime().addShutdownHook(new Thread(CONFIG::save, "tatnat-config-save"));
-		LOG.info("tatnat client {} loaded with {} mods on Minecraft {}", VERSION, ModuleManager.get().all().size(), g.minecraftVersion());
+		LOG.info("tatnat client {} loaded with {} mods on Minecraft {} (Java {})", VERSION, ModuleManager.get().all().size(), g.minecraftVersion(),
+				System.getProperty("java.version"));
 	}
 
 	/** Right Shift for the menu, plus each mod's own toggle key. */

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dev-run logging for the legacy versions: Loom's default config needs a newer log4j than 1.8-1.12 ship. -->
+<Configuration status="WARN">
+	<Appenders>
+		<Console name="SysOut" target="SYSTEM_OUT">
+			<PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] (%logger{1}) %msg%n"/>
+		</Console>
+		<File name="LatestFile" fileName="logs/latest.log" append="false">
+			<PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] (%logger{1}) %msg%n"/>
+		</File>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="SysOut"/>
+			<AppenderRef ref="LatestFile"/>
+		</Root>
+	</Loggers>
+</Configuration>

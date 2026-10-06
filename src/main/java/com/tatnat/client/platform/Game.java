@@ -165,4 +165,9 @@ public interface Game {
 
 	/** Minecraft version, e.g. "1.21.11". */
 	String minecraftVersion();
+
+	/** This mod's version (the loader knows it; the default is the one in the build). */
+	default String modVersion() {
+		return "1.0.0";
+	}
 }

@@ -100,6 +100,8 @@ final class DevTestSteps {
 		step(15, "shot list", () -> shot("05b-list"));
 		step(2, "settings page", () -> gui.devShow(true, false));
 		step(15, "shot settings page", () -> shot("05c-client-settings"));
+		step(2, "performance page", () -> gui.devPerformance());
+		step(15, "shot performance", () -> shot("05d-performance"));
 		step(2, "back to grid", () -> gui.devShow(false, false));
 
 		step(2, "open hud editor", () -> {
@@ -138,6 +140,11 @@ final class DevTestSteps {
 
 		phase2();
 
+		step(2, "title screen", () -> mc().gui.setScreen(new net.minecraft.client.gui.screens.TitleScreen()));
+		step(30, "shot title", () -> shot("16-title"));
+		step(2, "title button", GameImpl::openModMenu);
+		step(20, "shot title menu", () -> shot("17-title-menu"));
+		step(2, "back", () -> GameImpl.INSTANCE.closeScreen());
 		if (!mode.contains("stay")) step(20, "quit", () -> mc().stop());
 	}
 

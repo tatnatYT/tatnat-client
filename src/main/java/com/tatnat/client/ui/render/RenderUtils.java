@@ -66,7 +66,8 @@ public final class RenderUtils {
 	public static void roundedRect(Gfx g, int x, int y, int w, int h, int radius, int color,
 			boolean tl, boolean tr, boolean bl, boolean br) {
 		if (w <= 0 || h <= 0) return;
-		int r = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+		// Performance tab: square corners skip the anti-aliased corner work.
+		int r = com.tatnat.client.modules.Performance.roundedCorners() ? Math.max(0, Math.min(radius, Math.min(w, h) / 2)) : 0;
 		if (r == 0) {
 			rect(g, x, y, x + w, y + h, color);
 			return;
@@ -91,7 +92,8 @@ public final class RenderUtils {
 	public static void roundedOutline(Gfx g, int x, int y, int w, int h, int radius, int thickness, int color) {
 		// Draw the ring by layering: outer shape in the colour, then punch nothing -- instead draw
 		// four straight edges plus corner arcs from the coverage masks of two radii.
-		int r = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+		// Performance tab: square corners skip the anti-aliased corner work.
+		int r = com.tatnat.client.modules.Performance.roundedCorners() ? Math.max(0, Math.min(radius, Math.min(w, h) / 2)) : 0;
 		rect(g, x + r, y, x + w - r, y + thickness, color);
 		rect(g, x + r, y + h - thickness, x + w - r, y + h, color);
 		rect(g, x, y + r, x + thickness, y + h - r, color);
@@ -124,6 +126,7 @@ public final class RenderUtils {
 	 * slightly downwards like light from above. Draw it before the panel it belongs to.
 	 */
 	public static void shadow(Gfx g, int x, int y, int w, int h, int radius, int layers, float strength) {
+		if (!com.tatnat.client.modules.Performance.shadows()) return;
 		for (int i = layers; i >= 1; i--) {
 			float t = 1f - (i - 1) / (float) layers;
 			int a = Math.round(255 * strength * t * t / layers * 2.2f);

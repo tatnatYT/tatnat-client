@@ -28,4 +28,10 @@ public class GuiMixin {
 	private void tatnat$crosshair(CallbackInfo ci) {
 		if (Crosshair.active()) ci.cancel();
 	}
+
+	/** Potion Status replaces the vanilla effect icons in the top right (unless its setting says keep them). */
+	@Inject(method = "renderEffects", at = @At("HEAD"), cancellable = true)
+	private void tatnat$hideEffects(CallbackInfo ci) {
+		if (com.tatnat.client.modules.impl.hud.PotionStatus.hidesVanilla()) ci.cancel();
+	}
 }

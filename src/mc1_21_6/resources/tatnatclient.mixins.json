@@ -32,7 +32,8 @@
 		"WorldLookMixins$DayTime",
 		"WorldLookMixins$Overlay",
 		"WorldLookMixins$WaterFog",
-		"WorldLookMixins$Weather"
+		"WorldLookMixins$Weather",
+		"TitleButtonMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

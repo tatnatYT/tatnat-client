@@ -38,7 +38,8 @@ fs.rmSync(path.join(run, 'world', 'players'), { recursive: true, force: true });
 const java = path.join((t.java >= 25 && process.env.JAVA25_HOME) || process.env.JAVA_HOME, 'bin', 'java.exe');
 const wrapper = ['-cp', path.join(__dirname, 'gradle', 'wrapper', 'gradle-wrapper.jar'), 'org.gradle.wrapper.GradleWrapperMain'];
 const props2 = [`-Pminecraft_version=${t.mc}`, `-Pminecraft_dependency=${t.dep}`, `-Pplatform_source=${t.src}`,
-  `-Pjava_version=${t.java}`, `-Pfabric_api_version=${t.api}`];
+  `-Pjava_version=${t.java}`, `-Pfabric_api_version=${t.api}`,
+  ...(t.java === 8 && process.env.JAVA8_HOME ? [`-Porg.gradle.java.installations.paths=${process.env.JAVA8_HOME}`, '-Porg.gradle.java.installations.auto-download=false'] : [])];
 
 const audit = mode === 'audit';
 let server = { kill() {} };

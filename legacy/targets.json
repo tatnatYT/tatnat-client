@@ -1,0 +1,10 @@
+{
+	"_comment": "Legacy Fabric builds (Yarn names, Java 8). 'src' is the platform folder under legacy/src/.",
+	"targets": [
+		{
+			"mc": "1.8.9",
+			"dep": "1.8.9",
+			"src": "mc1_8_9"
+		}
+	]
+}

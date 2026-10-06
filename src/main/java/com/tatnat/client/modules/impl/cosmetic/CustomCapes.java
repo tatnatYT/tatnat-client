@@ -21,7 +21,6 @@ import com.tatnat.client.modules.settings.ModeSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.ui.render.Icons;
 
-import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * A cape on your own player, drawn on your screen only (other players can't see client-side
@@ -32,7 +31,9 @@ public class CustomCapes extends Module {
 	public static CustomCapes INSTANCE;
 
 	private static final String[] BUILT_IN = {"tatnat", "Crimson", "Midnight", "Ocean", "Forest", "Gold"};
-	private static final Path FOLDER = FabricLoader.getInstance().getConfigDir().resolve("tatnat-client").resolve("capes");
+	private static Path folder() {
+		return game().configDir().resolve("tatnat-client").resolve("capes");
+	}
 
 	public final ModeSetting cape = add(new ModeSetting("Cape", "Built-in design or a PNG from your capes folder", "tatnat", BUILT_IN));
 	public final SliderSetting physics = add(new SliderSetting("Physics", "How much the cape swings as you move", 100, 0, 250, 5, "%"));
@@ -60,8 +61,8 @@ public class CustomCapes extends Module {
 		List<String> modes = new ArrayList<>(Arrays.asList(BUILT_IN));
 		List<String> files = new ArrayList<>();
 		try {
-			Files.createDirectories(FOLDER);
-			try (DirectoryStream<Path> dir = Files.newDirectoryStream(FOLDER)) {
+			Files.createDirectories(folder());
+			try (DirectoryStream<Path> dir = Files.newDirectoryStream(folder())) {
 				for (Path p : dir) {
 					String n = p.getFileName().toString();
 					if (n.toLowerCase(Locale.ROOT).endsWith(".png")) files.add("File: " + n);
@@ -78,10 +79,10 @@ public class CustomCapes extends Module {
 
 	private void openFolder() {
 		try {
-			Files.createDirectories(FOLDER);
+			Files.createDirectories(folder());
 		} catch (IOException ignored) {
 		}
-		game().openPath(FOLDER);
+		game().openPath(folder());
 	}
 
 	/** Change counter for the current picture (platforms re-upload when it changes). */
@@ -97,7 +98,7 @@ public class CustomCapes extends Module {
 		revision++;
 		try {
 			if (cape.get().startsWith("File: ")) {
-				BufferedImage img = ImageIO.read(FOLDER.resolve(cape.get().substring(6)).toFile());
+				BufferedImage img = ImageIO.read(folder().resolve(cape.get().substring(6)).toFile());
 				pixels = img == null ? null : CapeArt.fromImage(img);
 			} else {
 				pixels = CapeArt.draw(cape.get());

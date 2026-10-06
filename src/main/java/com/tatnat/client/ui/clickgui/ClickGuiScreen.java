@@ -11,7 +11,9 @@ import com.tatnat.client.TatnatClient;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.Module;
+import com.tatnat.client.modules.ClientOptions;
 import com.tatnat.client.modules.ModuleManager;
+import com.tatnat.client.modules.Performance;
 import com.tatnat.client.modules.settings.Setting;
 import com.tatnat.client.ui.hud.HudEditorScreen;
 import com.tatnat.client.ui.render.Animation;
@@ -45,7 +47,7 @@ import com.tatnat.client.util.KeyCodes;
 public class ClickGuiScreen implements UiScreen {
 	private static final String YOUTUBE = "https://www.youtube.com/@tatnatmc";
 
-	private enum Page { MODS, SETTINGS }
+	private enum Page { MODS, PERFORMANCE, SETTINGS }
 
 	// Remembered between openings, like Feather.
 	private static Category lastCategory = null;
@@ -53,6 +55,7 @@ public class ClickGuiScreen implements UiScreen {
 
 	private final Animation open = new Animation(200, 0f);
 	private final Animation view = new Animation(220, 0f);
+	private final Animation titleButtonAnim = new Animation(150, ClientOptions.titleButton() ? 1f : 0f);
 	private final Map<Module, Animation> toggles = new HashMap<>();
 	private final Map<Module, Animation> hovers = new HashMap<>();
 
@@ -222,6 +225,7 @@ public class ClickGuiScreen implements UiScreen {
 		RenderUtils.shadow(g, panelX, panelY, panelW, panelH, Ui.px(Theme.RADIUS_LARGE), 8, 0.35f);
 		RenderUtils.roundedRect(g, panelX, panelY, panelW, panelH, Ui.px(Theme.RADIUS_LARGE), Theme.BACKGROUND);
 		if (page == Page.MODS) drawModsPage(g, panelX, panelY, panelW, panelH, mx, my);
+		else if (page == Page.PERFORMANCE) drawPerformancePage(g, panelX, panelY, panelW, panelH, mx, my);
 		else drawSettingsPage(g, panelX, panelY, panelW, panelH, mx, my);
 
 		RenderUtils.end(g);
@@ -275,13 +279,13 @@ public class ClickGuiScreen implements UiScreen {
 		g.logo(x + (w - logo) / 2, y + Ui.px(18), logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		RenderUtils.rect(g, x + Ui.px(16), y + Ui.px(90), x + w - Ui.px(16), y + Ui.px(91), Theme.DIVIDER);
 
-		String[] labels = {"MOD MENU", "HUD EDITOR", "SETTINGS"};
-		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.GEAR};
+		String[] labels = {"MOD MENU", "HUD EDITOR", "PERFORMANCE", "SETTINGS"};
+		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.CHIP, Icon.GEAR};
 		int bw = w - Ui.px(16), bh = Ui.px(70);
 		for (int i = 0; i < labels.length; i++) {
 			int bx = x + Ui.px(8), by = y + Ui.px(104) + i * (bh + Ui.px(8));
-			boolean active = (i == 0 && page == Page.MODS) || (i == 2 && page == Page.SETTINGS);
-			boolean hover = Widgets.inside(mx, my, bx, by, bw, bh);
+			boolean active = (i == 0 && page == Page.MODS) || (i == 2 && page == Page.PERFORMANCE) || (i == 3 && page == Page.SETTINGS);
+			boolean hover = Performance.hoverEffects() && Widgets.inside(mx, my, bx, by, bw, bh);
 			if (active) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS), Theme.ACCENT);
 			else if (hover) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS), Theme.HOVER);
 			int col = active || hover ? 0xFFFFFFFF : Theme.TEXT_MUTED;
@@ -292,8 +296,11 @@ public class ClickGuiScreen implements UiScreen {
 				if (idx == 0) {
 					page = Page.MODS;
 					closeSettings();
+					view.snap(0f);
 				} else if (idx == 1) {
 					TatnatClient.game().openScreen(new HudEditorScreen(this));
+				} else if (idx == 2) {
+					openPerformance();
 				} else {
 					page = Page.SETTINGS;
 				}
@@ -422,7 +429,7 @@ public class ClickGuiScreen implements UiScreen {
 		int rows = (mods.size() + cols - 1) / cols;
 		contentH = Math.max(0, rows * (cardH + gap) - gap);
 		scrollTarget = clampScroll(scrollTarget, contentH, bottom - y);
-		scroll += (scrollTarget - scroll) * 0.3;
+		scroll += (scrollTarget - scroll) * (Performance.smoothScroll() ? 0.3 : 1);
 		if (Math.abs(scrollTarget - scroll) < 0.5) scroll = scrollTarget;
 
 		boolean inArea = Widgets.inside(mx, my, clipX, clipY, clipW, clipH);
@@ -444,7 +451,7 @@ public class ClickGuiScreen implements UiScreen {
 	private void drawCard(Gfx g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
 		boolean hover = interactive && Widgets.inside(mx, my, x, y, w, h);
 		Animation ha = hoverAnim(m);
-		ha.animateTo(hover ? 1f : 0f);
+		ha.animateTo(hover && Performance.hoverEffects() ? 1f : 0f);
 		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.lerp(Theme.PANEL, Theme.HOVER, ha.get()));
 
 		// Big line-art icon, dimmed while the mod is off.
@@ -486,7 +493,7 @@ public class ClickGuiScreen implements UiScreen {
 	private void drawRow(Gfx g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
 		boolean hover = interactive && Widgets.inside(mx, my, x, y, w, h);
 		Animation ha = hoverAnim(m);
-		ha.animateTo(hover ? 1f : 0f);
+		ha.animateTo(hover && Performance.hoverEffects() ? 1f : 0f);
 		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.lerp(Theme.PANEL, Theme.HOVER, ha.get()));
 		Icons.draw(g, m.icon(), x + Ui.px(42), y + h / 2, Ui.px(40), m.isEnabled() ? Theme.ICON : 0xFF5C5C62);
 
@@ -519,7 +526,7 @@ public class ClickGuiScreen implements UiScreen {
 		for (SettingComponent<?> c : components) if (c.visible()) total += c.height();
 		setContentH = total;
 		setScrollTarget = clampScroll(setScrollTarget, setContentH, bottom - y);
-		setScroll += (setScrollTarget - setScroll) * 0.3;
+		setScroll += (setScrollTarget - setScroll) * (Performance.smoothScroll() ? 0.3 : 1);
 		if (Math.abs(setScrollTarget - setScroll) < 0.5) setScroll = setScrollTarget;
 
 		boolean inArea = Widgets.inside(mx, my, clipX, clipY, clipW, clipH);
@@ -532,6 +539,30 @@ public class ClickGuiScreen implements UiScreen {
 			cy += ch;
 		}
 		drawScrollbar(g, x + w - Ui.px(4), y, bottom - y, setScroll, setContentH);
+	}
+
+	/** Sidebar "Performance": the switches that make the menus lighter, as a normal settings list. */
+	private void openPerformance() {
+		page = Page.PERFORMANCE;
+		selected = null;
+		view.snap(0f);
+		components = new ArrayList<>();
+		for (Setting<?> s : Performance.INSTANCE.settings()) components.add(SettingComponent.of(s));
+		setScroll = setScrollTarget = 0;
+	}
+
+	/** Dev test hook. */
+	public void devPerformance() {
+		openPerformance();
+	}
+
+	private void drawPerformancePage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
+		int tabRight = drawTab(g, px, py, "Performance", false, mx, my);
+		UIFont.SMALL.drawMid(g, "Turn effects off to make the menus lighter on slow PCs", tabRight + Ui.px(18), py + Ui.px(32), Theme.TEXT_MUTED);
+		int contentX = px + Ui.px(18), contentY = py + Ui.px(82), contentW = pw - Ui.px(36), contentBottom = py + ph - Ui.px(18);
+		clip(g, contentX, contentY, contentW, contentBottom - contentY);
+		drawSettingsList(g, contentX, contentY, contentW, contentBottom, mx, my);
+		g.endScissor();
 	}
 
 	/** Sidebar "Settings": about the client, links and reset buttons. */
@@ -567,6 +598,22 @@ public class ClickGuiScreen implements UiScreen {
 			RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), Theme.PANEL);
 			UIFont.TITLE.drawMid(g, r[0], x + Ui.px(18), y + rh / 2, Theme.TEXT);
 			UIFont.SMALL.drawRight(g, r[1], x + w - Ui.px(18), y + rh / 2 - UIFont.SMALL.size() / 2, Theme.TEXT_MUTED);
+			y += rh + Ui.px(8);
+		}
+		// Client options with a switch.
+		{
+			int rh = Ui.px(56);
+			ClientOptions opt = ClientOptions.INSTANCE;
+			RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), Theme.PANEL);
+			UIFont.TITLE.draw(g, opt.titleButton.name, x + Ui.px(18), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			UIFont.SMALL.draw(g, opt.titleButton.description, x + Ui.px(18), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
+			int sw = Widgets.toggleW(), sx = x + w - Ui.px(18) - sw, sy = y + (rh - Widgets.toggleH()) / 2;
+			titleButtonAnim.animateTo(opt.titleButton.on() ? 1f : 0f);
+			Widgets.toggle(g, sx, sy, titleButtonAnim, Widgets.inside(mx, my, x, y, w, rh));
+			hit(x, y, w, rh, false, () -> {
+				opt.titleButton.set(!opt.titleButton.on());
+				TatnatClient.CONFIG.markDirty();
+			}, null);
 			y += rh + Ui.px(8);
 		}
 		y += Ui.px(8);
@@ -620,8 +667,9 @@ public class ClickGuiScreen implements UiScreen {
 
 	// ---------------------------------------------------------------- input (GUI coords -> pixels)
 
+	/** True while a settings list (a mod's, or the Performance page) takes the input. */
 	private boolean settingsVisible() {
-		return page == Page.MODS && selected != null && view.target() > 0;
+		return page == Page.PERFORMANCE || page == Page.MODS && selected != null && view.target() > 0;
 	}
 
 	@Override
@@ -692,7 +740,7 @@ public class ClickGuiScreen implements UiScreen {
 			}
 			if (key != TatnatClient.MENU_KEY) return true;
 		}
-		if (key == KeyCodes.ESCAPE && settingsVisible()) {
+		if (key == KeyCodes.ESCAPE && page == Page.MODS && settingsVisible()) {
 			closeSettings();
 			return true;
 		}
