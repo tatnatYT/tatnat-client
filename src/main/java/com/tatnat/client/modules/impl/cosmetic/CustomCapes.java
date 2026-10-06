@@ -26,7 +26,7 @@ import com.tatnat.client.ui.render.Icons;
 /**
  * A cape on your own player, drawn on your screen only (other players can't see client-side
  * capes; for a real cape everyone sees, use the launcher's Skins tab). Pick a built-in design or
- * drop cape PNGs (64x32 or HD 128x64) into the capes folder. Physics scales how much the cape swings.
+ * drop cape PNGs (64x32 or any HD size, e.g. 512x256) into the capes folder. Physics scales how much the cape swings.
  */
 public class CustomCapes extends Module {
 	public static CustomCapes INSTANCE;
@@ -40,7 +40,7 @@ public class CustomCapes extends Module {
 	public final ColorSetting mainColor = add(new ColorSetting("Custom Color", "Colour of the Custom cape (Chroma cycles the rainbow)", 0xFF2F6FE0, true));
 	public final ColorSetting accentColor = add(new ColorSetting("Custom Accent", "Logo and hem of the Custom cape", 0xFFE0E0E0, true));
 	public final SliderSetting physics = add(new SliderSetting("Physics", "How much the cape swings as you move", 100, 0, 250, 5, "%"));
-	private final ActionSetting openFolder = add(new ActionSetting("Your Own Capes", "Put cape PNGs (64x32 or 128x64) in this folder, then press Reload",
+	private final ActionSetting openFolder = add(new ActionSetting("Your Own Capes", "Put cape PNGs (64x32 or HD) in this folder, then press Reload",
 			() -> "Open folder", this::openFolder));
 	private final ActionSetting reload = add(new ActionSetting("Reload", "Look for new cape files", () -> "Reload", this::rescan));
 
@@ -94,7 +94,7 @@ public class CustomCapes extends Module {
 		return revision;
 	}
 
-	/** The chosen cape as 128x64 ARGB pixels (see CapeArt), or null if it couldn't be loaded. */
+	/** The chosen cape as CapeArt.W x CapeArt.H ARGB pixels (see CapeArt), or null if it couldn't be loaded. */
 	public int[] pixels() {
 		String design = cape.get();
 		boolean custom = design.equals("Custom");

@@ -8,8 +8,9 @@ import javax.imageio.ImageIO;
 import com.tatnat.client.TatnatClient;
 
 /**
- * Built-in capes, painted onto an HD 128x64 cape texture as ARGB (row-major, 128 * 64). Minecraft
- * maps the cape by proportion, so this is the vanilla 64x32 layout at twice the resolution:
+ * Built-in capes, painted onto a high-resolution 512x256 cape texture as ARGB (row-major). Minecraft
+ * maps the cape by proportion, so this is the vanilla 64x32 layout at 8x the resolution (sizes below
+ * are in 128x64 units, times K):
  * <ul>
  * <li>outside (what people see behind you): 20x32 at (2, 2)</li>
  * <li>inside (towards your back): 20x32 at (24, 2)</li>
@@ -20,12 +21,14 @@ import com.tatnat.client.TatnatClient;
  * and anti-aliased shapes (each pixel is sampled 4x4).
  */
 public final class CapeArt {
-	public static final int W = 128, H = 64;
+	public static final int W = 512, H = 256;
+	/** Pixels per 128x64 unit: the designs are laid out on that grid and drawn K times finer. */
+	private static final int K = W / 128;
 
 	/** Outside face. */
-	private static final int OX = 2, OY = 2, FW = 20, FH = 32;
+	private static final int OX = 2 * K, OY = 2 * K, FW = 20 * K, FH = 32 * K;
 	/** Inside face. */
-	private static final int IX = 24;
+	private static final int IX = 24 * K;
 
 	public static final String[] DESIGNS = {"tatnat", "Signature", "Aura", "Chroma", "Split", "Custom"};
 	/** Designs that change over time (re-drawn a few times a second). */
@@ -70,7 +73,7 @@ public final class CapeArt {
 			int g = lerp(TOP, BOTTOM, y / (float) (FH - 1));
 			for (int x = 0; x < FW; x++) {
 				// Distance to the glowing edges (left, right, bottom) in pixels.
-				float d = Math.min(Math.min(x + 0.5f, FW - x - 0.5f), FH - y - 0.5f);
+				float d = Math.min(Math.min(x + 0.5f, FW - x - 0.5f), FH - y - 0.5f) / K;
 				int c = g;
 				// 2px solid edge, then a smooth exponential bloom into the dark base.
 				if (d < 2) c = CYAN;
@@ -89,7 +92,7 @@ public final class CapeArt {
 		for (int y = 0; y < FH; y++) {
 			for (int x = 0; x < FW; x++) {
 				// Stripe along the top-left to bottom-right diagonal, 7px wide.
-				float cov = cover(x, y, (px, py) -> Math.abs(px * FH - py * FW) / len < 3.5f);
+				float cov = cover(x, y, (px, py) -> Math.abs(px * FH - py * FW) / len < 3.5f * K);
 				if (cov <= 0) continue;
 				float along = (x * FW + y * FH) / (len * len);
 				int c = chromaColour(along - phase);
@@ -105,11 +108,11 @@ public final class CapeArt {
 		for (int y = 0; y < FH; y++) {
 			for (int x = 0; x < FW; x++) {
 				int c = x < FW / 2 ? CHARCOAL : WHITE;
-				if (x == FW / 2 - 1 || x == FW / 2) c = CYAN;
+				if (Math.abs(x + 0.5f - FW / 2f) < K) c = CYAN;
 				set(img, OX + x, OY + y, c);
 				// Inside mirrored, slightly darker.
 				int m = (FW - 1 - x) < FW / 2 ? CHARCOAL : WHITE;
-				if (x == FW / 2 - 1 || x == FW / 2) m = CYAN;
+				if (Math.abs(x + 0.5f - FW / 2f) < K) m = CYAN;
 				set(img, IX + x, OY + y, shade(m, 0.8f));
 			}
 		}
@@ -122,15 +125,12 @@ public final class CapeArt {
 			int c = lerp(shade(main, 1.08f), shade(main, 0.72f), y / (float) (FH - 1));
 			for (int x = 0; x < FW; x++) set(img, OX + x, OY + y, c);
 		}
-		for (int x = 0; x < FW; x++) {
-			set(img, OX + x, OY + FH - 2, accent);
-			set(img, OX + x, OY + FH - 1, accent);
-		}
+		for (int y = FH - 2 * K; y < FH; y++) for (int x = 0; x < FW; x++) set(img, OX + x, OY + y, accent);
 		monogram(img, accent, 1f);
 		inside(img, 0.75f);
 	}
 
-	/** The original tatnat cape (pixel head, red trim), drawn at 64x32 and doubled. */
+	/** The original tatnat cape (pixel head, red trim): pixel art at 64x32, scaled up. */
 	private static void classic(int[] img) {
 		int[] lo = new int[64 * 32];
 		int dark = 0xFF0C0C0E, face = 0xFF19191C, red = 0xFFE5323E;
@@ -159,7 +159,7 @@ public final class CapeArt {
 			TatnatClient.LOG.warn("Cape logo unavailable: {}", e.toString());
 		}
 		for (int x = 4; x < 8; x++) lo[13 * 64 + x] = red;
-		for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) img[y * W + x] = lo[(y / 2) * 64 + x / 2];
+		for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) img[y * W + x] = lo[(y * 64 / W) * 64 + x * 64 / W];
 	}
 
 	// ------------------------------------------------------------------ pieces
@@ -170,8 +170,8 @@ public final class CapeArt {
 		int dark = shade(c, 0.8f);
 		for (int y = OY; y < OY + FH; y++) {
 			for (int x = IX; x < IX + FW; x++) set(img, x, y, dark);
-			for (int x = 0; x < 2; x++) set(img, x, y, dark);
-			for (int x = 22; x < 24; x++) set(img, x, y, dark);
+			for (int x = 0; x < 2 * K; x++) set(img, x, y, dark);
+			for (int x = 22 * K; x < 24 * K; x++) set(img, x, y, dark);
 		}
 	}
 
@@ -202,7 +202,7 @@ public final class CapeArt {
 		for (int y = 0; y < FH; y++) {
 			for (int x = 0; x < FW; x++) {
 				float cov = cover(x, y, (px, py) -> {
-					for (float[] s : strokes) if (segDist(px, py, s[0], s[1], s[2], s[3]) < s[4]) return true;
+					for (float[] s : strokes) if (segDist(px / K, py / K, s[0], s[1], s[2], s[3]) < s[4]) return true;
 					return false;
 				}) * alpha;
 				if (cov > 0) set(img, OX + x, OY + y, lerp(img[(OY + y) * W + OX + x], colour, cov));
@@ -236,11 +236,11 @@ public final class CapeArt {
 		return lerp(stops[i % stops.length], stops[(i + 1) % stops.length], p - i);
 	}
 
-	/** Reads a cape PNG: 64x32 (or 22x17) classic capes and 128x64 HD capes, scaled to 128x64. */
+	/** Reads a cape PNG (22x17, 64x32 or any HD size) and scales it to W x H. */
 	public static int[] fromImage(BufferedImage src) {
 		int[] img = new int[W * H];
 		// Old 22x17 capes have no padding: they are a 64x32 layout's top-left corner.
-		float scale = src.getWidth() < 64 ? 0.5f : src.getWidth() / (float) W;
+		float scale = (src.getWidth() < 64 ? 64f : src.getWidth()) / W;
 		for (int y = 0; y < H; y++) {
 			for (int x = 0; x < W; x++) {
 				int px = (int) (x * scale), py = (int) (y * scale);
