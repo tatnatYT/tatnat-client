@@ -22,7 +22,7 @@ public final class Theme {
 	/** Primary text. */
 	public static final int TEXT = 0xFFE6E6E6;
 	/** Secondary text and inactive icons. */
-	public static final int TEXT_MUTED = 0xFF8E8E93;
+	public static final int TEXT_MUTED = 0xFFA9A9B0;
 	/** On / success. */
 	public static final int SUCCESS = 0xFF4CAF50;
 	/** Off / danger. */

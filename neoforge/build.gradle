@@ -1,0 +1,68 @@
+// tatnat client for NeoForge. Reuses the shared core (../src/main) and the Fabric build's platform
+// folder for the same Minecraft version (../src/<platform_source>, Mojang names, which NeoForge
+// also uses at runtime); only the entry point, LoaderInfo and the mod metadata are NeoForge's own.
+plugins {
+	id 'java'
+	id 'net.neoforged.moddev' version '2.0.148'
+}
+
+def mcVersion = project.minecraft_version
+def platformDir = project.platform_source
+version = project.mod_version
+base { archivesName = "tatnat-client-neoforge-mc${mcVersion}" }
+java.toolchain.languageVersion = JavaLanguageVersion.of((project.findProperty("java_version") ?: "21") as int)
+
+sourceSets {
+	main {
+		java {
+			srcDir '../src/main/java'
+			srcDir "../src/${platformDir}/java"
+			srcDir 'src/common/java'
+			exclude 'com/tatnat/client/mc/Entry.java' // the Fabric entry point
+		}
+		resources {
+			srcDir '../src/main/resources'
+			srcDir "../src/${platformDir}/resources"
+			srcDir 'src/common/resources'
+			exclude 'fabric.mod.json'
+		}
+	}
+}
+
+neoForge {
+	version = project.neoforge_version
+	runs {
+		client {
+			client()
+			gameDirectory = file("run/${mcVersion}")
+			programArguments.addAll '--username', 'tatnat', '--width', '1600', '--height', '900'
+			if (project.hasProperty('devtest')) systemProperty 'tatnat.devtest', project.property('devtest')
+			if (project.hasProperty('quickjoin')) programArguments.addAll '--quickPlayMultiplayer', project.property('quickjoin').toString()
+		}
+		server {
+			server()
+			gameDirectory = file("run/${mcVersion}")
+			programArgument '--nogui'
+		}
+	}
+	mods {
+		tatnatclient { sourceSet sourceSets.main }
+	}
+}
+
+processResources {
+	inputs.property 'version', project.version
+	inputs.property 'mc', project.minecraft_range
+	filesMatching('META-INF/neoforge.mods.toml') {
+		expand 'version': project.version, 'minecraft_range': project.minecraft_range, 'neoforge_range': project.neoforge_range
+	}
+}
+
+tasks.withType(JavaCompile).configureEach { it.options.encoding = 'UTF-8' }
+
+tasks.register('collectJar', Copy) {
+	dependsOn tasks.named('jar')
+	from layout.buildDirectory.dir('libs')
+	include '*.jar'
+	into rootProject.file('../dist')
+}

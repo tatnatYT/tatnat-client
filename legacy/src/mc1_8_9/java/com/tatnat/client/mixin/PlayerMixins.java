@@ -7,14 +7,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.tatnat.client.TatnatClient;
 import com.tatnat.client.event.Events;
@@ -57,7 +54,8 @@ public final class PlayerMixins {
 			return (Object) this == MinecraftClient.getInstance().player;
 		}
 
-		@Inject(method = "getSkinId()Lnet/minecraft/util/Identifier;", at = @At("RETURN"), cancellable = true)
+		// Legacy Yarn names these two the wrong way round on 1.8.9: "getCapeId" returns the skin.
+		@Inject(method = "getCapeId", at = @At("RETURN"), cancellable = true)
 		private void tatnat$skin(CallbackInfoReturnable<Identifier> cir) {
 			if (tatnat$isMe()) cir.setReturnValue(PlayerLooks.skin(cir.getReturnValue()));
 		}
@@ -67,7 +65,8 @@ public final class PlayerMixins {
 			if (tatnat$isMe()) cir.setReturnValue(PlayerLooks.model(cir.getReturnValue()));
 		}
 
-		@Inject(method = "getCapeId", at = @At("RETURN"), cancellable = true)
+		// ...and "getSkinId()" returns the cape.
+		@Inject(method = "getSkinId()Lnet/minecraft/util/Identifier;", at = @At("RETURN"), cancellable = true)
 		private void tatnat$cape(CallbackInfoReturnable<Identifier> cir) {
 			if (tatnat$isMe()) cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue()));
 		}
@@ -90,11 +89,25 @@ public final class PlayerMixins {
 
 	/** Nick Hider on your name tag (third person). */
 	@Mixin(EntityRenderer.class)
-	public static class NameTag {
-		@ModifyVariable(method = "renderLabelIfPresent", at = @At("HEAD"), argsOnly = true)
-		private String tatnat$nameTag(String name, @Local(argsOnly = true) Entity entity) {
-			if (NickHider.active() && entity == MinecraftClient.getInstance().player && name != null) return PlayerLooks.replaceName(name);
-			return name;
+	public abstract static class NameTag {
+		private static boolean tatnat$inside;
+
+		@Shadow
+		protected abstract void renderLabelIfPresent(Entity entity, String text, double x, double y, double z, int maxDistance);
+
+		// Plain Mixin 0.7 (Forge 1.8.9 has no MixinExtras): draw the label again with the new name.
+		@Inject(method = "renderLabelIfPresent", at = @At("HEAD"), cancellable = true)
+		private void tatnat$nameTag(Entity entity, String name, double x, double y, double z, int maxDistance, CallbackInfo ci) {
+			if (tatnat$inside || !NickHider.active() || entity != MinecraftClient.getInstance().player || name == null) return;
+			String nick = PlayerLooks.replaceName(name);
+			if (nick.equals(name)) return;
+			ci.cancel();
+			tatnat$inside = true;
+			try {
+				renderLabelIfPresent(entity, nick, x, y, z, maxDistance);
+			} finally {
+				tatnat$inside = false;
+			}
 		}
 	}
 
@@ -153,30 +166,54 @@ public final class PlayerMixins {
 			if (wheel != 0) ScrollableTooltips.INSTANCE.scroll(Math.signum(wheel));
 		}
 
-		/** Better Tooltips: recolour vanilla's gradient boxes (its fill is 0xF0100010, the rest is border). */
-		@WrapOperation(method = TOOLTIP, at = @At(value = "INVOKE",
+		/** Better Tooltips: recolour vanilla's gradient boxes (its fill is 0xF0100010, the rest is border).
+		 * require = 0: on Forge this method only forwards to GuiUtils, see ForgeMixins.TooltipColors. */
+		@ModifyArg(method = TOOLTIP, index = 4, require = 0, at = @At(value = "INVOKE",
 				target = "Lnet/minecraft/client/gui/screen/Screen;fillGradient(IIIIII)V"))
-		private void tatnat$background(Screen self, int x1, int y1, int x2, int y2, int from, int to, Operation<Void> original) {
-			if (!BetterTooltips.active()) {
-				original.call(self, x1, y1, x2, y2, from, to);
-				return;
-			}
-			BetterTooltips bt = BetterTooltips.INSTANCE;
-			if (from == 0xF0100010) {
-				int bg = bt.background.get();
-				original.call(self, x1, y1, x2, y2, bg, bg);
-			} else {
-				original.call(self, x1, y1, x2, y2, bt.border.color(0), bt.border.color(0.25));
-			}
+		private int tatnat$backgroundFrom(int from) {
+			if (!BetterTooltips.active()) return from;
+			return from == 0xF0100010 ? BetterTooltips.INSTANCE.background.get() : BetterTooltips.INSTANCE.border.color(0);
 		}
 
-		@WrapMethod(method = TOOLTIP)
-		private void tatnat$shift(List<String> lines, int x, int y, Operation<Void> original) {
-			Screen screen = (Screen) (Object) this;
-			if (!ScrollableTooltips.active() || lines.isEmpty()) {
-				original.call(lines, x, y);
-				return;
-			}
+		@ModifyArg(method = TOOLTIP, index = 5, require = 0, at = @At(value = "INVOKE",
+				target = "Lnet/minecraft/client/gui/screen/Screen;fillGradient(IIIIII)V"))
+		private int tatnat$backgroundTo(int to) {
+			if (!BetterTooltips.active()) return to;
+			// The fill's two colours are equal; the border fades to a darker second colour.
+			return to == 0xF0100010 ? BetterTooltips.INSTANCE.background.get() : BetterTooltips.INSTANCE.border.color(0.25);
+		}
+
+		// Scrollable Tooltips. Plain Mixin 0.7 (Forge 1.8.9 has no MixinExtras), so instead of wrapping
+		// the method, HEAD pushes a translated matrix and RETURN pops it. Forge routes item tooltips
+		// through its own 4-argument drawHoveringText (the vanilla one just calls it), so both are hooked;
+		// the depth counter makes the outermost call the only one that acts.
+		private static int tatnat$depth;
+		private static boolean tatnat$pushed;
+		private static int tatnat$x, tatnat$w, tatnat$h;
+		private static float tatnat$max;
+
+		@Inject(method = TOOLTIP, at = @At("HEAD"))
+		private void tatnat$shift(List<String> lines, int x, int y, CallbackInfo ci) {
+			tatnat$begin(lines, x);
+		}
+
+		@Inject(method = TOOLTIP, at = @At("RETURN"))
+		private void tatnat$shiftEnd(List<String> lines, int x, int y, CallbackInfo ci) {
+			tatnat$end();
+		}
+
+		@Inject(method = "drawHoveringText", at = @At("HEAD"), require = 0, remap = false)
+		private void tatnat$shiftForge(List<String> lines, int x, int y, net.minecraft.client.font.TextRenderer font, CallbackInfo ci) {
+			tatnat$begin(lines, x);
+		}
+
+		@Inject(method = "drawHoveringText", at = @At("RETURN"), require = 0, remap = false)
+		private void tatnat$shiftForgeEnd(List<String> lines, int x, int y, net.minecraft.client.font.TextRenderer font, CallbackInfo ci) {
+			tatnat$end();
+		}
+
+		private static void tatnat$begin(List<String> lines, int x) {
+			if (tatnat$depth++ > 0 || !ScrollableTooltips.active() || lines.isEmpty()) return;
 			MinecraftClient mc = MinecraftClient.getInstance();
 			int w = 0;
 			for (String c : lines) w = Math.max(w, mc.textRenderer.getStringWidth(c));
@@ -187,22 +224,32 @@ public final class PlayerMixins {
 			// Only tooltips taller than the screen scroll; clamp so you can't scroll past either end.
 			float max = Math.max(0, h + 16 - screenH);
 			st.offset = Math.max(-max, Math.min(0, st.offset));
-			if (max <= 0) {
-				original.call(lines, x, y);
-				return;
-			}
+			if (max <= 0) return;
+			tatnat$x = x;
+			tatnat$w = w;
+			tatnat$h = h;
+			tatnat$max = max;
+			tatnat$pushed = true;
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(0, st.offset, 0);
-			original.call(lines, x, y);
+		}
+
+		private static void tatnat$end() {
+			if (--tatnat$depth > 0 || !tatnat$pushed) return;
+			tatnat$pushed = false;
 			GlStateManager.popMatrix();
+			MinecraftClient mc = MinecraftClient.getInstance();
+			ScrollableTooltips st = ScrollableTooltips.INSTANCE;
+			int screenH = new Window(mc).getHeight();
+			int w = tatnat$w, h = tatnat$h;
 			// Same placement as vanilla: right of the cursor, flipped left if it would leave the screen.
-			int tx = x + 12;
-			if (tx + w > screen.width) tx -= 28 + w;
+			int tx = tatnat$x + 12;
+			if (tx + w > new Window(mc).getWidth()) tx -= 28 + w;
 			int bw = st.barWidth.intValue();
 			int bx = tx + w + 6;
 			int trackH = screenH - 8;
 			int barH = Math.max(12, Math.round(trackH * (screenH / (float) (h + 16))));
-			int barY = 4 + Math.round((trackH - barH) * (-st.offset / max));
+			int barY = 4 + Math.round((trackH - barH) * (-st.offset / tatnat$max));
 			GlStateManager.disableLighting();
 			GlStateManager.disableDepthTest();
 			DrawableHelper.fill(bx, 4, bx + bw, 4 + trackH, 0x40000000);

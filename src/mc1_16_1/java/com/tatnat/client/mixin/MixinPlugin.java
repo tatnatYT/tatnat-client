@@ -7,7 +7,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * Skips hooks that clash with other mods instead of crashing: Sodium rewrites the vanilla chunk
@@ -18,7 +17,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
 	@Override
 	public void onLoad(String mixinPackage) {
-		sodium = FabricLoader.getInstance().isModLoaded("sodium");
+		sodium = com.tatnat.client.mc.LoaderInfo.modLoaded("sodium");
 	}
 
 	@Override

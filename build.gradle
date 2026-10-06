@@ -25,7 +25,10 @@ base {
 // src/<platform>/java with its own mixins and fabric.mod.json.
 sourceSets {
 	main {
-		java { srcDir "src/${platformDir}/java" }
+		java {
+			srcDir "src/${platformDir}/java"
+			srcDir "src/fabric/java" // Fabric-specific helpers (LoaderInfo)
+		}
 		resources { srcDir "src/${platformDir}/resources" }
 	}
 }
@@ -58,8 +61,8 @@ loom {
 				def parts = mcVersion.tokenize('.')
 				boolean quickPlay = parts[0] != '1' || parts[1].toInteger() >= 20
 				if (quickPlay) programArgs "--quickPlayMultiplayer", target
-				else if (parts[1].toInteger() >= 17) programArgs "--server", target.tokenize(':')[0], "--port", target.tokenize(':')[1]
-				// 1.16 and older: --server is ignored or joins before resources finish loading in dev,
+				else if (parts[1].toInteger() >= 17 && parts[1] != "18") programArgs "--server", target.tokenize(':')[0], "--port", target.tokenize(':')[1]
+				// 1.16 and older and 1.18: --server is ignored or joins before resources finish loading in dev,
 				// so DevTest joins from the title screen once loading is done.
 				else vmArg "-Dtatnat.join=${target}"
 			}

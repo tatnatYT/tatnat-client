@@ -63,7 +63,7 @@ fs.writeFileSync(path.join(__dirname, 'build', `client-${version}.log`), (client
 server.kill();
 // Gradle leaves the server JVM running; stop anything launched from this project's run dir.
 spawnSync('powershell', ['-NoProfile', '-Command',
-  `Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.CommandLine -like '*tatnat-client-mod*' -and $_.CommandLine -notlike '*GradleWrapperMain*runClient*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`], { stdio: 'ignore' });
+  `Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.CommandLine -like '*tatnat-client-mod*' -and $_.CommandLine -notlike '*GradleWrapperMain*runClient*' -and $_.CommandLine -notlike '*neoforge*' -and $_.CommandLine -notlike '*legacy*' -and $_.CommandLine -notlike '*forge*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`], { stdio: 'ignore' });
 
 const out = (client.stdout || '') + (client.stderr || '');
 const problems = out.split('\n').filter(l => /\[devtest\].*FAILED|Mixin apply failed|InvalidInjectionException|---- Minecraft Crash Report/.test(l));

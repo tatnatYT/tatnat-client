@@ -80,10 +80,7 @@ public final class CoreMixins {
 	public static class Hud {
 		@Inject(method = "render", at = @At("TAIL"))
 		private void tatnat$render2d(float partialTick, CallbackInfo ci) {
-			// Chat and the hotbar leave depth behind, which would hide parts of our HUD.
-			GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
-			TatnatClient.EVENTS.post(new Events.Render2D(new GfxImpl(), partialTick));
-			GlStateManager.color(1f, 1f, 1f, 1f);
+			com.tatnat.client.mc.HudRender.render(partialTick);
 		}
 
 		@Inject(method = "showCrosshair", at = @At("HEAD"), cancellable = true)
@@ -112,12 +109,11 @@ public final class CoreMixins {
 		}
 
 		/** Freecam: mouse movement turns the floating camera instead of your player. */
-		@com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation(method = "render", at = @At(value = "INVOKE",
+		@org.spongepowered.asm.mixin.injection.Redirect(method = "render", at = @At(value = "INVOKE",
 				target = "Lnet/minecraft/entity/player/ClientPlayerEntity;increaseTransforms(FF)V"))
-		private void tatnat$freecamTurn(net.minecraft.entity.player.ClientPlayerEntity player, float yaw, float pitch,
-				com.llamalad7.mixinextras.injector.wrapoperation.Operation<Void> original) {
+		private void tatnat$freecamTurn(net.minecraft.entity.player.ClientPlayerEntity player, float yaw, float pitch) {
 			if (Freecam.active() && FeaturesImpl.INSTANCE.freecam() != null) FeaturesImpl.INSTANCE.freecam().increaseTransforms(yaw, pitch);
-			else original.call(player, yaw, pitch);
+			else player.increaseTransforms(yaw, pitch);
 		}
 
 		@Inject(method = "renderHand", at = @At("HEAD"), cancellable = true)

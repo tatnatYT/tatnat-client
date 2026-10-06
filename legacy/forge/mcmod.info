@@ -1,0 +1,10 @@
+[{
+  "modid": "tatnatclient",
+  "name": "tatnat client",
+  "description": "The in-game side of the tatnat launcher: a Right Shift mod menu, a drag-and-drop HUD editor and PvP / quality-of-life mods.",
+  "version": "1.0.0",
+  "mcversion": "1.8.9",
+  "url": "https://www.youtube.com/@tatnatmc",
+  "authorList": ["tatnat"],
+  "logoFile": "assets/tatnatclient/icon.png"
+}]

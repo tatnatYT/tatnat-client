@@ -25,7 +25,7 @@ import net.minecraft.util.Identifier;
 /**
  * Inter for the menus on Minecraft versions without TrueType font support (before 1.13): each
  * weight/size is rasterised once with Java2D into a glyph atlas and drawn as textured quads, 1:1
- * on screen pixels like the TTF provider does on newer versions.
+ * on screen pixels with whole-pixel advances, so it stays sharp.
  */
 public final class LegacyFont {
 	private static final Map<Integer, LegacyFont> FONTS = new HashMap<>();
@@ -58,7 +58,7 @@ public final class LegacyFont {
 		BufferedImage img = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = img.createGraphics();
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setFont(font);
 		g.setColor(Color.WHITE);
@@ -68,7 +68,8 @@ public final class LegacyFont {
 		int x = 1, y = 1;
 		for (int c = FIRST; c <= LAST; c++) {
 			if (!font.canDisplay((char) c)) continue;
-			float adv = (float) font.getStringBounds(String.valueOf((char) c), g.getFontRenderContext()).getWidth();
+			// Whole-pixel (hinted) advances: the same letter always gets the same gap.
+			float adv = fm.charWidth((char) c);
 			int w = (int) Math.ceil(adv) + 2;
 			if (x + w >= SIZE) {
 				x = 1;

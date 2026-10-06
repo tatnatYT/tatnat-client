@@ -23,7 +23,7 @@ public final class DevTest {
 
 	private static final List<Step> STEPS = new ArrayList<>();
 	private static int index, wait = -1;
-	private static boolean started;
+	private static boolean started, joining;
 
 	private DevTest() {
 	}
@@ -55,7 +55,17 @@ public final class DevTest {
 		Minecraft mc = Minecraft.getInstance();
 		if (!started) {
 			// Begin once we're in a world.
-			if (mc.player == null || mc.level == null) return;
+			if (mc.player == null || mc.level == null) {
+				// --server joins while resources are still loading on 1.18 (models missing -> crash);
+				// join from the title screen once the loading overlay is gone instead.
+				String join = System.getProperty("tatnat.join");
+				if (join != null && !joining && mc.getOverlay() == null && mc.screen instanceof net.minecraft.client.gui.screens.TitleScreen) {
+					joining = true;
+					net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.screen, mc,
+							net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(join), null);
+				}
+				return;
+			}
 			started = true;
 			wait = STEPS.isEmpty() ? -1 : STEPS.get(0).delayTicks;
 		}

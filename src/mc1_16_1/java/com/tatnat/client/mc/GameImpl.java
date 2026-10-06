@@ -15,7 +15,6 @@ import com.tatnat.client.platform.Game;
 import com.tatnat.client.platform.ItemInfo;
 import com.tatnat.client.platform.UiScreen;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Camera;
 import net.minecraft.client.KeyMapping;
@@ -421,12 +420,17 @@ public final class GameImpl implements Game {
 
 	@Override
 	public Path configDir() {
-		return FabricLoader.getInstance().getConfigDir();
+		return com.tatnat.client.mc.LoaderInfo.configDir();
 	}
 
 	@Override
 	public boolean modLoaded(String id) {
-		return FabricLoader.getInstance().isModLoaded(id);
+		return com.tatnat.client.mc.LoaderInfo.modLoaded(id);
+	}
+
+	@Override
+	public String modVersion() {
+		return com.tatnat.client.mc.LoaderInfo.modVersion();
 	}
 
 	@Override

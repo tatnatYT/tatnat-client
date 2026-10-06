@@ -3,16 +3,14 @@ package com.tatnat.client.mixin;
 import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.tatnat.client.mc.FeaturesImpl;
 import com.tatnat.client.mc.HitboxFilter;
@@ -55,16 +53,16 @@ public final class WorldMixins {
 	/** Full Bright: the lightmap reads the gamma option; hand it the module's level instead. */
 	@Mixin(GameRenderer.class)
 	public static class Light {
-		@WrapOperation(method = "updateLightmap", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;gamma:F", opcode = Opcodes.GETFIELD))
-		private float tatnat$fullBright(GameOptions options, Operation<Float> original) {
-			float value = original.call(options);
-			return FullBright.active() ? FullBright.INSTANCE.level.get().floatValue() : value;
+		// Plain Mixin 0.7 redirects throughout (Forge 1.8.9 has no MixinExtras).
+		@Redirect(method = "updateLightmap", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;gamma:F", opcode = Opcodes.GETFIELD))
+		private float tatnat$fullBright(GameOptions options) {
+			return FullBright.active() ? FullBright.INSTANCE.level.get().floatValue() : options.gamma;
 		}
 
 		/** Zoom: lower mouse sensitivity while zoomed in so aiming feels the same. */
-		@WrapOperation(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;sensitivity:F", opcode = Opcodes.GETFIELD))
-		private float tatnat$zoomSensitivity(GameOptions options, Operation<Float> original) {
-			float value = original.call(options);
+		@Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;sensitivity:F", opcode = Opcodes.GETFIELD))
+		private float tatnat$zoomSensitivity(GameOptions options) {
+			float value = options.sensitivity;
 			Zoom zoom = Zoom.INSTANCE;
 			if (zoom != null && zoom.sensitivity.on()) {
 				double factor = zoom.current();
@@ -74,13 +72,13 @@ public final class WorldMixins {
 		}
 
 		/** Clear Water: underwater fog is exponential here; thin it out by the module strength. */
-		@WrapOperation(method = "renderFog", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;fogDensity(F)V"))
-		private void tatnat$clearWater(float density, Operation<Void> original) {
+		@Redirect(method = "renderFog", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;fogDensity(F)V"))
+		private void tatnat$clearWater(float density) {
 			Entity cam = MinecraftClient.getInstance().getCameraEntity();
 			if (ClearWater.active() && cam != null && cam.isSubmergedIn(Material.WATER)) {
 				density *= 1f - 0.95f * ClearWater.INSTANCE.strength.floatValue() / 100f;
 			}
-			original.call(density);
+			GlStateManager.fogDensity(density);
 		}
 	}
 
@@ -126,10 +124,21 @@ public final class WorldMixins {
 	/** Hitboxes: switch on the game's own F3+B boxes for the chosen entity types, in our colour. */
 	@Mixin(EntityRenderDispatcher.class)
 	public static class HitboxesOn {
-		@ModifyExpressionValue(method = "method_6913", at = @At(value = "FIELD",
+		@Shadow
+		private boolean renderHitboxes;
+
+		private static Entity tatnat$entity;
+
+		@Inject(method = "method_6913", at = @At("HEAD"))
+		private void tatnat$remember(Entity entity, double x, double y, double z, float yaw, float tickDelta, boolean hideLabel,
+				CallbackInfoReturnable<Boolean> cir) {
+			tatnat$entity = entity;
+		}
+
+		@Redirect(method = "method_6913", at = @At(value = "FIELD",
 				target = "Lnet/minecraft/client/render/entity/EntityRenderDispatcher;renderHitboxes:Z", opcode = Opcodes.GETFIELD))
-		private boolean tatnat$hitboxes(boolean vanilla, @Local(argsOnly = true) Entity entity) {
-			return vanilla || Hitboxes.active() && HitboxFilter.wanted(entity);
+		private boolean tatnat$hitboxes(EntityRenderDispatcher self) {
+			return renderHitboxes || Hitboxes.active() && HitboxFilter.wanted(tatnat$entity);
 		}
 
 		/** No body in your own view while flying around in Freecam. */
@@ -175,9 +184,9 @@ public final class WorldMixins {
 	/** Enchant Glint speed: the glint scrolls with the clock, so scale the clock it sees. */
 	@Mixin(ItemRenderer.class)
 	public static class GlintSpeed {
-		@WrapOperation(method = "renderGlint", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;getTime()J"))
-		private long tatnat$speed(Operation<Long> original) {
-			long t = original.call();
+		@Redirect(method = "renderGlint", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;getTime()J"))
+		private long tatnat$speed() {
+			long t = MinecraftClient.getTime();
 			return EnchantGlint.active() ? (long) (t * EnchantGlint.INSTANCE.speed.get()) : t;
 		}
 	}
@@ -185,7 +194,8 @@ public final class WorldMixins {
 	/** Time Changer: the sky reads the level's time; only the client thread sees the change. */
 	@Mixin(LevelProperties.class)
 	public static class DayTime {
-		@Inject(method = "getTimeOfDay", at = @At("RETURN"), cancellable = true)
+		// HEAD, not RETURN: Mixin 0.7 (Forge 1.8.9) emits a broken dup for RETURN injections on long methods.
+		@Inject(method = "getTimeOfDay", at = @At("HEAD"), cancellable = true)
 		private void tatnat$time(CallbackInfoReturnable<Long> cir) {
 			if (TimeChanger.active() && MinecraftClient.getInstance().isOnThread()) cir.setReturnValue(TimeChanger.INSTANCE.time.get().longValue());
 		}

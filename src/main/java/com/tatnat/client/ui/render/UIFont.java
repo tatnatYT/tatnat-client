@@ -14,9 +14,9 @@ import com.tatnat.client.ui.theme.Colors;
  */
 public enum UIFont {
 	/** Sidebar labels. */
-	TINY(700, 10),
+	TINY(700, 11),
 	/** Descriptions, pills, hints (spec: 12pt). */
-	SMALL(500, 14),
+	SMALL(500, 15),
 	/** Body text. */
 	BODY(500, 16),
 	/** Mod names (spec: 14pt). */
