@@ -54,6 +54,8 @@ loom {
 				boolean quickPlay = parts[0] != '1' || parts[1].toInteger() >= 20
 				if (quickPlay) programArgs "--quickPlayMultiplayer", target
 				else programArgs "--server", target.tokenize(':')[0], "--port", target.tokenize(':')[1]
+				// Some old versions ignore --server in dev; DevTest joins from the title screen with this.
+				vmArg "-Dtatnat.join=${target}"
 			}
 		}
 	}
