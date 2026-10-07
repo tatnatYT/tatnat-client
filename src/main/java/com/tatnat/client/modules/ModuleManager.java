@@ -7,6 +7,12 @@ import java.util.List;
 import com.tatnat.client.modules.impl.cosmetic.CustomCapes;
 import com.tatnat.client.modules.impl.cosmetic.EnchantGlint;
 import com.tatnat.client.modules.impl.hud.ArmorStatus;
+import com.tatnat.client.modules.impl.hud.Direction;
+import com.tatnat.client.modules.impl.hud.Playtime;
+import com.tatnat.client.modules.impl.hud.SpeedMeter;
+import com.tatnat.client.modules.impl.hud.Stopwatch;
+import com.tatnat.client.modules.impl.hud.SystemResources;
+import com.tatnat.client.modules.impl.utility.Backups;
 import com.tatnat.client.modules.impl.hud.Clock;
 import com.tatnat.client.modules.impl.hud.ComboCounter;
 import com.tatnat.client.modules.impl.hud.Coordinates;
@@ -61,6 +67,11 @@ public final class ModuleManager {
 		add(new MemoryUsage());
 		add(new PingDisplay());
 		add(new ServerAddress());
+		add(new Direction());
+		add(new SpeedMeter());
+		add(new Stopwatch());
+		add(new Playtime());
+		add(new SystemResources());
 		// Visual
 		add(new Zoom());
 		add(new Crosshair());
@@ -78,6 +89,7 @@ public final class ModuleManager {
 		add(new Freecam());
 		add(new AutoGG());
 		add(new Macros());
+		add(new Backups());
 		add(new BetterTooltips());
 		add(new ScrollableTooltips());
 		add(new ChunkAnimator());
