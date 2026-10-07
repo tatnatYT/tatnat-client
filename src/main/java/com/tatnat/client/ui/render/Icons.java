@@ -19,7 +19,7 @@ public final class Icons {
 	public enum Icon {
 		KEYBOARD, MONITOR, MOUSE, MAP, ARMOR, CLOCK, CHIP, SIGNAL, GLOBE, CUBE, SUN, ZOOM, RUN,
 		COMBO, RULER, POTION, CROSSHAIR, EYE, DROP, SWORD, BOX, MASK, MOON, LAYERS, CHAT, KEY, TOOLTIP, SCROLL, CAMERA, PIN,
-		CAPE, SPARKLE,
+		CAPE, SPARKLE, USER,
 		GRID, GEAR, MOVE, HEART, HEART_FILLED, SEARCH, BACK, FORWARD, CHEVRON_DOWN, LIST, YOUTUBE
 	}
 
@@ -389,6 +389,11 @@ public final class Icons {
 			case PIN: {
 				poly(w, 32, 60, 14, 32, 12, 22, 18, 10, 32, 4, 46, 10, 52, 22, 50, 32, 32, 60);
 				ring(32, 24, 7, w);
+			}
+			break;
+			case USER: {
+				ring(32, 21, 12, w);
+				arc(32, 62, 24, 0.5, 1.0, w);
 			}
 			break;
 			case CAPE: {

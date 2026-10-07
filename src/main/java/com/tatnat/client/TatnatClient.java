@@ -54,6 +54,7 @@ public final class TatnatClient {
 		EVENTS.register(new Hotkeys());
 		EVENTS.register(CpsTracker.INSTANCE);
 		EVENTS.register(HudRenderer.INSTANCE);
+		if (System.getProperty("tatnat.accountcheck") != null) EVENTS.register(new com.tatnat.client.account.AccountSwitcher.DevCheck());
 		ModuleManager.get();
 		CONFIG.load();
 		Runtime.getRuntime().addShutdownHook(new Thread(CONFIG::save, "tatnat-config-save"));

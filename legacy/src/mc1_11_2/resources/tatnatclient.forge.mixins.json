@@ -1,0 +1,13 @@
+{
+	"required": false,
+	"minVersion": "0.7.10",
+	"package": "com.tatnat.client.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"client": [
+		"ForgeMixins$Hud",
+		"ForgeMixins$TooltipColors"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

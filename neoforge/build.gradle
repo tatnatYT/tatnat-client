@@ -8,6 +8,9 @@ plugins {
 
 def mcVersion = project.minecraft_version
 def platformDir = project.platform_source
+// NeoForge for 1.20.x: no client-only @Mod yet, and 1.20.2 - 1.20.4 still read META-INF/mods.toml.
+def neo20 = mcVersion.startsWith('1.20.')
+def oldToml = neo20 && !mcVersion.startsWith('1.20.5') && !mcVersion.startsWith('1.20.6')
 version = project.mod_version
 base { archivesName = "tatnat-client-neoforge-mc${mcVersion}" }
 java.toolchain.languageVersion = JavaLanguageVersion.of((project.findProperty("java_version") ?: "21") as int)
@@ -18,12 +21,20 @@ sourceSets {
 			srcDir '../src/main/java'
 			srcDir "../src/${platformDir}/java"
 			srcDir 'src/common/java'
+			if (neo20) {
+				srcDir 'src/neo20/java'
+				exclude 'com/tatnat/client/mc/NeoEntry.java'
+			}
 			exclude 'com/tatnat/client/mc/Entry.java' // the Fabric entry point
 		}
 		resources {
 			srcDir '../src/main/resources'
 			srcDir "../src/${platformDir}/resources"
 			srcDir 'src/common/resources'
+			if (oldToml) {
+				srcDir 'src/neo20/resources'
+				exclude 'META-INF/neoforge.mods.toml'
+			}
 			exclude 'fabric.mod.json'
 		}
 	}
@@ -53,9 +64,14 @@ neoForge {
 processResources {
 	inputs.property 'version', project.version
 	inputs.property 'mc', project.minecraft_range
-	filesMatching('META-INF/neoforge.mods.toml') {
+	filesMatching(['META-INF/neoforge.mods.toml', 'META-INF/mods.toml']) {
 		expand 'version': project.version, 'minecraft_range': project.minecraft_range, 'neoforge_range': project.neoforge_range
 	}
+}
+
+// Older FML may not read [[mixins]] from the toml; the manifest entry covers it (Mixin skips duplicates).
+jar {
+	if (oldToml) manifest.attributes('MixinConfigs': 'tatnatclient.mixins.json')
 }
 
 tasks.withType(JavaCompile).configureEach { it.options.encoding = 'UTF-8' }

@@ -17,9 +17,10 @@ function gradle(dir, args, java = process.env.JAVA_HOME) {
   if (r.status !== 0) throw new Error(`gradle ${args.join(' ')} failed in ${dir}`);
 }
 
-// "~1.21.11" | ">=1.21 <1.21.2" | "1.8.9" | "[1.21,1.21.2)" -> { from, until } (until exclusive).
+// "~1.21.11" | ">=1.21 <1.21.2" | "1.8.9" | "1.12.x" | "[1.21,1.21.2)" -> { from, until } (until exclusive).
 function range(dep) {
   let m;
+  if ((m = dep.match(/^(\d+)\.(\d+)\.x$/))) return { from: `${m[1]}.${m[2]}`, until: `${m[1]}.${+m[2] + 1}` };
   if ((m = dep.match(/^>=(\S+) <(\S+)$/))) return { from: m[1], until: m[2] };
   if ((m = dep.match(/^\[([^,]+),([^)]+)\)$/))) return { from: m[1], until: m[2] };
   if ((m = dep.match(/^~(\S+)$/))) {
@@ -54,7 +55,7 @@ const neo = fs.existsSync(neoTargets) ? JSON.parse(fs.readFileSync(neoTargets, '
 for (const t of neo) {
   if (!skipBuild) gradle(path.join(__dirname, 'neoforge'), ['collectJar', `-Pminecraft_version=${t.mc}`, `-Pminecraft_range=${t.mcRange}`,
     `-Pneoforge_version=${t.neoforge}`, `-Pneoforge_range=${t.neoRange}`, `-Pplatform_source=${t.src}`, `-Pjava_version=${t.java}`,
-    `-Porg.gradle.java.installations.paths=${[process.env.JAVA25_HOME, process.env.JAVA_HOME].filter(Boolean).join(',')}`,
+    `-Porg.gradle.java.installations.paths=${[process.env.JAVA25_HOME, process.env.JAVA_HOME, process.env.JAVA17_HOME].filter(Boolean).join(',')}`,
     '-Porg.gradle.java.installations.auto-download=false']);
   builds.push({ loader: 'neoforge', ...range(t.mcRange), file: `tatnat-client-neoforge-mc${t.mc}-1.0.0.jar`, built: t.mc });
 }
@@ -69,12 +70,14 @@ for (const t of forge) {
   builds.push({ loader: 'forge', ...range(t.mcRange), file: `tatnat-client-forge-mc${t.mc}-1.0.0.jar`, built: t.mc });
 }
 
-// Forge 1.8.9: the Legacy Fabric build remapped to SRG (legacy/forge/build.js)
-if (!skipBuild) {
-  const r = spawnSync(process.execPath, [path.join(__dirname, 'legacy', 'forge', 'build.js'), '--skip-legacy'], { cwd: __dirname, stdio: 'inherit' });
-  if (r.status !== 0) throw new Error('Forge 1.8.9 build failed');
+// Forge 1.8.9 - 1.12.2: the Legacy Fabric builds remapped to SRG (legacy/forge/build.js)
+for (const t of legacy) {
+  if (!skipBuild) {
+    const r = spawnSync(process.execPath, [path.join(__dirname, 'legacy', 'forge', 'build.js'), '--mc', t.mc, '--skip-legacy'], { cwd: __dirname, stdio: 'inherit' });
+    if (r.status !== 0) throw new Error(`Forge ${t.mc} build failed`);
+  }
+  builds.push({ loader: 'forge', ...range(t.dep), file: `tatnat-client-forge-mc${t.mc}-1.0.0.jar`, built: t.mc });
 }
-builds.push({ loader: 'forge', ...range('1.8.9'), file: 'tatnat-client-forge-mc1.8.9-1.0.0.jar', built: '1.8.9' });
 
 // Copy into the launcher.
 fs.rmSync(LAUNCHER_MODS, { recursive: true, force: true });

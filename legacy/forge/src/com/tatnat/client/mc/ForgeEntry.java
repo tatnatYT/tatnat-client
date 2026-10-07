@@ -9,8 +9,8 @@ import com.tatnat.client.platform.Log;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 
-/** Forge 1.8.9 entry point: hands the shared core this version's implementations (client only). */
-@Mod(modid = TatnatClient.ID, name = "tatnat client", version = "1.0.0", clientSideOnly = true, acceptedMinecraftVersions = "[1.8.9]")
+/** Forge (1.8.9 - 1.12.2) entry point: hands the shared core this version's implementations (client only). */
+@Mod(modid = TatnatClient.ID, name = "tatnat client", version = "1.0.0", clientSideOnly = true)
 public final class ForgeEntry {
 	private static final Logger LOGGER = LogManager.getLogger("tatnat client");
 

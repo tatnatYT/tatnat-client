@@ -55,6 +55,9 @@ loom {
 			// crashing at the first; devtest.js fails the run if any are logged.
 			vmArg "-Dmixin.ignoreRequired=true"
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
+			// The launcher's account bridge (or a stand-in) for the in-game account switcher.
+			if (project.hasProperty('accounts')) vmArg "-Dtatnat.accounts=${project.property('accounts')}"
+			if (project.hasProperty('accountcheck')) vmArg "-Dtatnat.accountcheck=${project.property('accountcheck')}"
 			if (project.hasProperty('quickjoin')) {
 				def target = project.property('quickjoin').toString()
 				// Quick Play arrived in 1.20; older versions take --server/--port.

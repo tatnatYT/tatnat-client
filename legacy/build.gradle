@@ -34,6 +34,8 @@ loom {
 			programArgs "--username", "tatnat", "--width", "1600", "--height", "900"
 			vmArg "-Dmixin.ignoreRequired=true"
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
+			if (project.hasProperty('accounts')) vmArg "-Dtatnat.accounts=${project.property('accounts')}"
+			if (project.hasProperty('accountcheck')) vmArg "-Dtatnat.accountcheck=${project.property('accountcheck')}"
 			if (project.hasProperty('quickjoin')) vmArg "-Dtatnat.join=${project.property('quickjoin')}"
 		}
 	}

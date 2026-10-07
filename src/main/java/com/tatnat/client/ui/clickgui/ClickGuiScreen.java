@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.tatnat.client.TatnatClient;
+import com.tatnat.client.account.AccountSwitcher;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.Module;
@@ -48,7 +49,7 @@ import com.tatnat.client.util.KeyCodes;
 public class ClickGuiScreen implements UiScreen {
 	private static final String YOUTUBE = "https://www.youtube.com/@tatnatmc";
 
-	private enum Page { MODS, PERFORMANCE, SETTINGS }
+	private enum Page { MODS, PERFORMANCE, SETTINGS, ACCOUNTS }
 
 	// Remembered between openings, like Feather.
 	private static Category lastCategory = null;
@@ -244,6 +245,7 @@ public class ClickGuiScreen implements UiScreen {
 		RenderUtils.roundedRect(g, panelX, panelY, panelW, panelH, Ui.px(Theme.RADIUS_LARGE), Theme.BACKGROUND);
 		if (page == Page.MODS) drawModsPage(g, panelX, panelY, panelW, panelH, mx, my);
 		else if (page == Page.PERFORMANCE) drawPerformancePage(g, panelX, panelY, panelW, panelH, mx, my);
+		else if (page == Page.ACCOUNTS) drawAccountsPage(g, panelX, panelY, panelW, panelH, mx, my);
 		else drawSettingsPage(g, panelX, panelY, panelW, panelH, mx, my);
 
 		RenderUtils.end(g);
@@ -297,12 +299,13 @@ public class ClickGuiScreen implements UiScreen {
 		g.logo(x + (w - logo) / 2, y + Ui.px(18), logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		RenderUtils.rect(g, x + Ui.px(16), y + Ui.px(90), x + w - Ui.px(16), y + Ui.px(91), Theme.DIVIDER);
 
-		String[] labels = {"MOD MENU", "HUD EDITOR", "PERFORMANCE", "SETTINGS"};
-		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.CHIP, Icon.GEAR};
+		String[] labels = {"MOD MENU", "HUD EDITOR", "PERFORMANCE", "SETTINGS", "ACCOUNTS"};
+		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.CHIP, Icon.GEAR, Icon.USER};
 		int bw = w - Ui.px(16), bh = Ui.px(70);
 		for (int i = 0; i < labels.length; i++) {
 			int bx = x + Ui.px(8), by = y + Ui.px(104) + i * (bh + Ui.px(8));
-			boolean active = (i == 0 && page == Page.MODS) || (i == 2 && page == Page.PERFORMANCE) || (i == 3 && page == Page.SETTINGS);
+			boolean active = (i == 0 && page == Page.MODS) || (i == 2 && page == Page.PERFORMANCE) || (i == 3 && page == Page.SETTINGS)
+					|| (i == 4 && page == Page.ACCOUNTS);
 			boolean hover = Performance.hoverEffects() && Widgets.inside(mx, my, bx, by, bw, bh);
 			if (active) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS), Theme.ACCENT);
 			else if (hover) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS), Theme.HOVER);
@@ -319,8 +322,11 @@ public class ClickGuiScreen implements UiScreen {
 					TatnatClient.game().openScreen(new HudEditorScreen(this));
 				} else if (idx == 2) {
 					openPerformance();
-				} else {
+				} else if (idx == 3) {
 					page = Page.SETTINGS;
+				} else {
+					page = Page.ACCOUNTS;
+					AccountSwitcher.refresh();
 				}
 			}, null);
 		}
@@ -584,6 +590,70 @@ public class ClickGuiScreen implements UiScreen {
 	}
 
 	/** Sidebar "Settings": about the client, links and reset buttons. */
+	/** Switch between the launcher's accounts without restarting the game. */
+	private void drawAccountsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
+		drawTab(g, px, py, "Accounts", false, mx, my);
+		int x = px + Ui.px(18), w = pw - Ui.px(36);
+		int y = py + Ui.px(86);
+
+		// Who you are now.
+		int ch = Ui.px(96);
+		RenderUtils.roundedRect(g, x, y, w, ch, Ui.px(Theme.RADIUS), Theme.PANEL);
+		int logo = Math.max(32, Ui.px(56) / 8 * 8);
+		g.logo(x + Ui.px(20), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
+		int tx = x + Ui.px(20) + logo + Ui.px(20);
+		UIFont.SMALL.draw(g, "PLAYING AS", tx, y + Ui.px(22), Theme.TEXT_MUTED);
+		UIFont.HUGE.draw(g, AccountSwitcher.currentName(), tx, y + Ui.px(42), Theme.TEXT);
+		if (AccountSwitcher.available()) {
+			int rw = Ui.px(130), rh = Ui.px(40), rx = x + w - rw - Ui.px(20), ry = y + (ch - rh) / 2;
+			boolean rHover = Widgets.inside(mx, my, rx, ry, rw, rh);
+			Widgets.button(g, rx, ry, rw, rh, AccountSwitcher.loading() ? "Loading…" : "Refresh", UIFont.BODY, Theme.BACKGROUND, Theme.TEXT, rHover);
+			hit(rx, ry, rw, rh, false, AccountSwitcher::refresh, null);
+		}
+		y += ch + Ui.px(16);
+
+		if (!AccountSwitcher.available()) {
+			UIFont.BODY.draw(g, "Start the game from the tatnat launcher to switch accounts here.", x, y, Theme.TEXT_MUTED);
+			UIFont.SMALL.draw(g, "Accounts you add in the launcher show up in this list.", x, y + Ui.px(28), Theme.TEXT_MUTED);
+			return;
+		}
+		String status = AccountSwitcher.status();
+		if (!status.isEmpty()) {
+			UIFont.BODY.draw(g, status, x, y, AccountSwitcher.statusError() ? 0xFFFF6B6B : Theme.ACCENT);
+			y += Ui.px(32);
+		}
+		String current = AccountSwitcher.currentName();
+		java.util.List<AccountSwitcher.Account> list = AccountSwitcher.accounts();
+		if (list.isEmpty()) {
+			UIFont.BODY.draw(g, AccountSwitcher.loading() ? "Loading accounts…" : "No accounts in the launcher yet.", x, y, Theme.TEXT_MUTED);
+			return;
+		}
+		int rh = Ui.px(60), bottom = py + ph - Ui.px(18);
+		for (AccountSwitcher.Account a : list) {
+			if (y + rh > bottom) break;
+			boolean isCurrent = a.name.equalsIgnoreCase(current);
+			boolean hover = !isCurrent && Widgets.inside(mx, my, x, y, w, rh);
+			RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), hover ? Theme.HOVER : Theme.PANEL);
+			Icons.draw(g, Icon.USER, x + Ui.px(30), y + rh / 2, Ui.px(26), isCurrent ? Theme.ACCENT : Theme.TEXT_MUTED);
+			UIFont.TITLE.draw(g, a.name, x + Ui.px(58), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			UIFont.SMALL.draw(g, a.microsoft() ? "Microsoft account" : "Offline account (singleplayer and offline servers)",
+					x + Ui.px(58), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
+			int bw = Ui.px(140), bh = Ui.px(38), bx = x + w - bw - Ui.px(14), by = y + (rh - bh) / 2;
+			if (isCurrent) {
+				UIFont.BODY.drawRight(g, "In use", x + w - Ui.px(24), y + rh / 2 - UIFont.BODY.size() / 2, Theme.ACCENT);
+			} else {
+				boolean bHover = Widgets.inside(mx, my, bx, by, bw, bh);
+				boolean busy = AccountSwitcher.switching();
+				Widgets.button(g, bx, by, bw, bh, busy ? "…" : "Switch", UIFont.BODY,
+						bHover && !busy ? Colors.shade(Theme.ACCENT, 1.15f) : Theme.ACCENT, 0xFFFFFFFF, bHover);
+				hit(x, y, w, rh, false, () -> AccountSwitcher.switchTo(a), null);
+			}
+			y += rh + Ui.px(8);
+		}
+		UIFont.SMALL.draw(g, "Switching keeps the game open. On a server, leave and rejoin to play there as the new account.",
+				x, Math.min(y + Ui.px(6), bottom - UIFont.SMALL.size()), Theme.TEXT_MUTED);
+	}
+
 	private void drawSettingsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
 		drawTab(g, px, py, "Settings", false, mx, my);
 		int x = px + Ui.px(18), w = pw - Ui.px(36);
