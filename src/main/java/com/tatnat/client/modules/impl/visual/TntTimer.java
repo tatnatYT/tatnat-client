@@ -13,7 +13,7 @@ public class TntTimer extends Module {
 
 	public TntTimer() {
 		super("TNT Timer", "Shows how long until primed TNT explodes", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CLOCK;
+		icon = com.tatnat.client.ui.render.Icons.Icon.TNT;
 	}
 
 	@Subscribe

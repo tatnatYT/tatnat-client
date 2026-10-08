@@ -9,7 +9,7 @@ public class CustomFog extends Module {
 
 	public CustomFog() {
 		super("Custom Fog", "Removes distance fog", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.DROP;
+		icon = com.tatnat.client.ui.render.Icons.Icon.CLOUD;
 		instance = this;
 	}
 

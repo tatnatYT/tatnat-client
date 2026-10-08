@@ -19,7 +19,7 @@ public final class Icons {
 	public enum Icon {
 		KEYBOARD, MONITOR, MOUSE, MAP, ARMOR, CLOCK, CHIP, SIGNAL, GLOBE, CUBE, SUN, ZOOM, RUN,
 		COMBO, RULER, POTION, CROSSHAIR, EYE, DROP, SWORD, BOX, MASK, MOON, LAYERS, CHAT, KEY, TOOLTIP, SCROLL, CAMERA, PIN,
-		CAPE, SPARKLE, USER,
+		CAPE, SPARKLE, USER, COMPASS, GAUGE, HOURGLASS, STOPWATCH, TNT, FLAG, REFRESH, CLOUD, BEAM,
 		GRID, GEAR, MOVE, HEART, HEART_FILLED, SEARCH, BACK, FORWARD, CHEVRON_DOWN, LIST, YOUTUBE
 	}
 
@@ -89,15 +89,19 @@ public final class Icons {
 	/** Draws the icon at (0, 0) into a coverage grid, then encodes each row as runs of equal alpha. */
 	private static Raster rasterise(Icon icon, int size) {
 		int half = size + 2, dim = half * 2;
+		// Drawn at 4x and averaged down: proper supersampled anti-aliasing on every curve and diagonal.
+		final int ss = 4;
+		int hHalf = half * ss, hDim = dim * ss;
+		float[] hi = new float[hDim * hDim];
 		float[] cov = new float[dim * dim];
 		Gfx rec = new Gfx() {
 			@Override
 			public void rect(int x1, int y1, int x2, int y2, int argb) {
 				float a = (argb >>> 24) / 255f;
-				for (int y = Math.max(y1 + half, 0); y < Math.min(y2 + half, dim); y++) {
-					for (int x = Math.max(x1 + half, 0); x < Math.min(x2 + half, dim); x++) {
-						int i = y * dim + x;
-						cov[i] = cov[i] + a * (1 - cov[i]);
+				for (int y = Math.max(y1 + hHalf, 0); y < Math.min(y2 + hHalf, hDim); y++) {
+					for (int x = Math.max(x1 + hHalf, 0); x < Math.min(x2 + hHalf, hDim); x++) {
+						int i = y * hDim + x;
+						hi[i] = hi[i] + a * (1 - hi[i]);
 					}
 				}
 			}
@@ -164,19 +168,26 @@ public final class Icons {
 		float fade = RenderUtils.alpha;
 		RenderUtils.alpha = 1f;
 		try {
-			drawLive(rec, icon, 0, 0, size, 0xFFFFFFFF);
+			drawLive(rec, icon, 0, 0, size * ss, 0xFFFFFFFF);
 		} finally {
 			RenderUtils.alpha = fade;
+		}
+		for (int y = 0; y < dim; y++) {
+			for (int x = 0; x < dim; x++) {
+				float sum = 0;
+				for (int sy = 0; sy < ss; sy++) for (int sx = 0; sx < ss; sx++) sum += hi[(y * ss + sy) * hDim + x * ss + sx];
+				cov[y * dim + x] = sum / (ss * ss);
+			}
 		}
 		java.util.List<int[]> out = new java.util.ArrayList<>();
 		for (int y = 0; y < dim; y++) {
 			int x = 0;
 			while (x < dim) {
-				// 16 alpha levels, so neighbouring edge pixels merge into one span.
-				int q = Math.round(cov[y * dim + x] * 15);
+				// 32 alpha levels: smooth edges, while flat runs still merge into one span.
+				int q = Math.round(cov[y * dim + x] * 31);
 				int end = x + 1;
-				while (end < dim && Math.round(cov[y * dim + end] * 15) == q) end++;
-				if (q > 0) out.add(new int[] {x - half, y - half, end - half, Math.min(255, Math.round(q * 255f / 15))});
+				while (end < dim && Math.round(cov[y * dim + end] * 31) == q) end++;
+				if (q > 0) out.add(new int[] {x - half, y - half, end - half, Math.min(255, Math.round(q * 255f / 31))});
 				x = end;
 			}
 		}
@@ -394,6 +405,65 @@ public final class Icons {
 			case USER: {
 				ring(32, 21, 12, w);
 				arc(32, 62, 24, 0.5, 1.0, w);
+			}
+			break;
+			case COMPASS: {
+				ring(32, 32, 27, w);
+				poly(w, 32, 12, 39, 32, 32, 52, 25, 32, 32, 12);
+				disc(32, 32, 3.5f);
+			}
+			break;
+			case GAUGE: {
+				arc(32, 40, 26, 0.5, 1.0, w);
+				line(32, 40, 47, 24, w);
+				disc(32, 40, 4.5f);
+			}
+			break;
+			case HOURGLASS: {
+				line(14, 6, 50, 6, w);
+				line(14, 58, 50, 58, w);
+				poly(w, 18, 6, 46, 6, 34, 32, 46, 58, 18, 58, 30, 32, 18, 6);
+				fillRect(24, 48, 16, 6);
+			}
+			break;
+			case STOPWATCH: {
+				ring(32, 36, 22, w);
+				line(32, 36, 32, 23, w);
+				line(26, 6, 38, 6, w);
+				line(32, 6, 32, 14, w);
+				line(49, 17, 54, 12, w);
+			}
+			break;
+			case TNT: {
+				box(8, 18, 48, 40, 4, w);
+				line(8, 30, 56, 30, w);
+				line(8, 46, 56, 46, w);
+				line(32, 18, 34, 8, w);
+				disc(36, 5, 3.5f);
+			}
+			break;
+			case FLAG: {
+				line(16, 6, 16, 58, w);
+				poly(w, 16, 9, 50, 17, 16, 31);
+			}
+			break;
+			case REFRESH: {
+				arc(32, 32, 22, 0.05, 0.88, w);
+				poly(w, 48, 9, 55, 24, 40, 24, 48, 9);
+			}
+			break;
+			case CLOUD: {
+				arc(22, 40, 12, 0.25, 0.75, w);
+				arc(33, 30, 14, 0.5, 1.0, w);
+				arc(45, 39, 11, 0.72, 1.25, w);
+				line(22, 52, 45, 52, w);
+			}
+			break;
+			case BEAM: {
+				line(32, 6, 32, 40, w * 1.4f);
+				line(22, 14, 22, 36, w * 0.7f);
+				line(42, 14, 42, 36, w * 0.7f);
+				disc(32, 50, 7f);
 			}
 			break;
 			case CAPE: {

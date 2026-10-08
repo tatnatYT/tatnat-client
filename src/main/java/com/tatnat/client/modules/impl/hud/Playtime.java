@@ -12,7 +12,7 @@ public class Playtime extends TextHudModule {
 
 	public Playtime() {
 		super("Playtime", "Shows how long you've been playing this session", false, 0.0, 0.36);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CLOCK;
+		icon = com.tatnat.client.ui.render.Icons.Icon.HOURGLASS;
 	}
 
 	@Override

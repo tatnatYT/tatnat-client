@@ -25,7 +25,7 @@ public class LootBeams extends Module {
 
 	public LootBeams() {
 		super("Loot Beams", "Beams of light over valuable dropped items", Category.VISUAL, false);
-		icon = Icons.Icon.SPARKLE;
+		icon = Icons.Icon.BEAM;
 	}
 
 	private boolean wanted(String name) {

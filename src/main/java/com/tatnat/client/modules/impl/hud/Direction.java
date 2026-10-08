@@ -14,7 +14,7 @@ public class Direction extends TextHudModule {
 
 	public Direction() {
 		super("Direction", "Shows which way you're facing", false, 0.0, 0.27);
-		icon = com.tatnat.client.ui.render.Icons.Icon.GLOBE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.COMPASS;
 	}
 
 	@Override

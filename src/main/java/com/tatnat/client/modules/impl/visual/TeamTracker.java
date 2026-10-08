@@ -27,7 +27,7 @@ public class TeamTracker extends Module {
 
 	public TeamTracker() {
 		super("Team Tracker", "Shows where your teammates are", Category.VISUAL, false);
-		icon = Icons.Icon.PIN;
+		icon = Icons.Icon.FLAG;
 	}
 
 	private boolean teammate(String name) {

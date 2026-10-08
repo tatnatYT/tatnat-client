@@ -17,7 +17,7 @@ public class Reconnect extends Module {
 
 	public Reconnect() {
 		super("Reconnect", "Automatically rejoins after a disconnect", Category.UTILITY, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.GLOBE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.REFRESH;
 	}
 
 	@Subscribe
