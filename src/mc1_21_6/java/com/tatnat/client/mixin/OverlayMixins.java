@@ -106,4 +106,12 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.visual.PlayerModel.hideElytra()) ci.cancel();
 		}
 	}
+	/** Custom F3: drop the system-information column on the right. */
+	@Mixin(net.minecraft.client.gui.components.DebugScreenOverlay.class)
+	public static class DebugSpam {
+		@Inject(method = "drawSystemInformation", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$spam(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.CustomF3.hideSpam()) ci.cancel();
+		}
+	}
 }

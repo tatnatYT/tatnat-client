@@ -27,6 +27,7 @@ import com.tatnat.client.modules.impl.visual.UiScaling;
 import com.tatnat.client.modules.impl.visual.CustomChat;
 import com.tatnat.client.modules.impl.visual.InventoryTweaks;
 import com.tatnat.client.modules.impl.visual.PlayerModel;
+import com.tatnat.client.modules.impl.visual.CustomF3;
 import com.tatnat.client.modules.impl.utility.SoundFilters;
 import com.tatnat.client.modules.impl.utility.DiscordStatus;
 import com.tatnat.client.modules.impl.hud.UhcOverlay;
@@ -161,6 +162,7 @@ public final class ModuleManager {
 		add(new CustomChat());
 		add(new InventoryTweaks());
 		add(new PlayerModel());
+		add(new CustomF3());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());
