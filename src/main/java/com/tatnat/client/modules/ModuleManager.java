@@ -22,6 +22,10 @@ import com.tatnat.client.modules.impl.visual.CameraTweaks;
 import com.tatnat.client.modules.impl.visual.MobOverlay;
 import com.tatnat.client.modules.impl.visual.AttackIndicator;
 import com.tatnat.client.modules.impl.visual.LightLevelOverlay;
+import com.tatnat.client.modules.impl.visual.TitleTweaker;
+import com.tatnat.client.modules.impl.visual.UiScaling;
+import com.tatnat.client.modules.impl.hud.UhcOverlay;
+import com.tatnat.client.modules.impl.hud.Hypixel;
 import com.tatnat.client.modules.impl.visual.AutoPerspective;
 import com.tatnat.client.modules.impl.visual.HitIndicator;
 import com.tatnat.client.modules.impl.visual.Snaplook;
@@ -101,6 +105,8 @@ public final class ModuleManager {
 		add(new DeathInfo());
 		add(new PackDisplay());
 		add(new Mousestrokes());
+		add(new UhcOverlay());
+		add(new Hypixel());
 		// Visual
 		add(new Zoom());
 		add(new Crosshair());
@@ -143,6 +149,8 @@ public final class ModuleManager {
 		add(new MobOverlay());
 		add(new AttackIndicator());
 		add(new LightLevelOverlay());
+		add(new TitleTweaker());
+		add(new UiScaling());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());

@@ -472,6 +472,12 @@ public final class GameImpl implements Game {
 		return m.level.getBlockState(p).getCollisionShape(m.level, p).isEmpty() && net.minecraft.world.level.block.Block.isFaceSturdy(m.level.getBlockState(below), m.level, below, net.minecraft.core.Direction.UP);
 	}
 
+	@Override
+	public void setGuiScale(int scale) {
+		mc().options.guiScale = Math.max(0, scale);
+		mc().resizeDisplay();
+	}
+
 	// ------------------------------------------------------------ camera
 
 	@Override

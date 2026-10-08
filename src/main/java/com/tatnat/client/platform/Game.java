@@ -134,6 +134,10 @@ public interface Game {
 	double[] aboveHead(Object entity);
 
 	/** Entities within {@code range} blocks of the player (not the player itself), for world overlays. */
+	/** Sets the GUI scale option (0 = auto) and applies it right away (UI Scaling). */
+	default void setGuiScale(int scale) {
+	}
+
 	/** Attack indicator: 0 = off, 1 = under the crosshair, 2 = by the hotbar (1.9+). */
 	default void setAttackIndicator(int mode) {
 	}

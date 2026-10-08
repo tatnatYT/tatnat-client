@@ -464,6 +464,11 @@ public final class GameImpl implements Game {
 		return mc.world.isAir(p) && mc.world.getBlockState(below).isFullBlock();
 	}
 
+	@Override
+	public void setGuiScale(int scale) {
+		mc.options.guiScale = Math.max(0, scale);
+	}
+
 	// ------------------------------------------------------------ camera
 
 	@Override

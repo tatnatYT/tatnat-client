@@ -8,6 +8,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$Titles",
 		"OverlayMixins$MobGlow",
 		"OverlayMixins$CameraDistance",
 		"ChatComponentMixin",

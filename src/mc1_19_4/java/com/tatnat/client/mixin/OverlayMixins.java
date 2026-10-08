@@ -53,4 +53,17 @@ public final class OverlayMixins {
 			if (kind != 0 && e != net.minecraft.client.Minecraft.getInstance().player && com.tatnat.client.modules.impl.visual.MobOverlay.glows(kind)) cir.setReturnValue(true);
 		}
 	}
+	/** Title Tweaker: drop titles / subtitles before they show. */
+	@Mixin(net.minecraft.client.gui.Gui.class)
+	public static class Titles {
+		@Inject(method = "setTitle", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$title(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.TitleTweaker.hideTitles()) ci.cancel();
+		}
+
+		@Inject(method = "setSubtitle", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$subtitle(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.TitleTweaker.hideSubtitles()) ci.cancel();
+		}
+	}
 }
