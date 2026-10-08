@@ -112,4 +112,14 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.hud.Horses.replacesVanilla()) ci.cancel();
 		}
 	}
+	/** Custom Fog: push the fog out of sight. */
+	@Mixin(net.minecraft.client.renderer.FogRenderer.class)
+	public static class NoFog {
+		@Inject(method = "setupFog", at = @At("TAIL"), require = 0)
+		private static void tatnat$fog(CallbackInfo ci) {
+			if (!com.tatnat.client.modules.impl.visual.CustomFog.disabled()) return;
+			com.mojang.blaze3d.platform.GlStateManager.fogStart(1.0E6f);
+			com.mojang.blaze3d.platform.GlStateManager.fogEnd(2.0E6f);
+		}
+	}
 }
