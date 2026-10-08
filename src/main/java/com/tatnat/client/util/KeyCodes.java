@@ -13,7 +13,7 @@ public final class KeyCodes {
 
 	public static final int SPACE = 32, APOSTROPHE = 39, COMMA = 44, MINUS = 45, PERIOD = 46, SLASH = 47;
 	public static final int KEY_0 = 48, KEY_9 = 57, SEMICOLON = 59, EQUAL = 61;
-	public static final int A = 65, B = 66, C = 67, R = 82, Z = 90;
+	public static final int A = 65, B = 66, C = 67, R = 82, V = 86, Z = 90;
 	public static final int LEFT_BRACKET = 91, BACKSLASH = 92, RIGHT_BRACKET = 93, GRAVE = 96;
 	public static final int ESCAPE = 256, ENTER = 257, TAB = 258, BACKSPACE = 259, INSERT = 260, DELETE = 261;
 	public static final int RIGHT = 262, LEFT = 263, DOWN = 264, UP = 265, PAGE_UP = 266, PAGE_DOWN = 267, HOME = 268, END = 269;

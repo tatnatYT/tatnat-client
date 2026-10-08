@@ -120,6 +120,12 @@ public final class PlayerMixins {
 			if (NickHider.active() && NickHider.INSTANCE.inChat.on()) return PlayerLooks.replaceName(message);
 			return message;
 		}
+
+		/** Cull Logs: drop spam before it reaches the chat. */
+		@org.spongepowered.asm.mixin.injection.Inject(method = "addMessage(Lnet/minecraft/text/Text;I)V", at = @At("HEAD"), cancellable = true)
+		private void tatnat$cull(Text message, int id, CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.utility.CullLogs.blocked(message.asUnformattedString())) ci.cancel();
+		}
 	}
 
 	/** While Freecam is on, your player gets no movement input at all. */

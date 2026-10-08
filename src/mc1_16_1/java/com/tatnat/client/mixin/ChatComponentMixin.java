@@ -2,6 +2,7 @@ package com.tatnat.client.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.tatnat.client.TatnatClient;
@@ -20,5 +21,11 @@ public class ChatComponentMixin {
 		TatnatClient.EVENTS.post(new Events.Chat(message.getString()));
 		if (NickHider.active() && NickHider.INSTANCE.inChat.on()) return PlayerLooks.replaceName(message);
 		return message;
+	}
+
+	/** Cull Logs: drop spam before it reaches the chat. */
+	@org.spongepowered.asm.mixin.injection.Inject(method = "addMessage(Lnet/minecraft/network/chat/Component;I)V", at = @At("HEAD"), cancellable = true)
+	private void tatnat$cull(Component m, int id, CallbackInfo ci) {
+		if (com.tatnat.client.modules.impl.utility.CullLogs.blocked(m.getString())) ci.cancel();
 	}
 }

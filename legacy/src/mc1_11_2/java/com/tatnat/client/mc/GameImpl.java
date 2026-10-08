@@ -54,6 +54,7 @@ public final class GameImpl implements Game {
 			case SNEAK: return mc.options.sneakKey;
 			case SPRINT: return mc.options.sprintKey;
 			case ATTACK: return mc.options.attackKey;
+			case DROP: return mc.options.dropKey;
 			default: return mc.options.useKey;
 		}
 	}
@@ -362,6 +363,70 @@ public final class GameImpl implements Game {
 	public double[] aboveHead(Object entity) {
 		Entity e = (Entity) entity;
 		return new double[] {e.x, e.getBoundingBox().maxY + 0.35, e.z};
+	}
+
+	@Override
+	public java.util.List<com.tatnat.client.platform.EntityInfo> entities(double range) {
+		java.util.List<com.tatnat.client.platform.EntityInfo> out = new java.util.ArrayList<>();
+		if (mc.world == null || mc.player == null) return out;
+		double r2 = range * range;
+		for (Entity e : new java.util.ArrayList<>(mc.world.entities)) {
+			if (e == mc.player || e.squaredDistanceTo(mc.player) > r2) continue;
+			double top = e.getBoundingBox().maxY;
+			if (e instanceof net.minecraft.entity.TntEntity) {
+				out.add(com.tatnat.client.platform.EntityInfo.tnt(e.x, top, e.z, ((net.minecraft.entity.TntEntity) e).getFuse()));
+			} else if (e instanceof net.minecraft.entity.ItemEntity) {
+				net.minecraft.entity.ItemEntity it = (net.minecraft.entity.ItemEntity) e;
+				if (it.getItemStack() == null) continue;
+				out.add(com.tatnat.client.platform.EntityInfo.item(e.x, top, e.z, it.getAge(), it.getItemStack().getCustomName(), it.getItemStack().getCount()));
+			} else if (e instanceof net.minecraft.entity.LivingEntity && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity)) {
+				net.minecraft.entity.LivingEntity l = (net.minecraft.entity.LivingEntity) e;
+				out.add(com.tatnat.client.platform.EntityInfo.living(e.x, top, e.z, e instanceof net.minecraft.entity.player.PlayerEntity, l.getHealth(), l.getMaxHealth()));
+			}
+		}
+		return out;
+	}
+
+	@Override
+	public java.util.Map<String, Integer> inventoryCounts() {
+		java.util.Map<String, Integer> out = new java.util.HashMap<>();
+		if (mc.player == null) return out;
+		for (int i = 0; i < mc.player.inventory.getInvSize(); i++) {
+			ItemStack s = mc.player.inventory.getInvStack(i);
+			if (s == null || s.isEmpty()) continue;
+			out.merge(s.getItem().getTranslationKey(s) + "|" + s.getCustomName(), s.getCount(), Integer::sum);
+		}
+		return out;
+	}
+
+	@Override
+	public int perspective() {
+		return mc.options.perspective;
+	}
+
+	@Override
+	public void setPerspective(int perspective) {
+		mc.options.perspective = Math.max(0, Math.min(2, perspective));
+	}
+
+	@Override
+	public float health() {
+		return mc.player == null ? 20 : mc.player.getHealth();
+	}
+
+	@Override
+	public boolean ridingOrFlying() {
+		return mc.player != null && (mc.player.hasMount() || mc.player.abilities.flying);
+	}
+
+	@Override
+	public void setHudHidden(boolean hidden) {
+		mc.options.hudHidden = hidden;
+	}
+
+	@Override
+	public java.util.List<String> resourcePacks() {
+		return new java.util.ArrayList<>(mc.options.resourcePacks);
 	}
 
 	// ------------------------------------------------------------ camera

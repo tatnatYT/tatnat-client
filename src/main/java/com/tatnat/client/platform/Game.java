@@ -133,6 +133,43 @@ public interface Game {
 	/** {x, y, z} just above the entity's head. */
 	double[] aboveHead(Object entity);
 
+	/** Entities within {@code range} blocks of the player (not the player itself), for world overlays. */
+	/** Turns the F1 "hide HUD" state on or off (Autohide HUD). */
+	default void setHudHidden(boolean hidden) {
+	}
+
+	/** The resource packs switched on, bottom to top, as the options file names them ("file/Faithful.zip"). */
+	default java.util.List<String> resourcePacks() {
+		return java.util.Collections.emptyList();
+	}
+
+	/** 0 = first person, 1 = third person behind, 2 = third person in front. */
+	default int perspective() {
+		return firstPerson() ? 0 : 1;
+	}
+
+	default void setPerspective(int perspective) {
+	}
+
+	/** The player's health (20 = full), for Death Info and Hit Indicator. */
+	default float health() {
+		return 20;
+	}
+
+	/** Riding something, creative-flying or gliding with an elytra (for Auto Perspective). */
+	default boolean ridingOrFlying() {
+		return false;
+	}
+
+	/** Item counts in your inventory, keyed "translation key|display name" (for Totem / Item Counter). */
+	default java.util.Map<String, Integer> inventoryCounts() {
+		return java.util.Collections.emptyMap();
+	}
+
+	default java.util.List<EntityInfo> entities(double range) {
+		return java.util.Collections.emptyList();
+	}
+
 	// ------------------------------------------------------------ camera
 
 	/** Camera position, rotation and the vertical FOV of the last frame. */

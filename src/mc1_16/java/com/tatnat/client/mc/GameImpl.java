@@ -60,6 +60,7 @@ public final class GameImpl implements Game {
 			case SNEAK: return mc().options.keyShift;
 			case SPRINT: return mc().options.keySprint;
 			case ATTACK: return mc().options.keyAttack;
+			case DROP: return mc().options.keyDrop;
 			default: return mc().options.keyUse;
 		}
 	}
@@ -362,6 +363,73 @@ public final class GameImpl implements Game {
 	public double[] aboveHead(Object entity) {
 		Entity e = (Entity) entity;
 		return new double[] {e.getX(), e.getBoundingBox().maxY + 0.35, e.getZ()};
+	}
+
+	@Override
+	public java.util.List<com.tatnat.client.platform.EntityInfo> entities(double range) {
+		java.util.List<com.tatnat.client.platform.EntityInfo> out = new java.util.ArrayList<>();
+		Minecraft m = mc();
+		if (m.level == null || m.player == null) return out;
+		double r2 = range * range;
+		for (Entity e : m.level.entitiesForRendering()) {
+			if (e == m.player || e.distanceToSqr(m.player) > r2) continue;
+			double top = e.getBoundingBox().maxY;
+			if (e instanceof net.minecraft.world.entity.item.PrimedTnt) {
+				out.add(com.tatnat.client.platform.EntityInfo.tnt(e.getX(), top, e.getZ(), ((net.minecraft.world.entity.item.PrimedTnt) e).getFuse()));
+			} else if (e instanceof net.minecraft.world.entity.item.ItemEntity) {
+				net.minecraft.world.entity.item.ItemEntity it = (net.minecraft.world.entity.item.ItemEntity) e;
+				out.add(com.tatnat.client.platform.EntityInfo.item(e.getX(), top, e.getZ(), it.getAge(), it.getItem().getHoverName().getString(), it.getItem().getCount()));
+			} else if (e instanceof LivingEntity && !(e instanceof net.minecraft.world.entity.decoration.ArmorStand)) {
+				LivingEntity l = (LivingEntity) e;
+				out.add(com.tatnat.client.platform.EntityInfo.living(e.getX(), top, e.getZ(), e instanceof net.minecraft.world.entity.player.Player, l.getHealth(), l.getMaxHealth()));
+			}
+		}
+		return out;
+	}
+
+	@Override
+	public java.util.Map<String, Integer> inventoryCounts() {
+		java.util.Map<String, Integer> out = new java.util.HashMap<>();
+		Minecraft m = mc();
+		if (m.player == null) return out;
+		net.minecraft.world.entity.player.Inventory inv = m.player.inventory;
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack s = inv.getItem(i);
+			if (s.isEmpty()) continue;
+			out.merge(s.getItem().getDescriptionId() + "|" + s.getHoverName().getString(), s.getCount(), Integer::sum);
+		}
+		return out;
+	}
+
+	@Override
+	public int perspective() {
+		return mc().options.getCameraType().ordinal();
+	}
+
+	@Override
+	public void setPerspective(int perspective) {
+		mc().options.setCameraType(net.minecraft.client.CameraType.values()[Math.max(0, Math.min(2, perspective))]);
+	}
+
+	@Override
+	public float health() {
+		return mc().player == null ? 20 : mc().player.getHealth();
+	}
+
+	@Override
+	public boolean ridingOrFlying() {
+		Minecraft m = mc();
+		return m.player != null && (m.player.isPassenger() || m.player.abilities.flying || m.player.isFallFlying());
+	}
+
+	@Override
+	public void setHudHidden(boolean hidden) {
+		mc().options.hideGui = hidden;
+	}
+
+	@Override
+	public java.util.List<String> resourcePacks() {
+		return new java.util.ArrayList<>(mc().options.resourcePacks);
 	}
 
 	// ------------------------------------------------------------ camera
