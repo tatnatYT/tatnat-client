@@ -8,6 +8,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$TabFriends",
 		"OverlayMixins$DebugSpam",
 		"OverlayMixins$ElytraLayerHide",
 		"OverlayMixins$ArmorLayerHide",

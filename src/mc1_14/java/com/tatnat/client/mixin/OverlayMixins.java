@@ -95,4 +95,13 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.visual.CustomF3.hideSpam()) ci.cancel();
 		}
 	}
+	/** Tablist: friends in your colour. */
+	@Mixin(net.minecraft.client.gui.components.PlayerTabOverlay.class)
+	public static class TabFriends {
+		@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true, require = 0)
+		private void tatnat$friend(net.minecraft.client.multiplayer.PlayerInfo info, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.network.chat.Component> cir) {
+			String text = com.tatnat.client.modules.impl.visual.Tablist.highlight(cir.getReturnValue().getString());
+			if (text != null) cir.setReturnValue(new net.minecraft.network.chat.TextComponent(text));
+		}
+	}
 }
