@@ -34,6 +34,7 @@ import com.tatnat.client.modules.impl.visual.ViewModel;
 import com.tatnat.client.modules.impl.visual.PostEffects;
 import com.tatnat.client.modules.impl.visual.HudColors;
 import com.tatnat.client.modules.impl.visual.ItemPhysic;
+import com.tatnat.client.modules.impl.visual.DarkMode;
 import com.tatnat.client.modules.impl.utility.SoundFilters;
 import com.tatnat.client.modules.impl.utility.DiscordStatus;
 import com.tatnat.client.modules.impl.hud.UhcOverlay;
@@ -179,6 +180,7 @@ public final class ModuleManager {
 		add(new HudColors.Hearts());
 		add(new HudColors.ArmorBar());
 		add(new ItemPhysic());
+		add(new DarkMode());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());

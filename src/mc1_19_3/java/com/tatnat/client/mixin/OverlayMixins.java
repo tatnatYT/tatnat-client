@@ -180,4 +180,33 @@ public final class OverlayMixins {
 			pose.mulPose(com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? com.mojang.math.Axis.XP.rotationDegrees(90f) : q);
 		}
 	}
+	/** Dark Mode: inventories and containers drawn in dark charcoal. */
+	@Mixin(net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class)
+	public static class DarkContainers {
+		@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lcom/mojang/blaze3d/vertex/PoseStack;FII)V"), require = 0)
+		private void tatnat$dark_render(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) {
+				float k = com.tatnat.client.modules.impl.visual.DarkMode.shade();
+				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
+			}
+		}
+
+		@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lcom/mojang/blaze3d/vertex/PoseStack;FII)V", shift = At.Shift.AFTER), require = 0)
+		private void tatnat$light_render(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		}
+
+		@Inject(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lcom/mojang/blaze3d/vertex/PoseStack;FII)V"), require = 0)
+		private void tatnat$dark_renderBackground(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) {
+				float k = com.tatnat.client.modules.impl.visual.DarkMode.shade();
+				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
+			}
+		}
+
+		@Inject(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lcom/mojang/blaze3d/vertex/PoseStack;FII)V", shift = At.Shift.AFTER), require = 0)
+		private void tatnat$light_renderBackground(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		}
+	}
 }
