@@ -79,4 +79,31 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.visual.InventoryTweaks.hideModel()) ci.cancel();
 		}
 	}
+	/** Player Model: no armor drawn. */
+	@Mixin(net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer.class)
+	public static class ArmorLayerHide {
+		@Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$armor_render(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.PlayerModel.hideArmor()) ci.cancel();
+		}
+
+		@Inject(method = "submit", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$armor_submit(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.PlayerModel.hideArmor()) ci.cancel();
+		}
+	}
+
+	/** Elytras: no elytra drawn. */
+	@Mixin(net.minecraft.client.renderer.entity.layers.ElytraLayer.class)
+	public static class ElytraLayerHide {
+		@Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$elytra_render(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.PlayerModel.hideElytra()) ci.cancel();
+		}
+
+		@Inject(method = "submit", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$elytra_submit(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.PlayerModel.hideElytra()) ci.cancel();
+		}
+	}
 }

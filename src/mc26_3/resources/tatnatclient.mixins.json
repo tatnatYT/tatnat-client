@@ -8,6 +8,8 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$ElytraLayerHide",
+		"OverlayMixins$ArmorLayerHide",
 		"OverlayMixins$InventoryModel",
 		"OverlayMixins$Titles",
 		"OverlayMixins$MobGlow",
