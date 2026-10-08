@@ -123,4 +123,12 @@ public final class OverlayMixins {
 			if (text != null) cir.setReturnValue(net.minecraft.network.chat.Component.literal(text));
 		}
 	}
+	/** Horses: the vanilla jump bar makes way for the Horses one. */
+	@Mixin(net.minecraft.client.gui.Gui.class)
+	public static class JumpMeter {
+		@Inject(method = "renderJumpMeter", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$jump(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.hud.Horses.replacesVanilla()) ci.cancel();
+		}
+	}
 }

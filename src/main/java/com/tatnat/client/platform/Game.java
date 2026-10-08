@@ -151,6 +151,11 @@ public interface Game {
 		return false;
 	}
 
+	/** Jump charge (0-1) while riding a horse-like mount, else -1 (Horses). */
+	default float horseJump() {
+		return -1;
+	}
+
 	/** Sets the GUI scale option (0 = auto) and applies it right away (UI Scaling). */
 	default void setGuiScale(int scale) {
 	}

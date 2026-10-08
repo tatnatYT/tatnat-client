@@ -33,6 +33,7 @@ import com.tatnat.client.modules.impl.utility.SoundFilters;
 import com.tatnat.client.modules.impl.utility.DiscordStatus;
 import com.tatnat.client.modules.impl.hud.UhcOverlay;
 import com.tatnat.client.modules.impl.hud.Hypixel;
+import com.tatnat.client.modules.impl.hud.Horses;
 import com.tatnat.client.modules.impl.visual.AutoPerspective;
 import com.tatnat.client.modules.impl.visual.HitIndicator;
 import com.tatnat.client.modules.impl.visual.Snaplook;
@@ -114,6 +115,7 @@ public final class ModuleManager {
 		add(new Mousestrokes());
 		add(new UhcOverlay());
 		add(new Hypixel());
+		add(new Horses());
 		// Visual
 		add(new Zoom());
 		add(new Crosshair());

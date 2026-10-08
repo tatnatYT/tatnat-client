@@ -477,6 +477,12 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public float horseJump() {
+		Minecraft m = mc();
+		return m.player != null && m.player.jumpableVehicle() != null ? m.player.getJumpRidingScale() : -1;
+	}
+
+	@Override
 	public void setChatLook(double opacity, double scale, double width) {
 		mc().options.textBackgroundOpacity().set(opacity);
 		mc().options.chatScale().set(scale);

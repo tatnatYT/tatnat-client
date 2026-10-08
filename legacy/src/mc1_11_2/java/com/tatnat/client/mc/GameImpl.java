@@ -470,6 +470,11 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public float horseJump() {
+		return mc.player != null && mc.player.isRidingHorse() ? mc.player.getMountJumpStrength() : -1;
+	}
+
+	@Override
 	public void setChatLook(double opacity, double scale, double width) {
 		mc.options.chatScale = (float) scale;
 		mc.options.chatWidth = (float) width;
