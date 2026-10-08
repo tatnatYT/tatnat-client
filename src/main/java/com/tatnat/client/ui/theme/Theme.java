@@ -37,7 +37,9 @@ public final class Theme {
 	/** Knob of an off toggle. */
 	public static final int KNOB_OFF = 0xFF6B6B70;
 	/** Large mod icons on cards. */
-	public static final int ICON = 0xFFD8D8D8;
+	public static final int ICON = 0xFFE5323E; // mod icons: the accent red
+	/** Mod icons while the mod is off: a dark red. */
+	public static final int ICON_OFF = 0xFF6A2328;
 
 	/** Corner radii in design pixels. */
 	public static final int RADIUS_SMALL = 4;

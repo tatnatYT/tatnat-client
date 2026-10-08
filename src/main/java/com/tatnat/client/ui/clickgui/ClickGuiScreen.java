@@ -479,7 +479,7 @@ public class ClickGuiScreen implements UiScreen {
 		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.lerp(Theme.PANEL, Theme.HOVER, ha.get()));
 
 		// Big line-art icon, dimmed while the mod is off.
-		int iconCol = m.isEnabled() ? Theme.ICON : 0xFF5C5C62;
+		int iconCol = m.isEnabled() ? Theme.ICON : Theme.ICON_OFF;
 		Icons.draw(g, m.icon(), x + w / 2, y + Ui.px(80), Ui.px(82), iconCol);
 
 		// Favourite heart, top-right.
@@ -519,7 +519,7 @@ public class ClickGuiScreen implements UiScreen {
 		Animation ha = hoverAnim(m);
 		ha.animateTo(hover && Performance.hoverEffects() ? 1f : 0f);
 		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.lerp(Theme.PANEL, Theme.HOVER, ha.get()));
-		Icons.draw(g, m.icon(), x + Ui.px(42), y + h / 2, Ui.px(40), m.isEnabled() ? Theme.ICON : 0xFF5C5C62);
+		Icons.draw(g, m.icon(), x + Ui.px(42), y + h / 2, Ui.px(40), m.isEnabled() ? Theme.ICON : Theme.ICON_OFF);
 
 		int tw = Widgets.toggleW();
 		int tx = x + w - Ui.px(18) - tw, ty = y + (h - Widgets.toggleH()) / 2;
