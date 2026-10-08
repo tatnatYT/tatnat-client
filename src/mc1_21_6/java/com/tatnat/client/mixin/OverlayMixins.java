@@ -123,4 +123,25 @@ public final class OverlayMixins {
 			if (text != null) cir.setReturnValue(net.minecraft.network.chat.Component.literal(text));
 		}
 	}
+	/** ViewModel: move / scale the held item (undone at the end so nothing leaks). */
+	@Mixin(net.minecraft.client.renderer.ItemInHandRenderer.class)
+	public static class HeldItem {
+		@Inject(method = "renderArmWithItem", at = @At("HEAD"), require = 0)
+		private void tatnat$before(net.minecraft.client.player.AbstractClientPlayer player, float partialTick, float pitch, net.minecraft.world.InteractionHand hand, float swing, net.minecraft.world.item.ItemStack stack, float equip, com.mojang.blaze3d.vertex.PoseStack pose, net.minecraft.client.renderer.MultiBufferSource buffers, int light, CallbackInfo ci) {
+			if (!com.tatnat.client.modules.impl.visual.ViewModel.active()) return;
+			double side = hand == net.minecraft.world.InteractionHand.MAIN_HAND ? 1 : -1;
+			pose.translate(side * com.tatnat.client.modules.impl.visual.ViewModel.x(), com.tatnat.client.modules.impl.visual.ViewModel.y(), com.tatnat.client.modules.impl.visual.ViewModel.z());
+			float s = com.tatnat.client.modules.impl.visual.ViewModel.scale();
+			pose.scale(s, s, s);
+		}
+
+		@Inject(method = "renderArmWithItem", at = @At("RETURN"), require = 0)
+		private void tatnat$after(net.minecraft.client.player.AbstractClientPlayer player, float partialTick, float pitch, net.minecraft.world.InteractionHand hand, float swing, net.minecraft.world.item.ItemStack stack, float equip, com.mojang.blaze3d.vertex.PoseStack pose, net.minecraft.client.renderer.MultiBufferSource buffers, int light, CallbackInfo ci) {
+			if (!com.tatnat.client.modules.impl.visual.ViewModel.active()) return;
+			float s = com.tatnat.client.modules.impl.visual.ViewModel.scale();
+			pose.scale(1 / s, 1 / s, 1 / s);
+			double side = hand == net.minecraft.world.InteractionHand.MAIN_HAND ? 1 : -1;
+			pose.translate(-side * com.tatnat.client.modules.impl.visual.ViewModel.x(), -com.tatnat.client.modules.impl.visual.ViewModel.y(), -com.tatnat.client.modules.impl.visual.ViewModel.z());
+		}
+	}
 }

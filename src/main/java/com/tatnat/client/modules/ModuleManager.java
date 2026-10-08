@@ -30,6 +30,7 @@ import com.tatnat.client.modules.impl.visual.PlayerModel;
 import com.tatnat.client.modules.impl.visual.CustomF3;
 import com.tatnat.client.modules.impl.visual.Tablist;
 import com.tatnat.client.modules.impl.visual.CustomFog;
+import com.tatnat.client.modules.impl.visual.ViewModel;
 import com.tatnat.client.modules.impl.utility.SoundFilters;
 import com.tatnat.client.modules.impl.utility.DiscordStatus;
 import com.tatnat.client.modules.impl.hud.UhcOverlay;
@@ -169,6 +170,7 @@ public final class ModuleManager {
 		add(new CustomF3());
 		add(new Tablist());
 		add(new CustomFog());
+		add(new ViewModel());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());
