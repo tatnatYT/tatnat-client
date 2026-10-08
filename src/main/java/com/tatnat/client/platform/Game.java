@@ -156,6 +156,10 @@ public interface Game {
 		return -1;
 	}
 
+	/** Loads one of the game's own post-processing shaders by name ("phosphor", "desaturate"), or none for null (1.15 - 1.20.4). */
+	default void postEffect(String name) {
+	}
+
 	/** Sets the GUI scale option (0 = auto) and applies it right away (UI Scaling). */
 	default void setGuiScale(int scale) {
 	}
