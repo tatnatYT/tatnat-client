@@ -7,6 +7,8 @@ import com.tatnat.client.modules.settings.BooleanSetting;
 public class PingDisplay extends TextHudModule {
 	private final BooleanSetting colorCode = add(new BooleanSetting("Color Code", "Green under 80ms, yellow under 150ms, red above", true));
 
+	private final BooleanSetting showMs = add(new BooleanSetting("Show MS", "Write ms after the number", true));
+
 	public PingDisplay() {
 		super("Ping Display", "Shows your connection latency to the server", false, 0.0, 0.30);
 		icon = com.tatnat.client.ui.render.Icons.Icon.SIGNAL;
@@ -28,7 +30,7 @@ public class PingDisplay extends TextHudModule {
 
 	@Override
 	protected String value(boolean preview) {
-		return ping() + "ms";
+		return ping() + (showMs.on() ? "ms" : "");
 	}
 
 	@Override

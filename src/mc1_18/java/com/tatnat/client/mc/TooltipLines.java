@@ -20,6 +20,9 @@ public final class TooltipLines {
 		if (stack.isEmpty()) return lines;
 		BetterTooltips bt = BetterTooltips.INSTANCE;
 		List<Component> out = new ArrayList<>(lines);
+		String tier = com.tatnat.client.modules.impl.utility.TierTagger.line(stack.getRarity().ordinal(), stack.getRarity().name());
+		if (tier != null) out.add(Math.min(1, out.size()), new net.minecraft.network.chat.TextComponent(tier));
+		if (!BetterTooltips.active()) return out;
 		if (bt.durability.on() && stack.isDamageableItem() && !advanced) {
 			int left = stack.getMaxDamage() - stack.getDamageValue();
 			float f = left / (float) stack.getMaxDamage();

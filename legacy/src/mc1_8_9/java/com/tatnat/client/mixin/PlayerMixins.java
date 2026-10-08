@@ -145,7 +145,7 @@ public final class PlayerMixins {
 	public static class TooltipText {
 		@Inject(method = "getTooltip", at = @At("RETURN"), cancellable = true)
 		private void tatnat$lines(PlayerEntity player, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
-			if (BetterTooltips.active()) cir.setReturnValue(TooltipLines.extend((ItemStack) (Object) this, cir.getReturnValue(), advanced));
+			if (BetterTooltips.active() || com.tatnat.client.modules.impl.utility.TierTagger.active()) cir.setReturnValue(TooltipLines.extend((ItemStack) (Object) this, cir.getReturnValue(), advanced));
 		}
 	}
 

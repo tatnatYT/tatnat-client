@@ -6,6 +6,7 @@ import com.tatnat.client.modules.settings.BooleanSetting;
 /** {@code [FPS: 240]}, green above 60, yellow 30-60, red below 30. */
 public class FpsCounter extends TextHudModule {
 	private final BooleanSetting colorCode = add(new BooleanSetting("Color Code", "Green above 60, yellow 30-60, red below 30", true));
+	private final BooleanSetting frameTime = add(new BooleanSetting("Show Frame Time", "Add how long each frame takes, like 240 (4.2 ms)", false));
 
 	public FpsCounter() {
 		super("FPS Counter", "Shows your frames per second", true, 0.0, 0.0);
@@ -19,7 +20,9 @@ public class FpsCounter extends TextHudModule {
 
 	@Override
 	protected String value(boolean preview) {
-		return String.valueOf(game().fps());
+		int fps = game().fps();
+		if (!frameTime.on()) return String.valueOf(fps);
+		return fps + String.format(java.util.Locale.ROOT, " (%.1f ms)", 1000.0 / Math.max(1, fps));
 	}
 
 	@Override

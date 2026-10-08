@@ -134,6 +134,16 @@ public interface Game {
 	double[] aboveHead(Object entity);
 
 	/** Entities within {@code range} blocks of the player (not the player itself), for world overlays. */
+	/** True while the "Disconnected" screen is open (also remembers the server while connected). */
+	default boolean disconnectedScreen() {
+		return false;
+	}
+
+	/** Joins the last server again; false when there is none to rejoin. */
+	default boolean reconnect() {
+		return false;
+	}
+
 	/** Turns the F1 "hide HUD" state on or off (Autohide HUD). */
 	default void setHudHidden(boolean hidden) {
 	}

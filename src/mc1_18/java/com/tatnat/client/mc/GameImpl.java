@@ -432,6 +432,25 @@ public final class GameImpl implements Game {
 		return new java.util.ArrayList<>(mc().options.resourcePacks);
 	}
 
+	private static net.minecraft.client.multiplayer.ServerData lastServer;
+
+	@Override
+	public boolean disconnectedScreen() {
+		Minecraft m = mc();
+		if (m.getCurrentServer() != null) lastServer = m.getCurrentServer();
+		return m.screen instanceof net.minecraft.client.gui.screens.DisconnectedScreen;
+	}
+
+	@Override
+	public boolean reconnect() {
+		net.minecraft.client.multiplayer.ServerData d = lastServer;
+		if (d == null) return false;
+		Minecraft m = mc();
+		net.minecraft.client.gui.screens.Screen parent = new net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen(new net.minecraft.client.gui.screens.TitleScreen());
+		net.minecraft.client.gui.screens.ConnectScreen.startConnecting(parent, m, net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(d.ip), d);
+		return true;
+	}
+
 	// ------------------------------------------------------------ camera
 
 	@Override

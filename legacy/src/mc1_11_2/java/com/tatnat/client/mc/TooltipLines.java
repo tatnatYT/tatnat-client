@@ -18,6 +18,9 @@ public final class TooltipLines {
 		if (stack == null) return lines;
 		BetterTooltips bt = BetterTooltips.INSTANCE;
 		List<String> out = new ArrayList<>(lines);
+		String tier = com.tatnat.client.modules.impl.utility.TierTagger.line(stack.getRarity().ordinal(), stack.getRarity().name());
+		if (tier != null) out.add(Math.min(1, out.size()), tier);
+		if (!BetterTooltips.active()) return out;
 		if (bt.durability.on() && stack.isDamageable() && !advanced) {
 			int left = stack.getMaxDamage() - stack.getDamage();
 			float f = left / (float) stack.getMaxDamage();
