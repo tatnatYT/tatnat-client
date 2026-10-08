@@ -444,6 +444,26 @@ public final class GameImpl implements Game {
 		return true;
 	}
 
+	@Override
+	public void setAttackIndicator(int mode) {
+		net.minecraft.client.AttackIndicatorStatus v = net.minecraft.client.AttackIndicatorStatus.values()[Math.max(0, Math.min(2, mode))];
+		mc().options.attackIndicator().set(v);
+	}
+
+	@Override
+	public int blockLight(int x, int y, int z) {
+		Minecraft m = mc();
+		return m.level == null ? 15 : m.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, new net.minecraft.core.BlockPos(x, y, z));
+	}
+
+	@Override
+	public boolean spawnSurface(int x, int y, int z) {
+		Minecraft m = mc();
+		if (m.level == null) return false;
+		net.minecraft.core.BlockPos p = new net.minecraft.core.BlockPos(x, y, z), below = p.below();
+		return m.level.getBlockState(p).getCollisionShape(m.level, p).isEmpty() && m.level.getBlockState(below).isFaceSturdy(m.level, below, net.minecraft.core.Direction.UP);
+	}
+
 	// ------------------------------------------------------------ camera
 
 	@Override

@@ -20,6 +20,8 @@ import com.tatnat.client.modules.impl.visual.TeamTracker;
 import com.tatnat.client.modules.impl.visual.OverlayToggles;
 import com.tatnat.client.modules.impl.visual.CameraTweaks;
 import com.tatnat.client.modules.impl.visual.MobOverlay;
+import com.tatnat.client.modules.impl.visual.AttackIndicator;
+import com.tatnat.client.modules.impl.visual.LightLevelOverlay;
 import com.tatnat.client.modules.impl.visual.AutoPerspective;
 import com.tatnat.client.modules.impl.visual.HitIndicator;
 import com.tatnat.client.modules.impl.visual.Snaplook;
@@ -139,6 +141,8 @@ public final class ModuleManager {
 		add(new OverlayToggles.Subtitles());
 		add(new CameraTweaks());
 		add(new MobOverlay());
+		add(new AttackIndicator());
+		add(new LightLevelOverlay());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());

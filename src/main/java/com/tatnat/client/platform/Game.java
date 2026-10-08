@@ -134,6 +134,20 @@ public interface Game {
 	double[] aboveHead(Object entity);
 
 	/** Entities within {@code range} blocks of the player (not the player itself), for world overlays. */
+	/** Attack indicator: 0 = off, 1 = under the crosshair, 2 = by the hotbar (1.9+). */
+	default void setAttackIndicator(int mode) {
+	}
+
+	/** Block light (0-15) at a position, for Light Level Overlay. */
+	default int blockLight(int x, int y, int z) {
+		return 15;
+	}
+
+	/** True when a mob could stand here: open space with a solid block underneath. */
+	default boolean spawnSurface(int x, int y, int z) {
+		return false;
+	}
+
 	/** True while the "Disconnected" screen is open (also remembers the server while connected). */
 	default boolean disconnectedScreen() {
 		return false;

@@ -447,6 +447,23 @@ public final class GameImpl implements Game {
 		return true;
 	}
 
+	@Override
+	public void setAttackIndicator(int mode) {
+		// No attack indicator before 1.9.
+	}
+
+	@Override
+	public int blockLight(int x, int y, int z) {
+		return mc.world == null ? 15 : mc.world.getLightAtPos(net.minecraft.world.LightType.BLOCK, new net.minecraft.util.math.BlockPos(x, y, z));
+	}
+
+	@Override
+	public boolean spawnSurface(int x, int y, int z) {
+		if (mc.world == null) return false;
+		net.minecraft.util.math.BlockPos p = new net.minecraft.util.math.BlockPos(x, y, z), below = p.down();
+		return mc.world.isAir(p) && net.minecraft.world.World.isOpaque(mc.world, below);
+	}
+
 	// ------------------------------------------------------------ camera
 
 	@Override
