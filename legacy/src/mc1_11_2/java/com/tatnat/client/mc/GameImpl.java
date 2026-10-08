@@ -381,7 +381,7 @@ public final class GameImpl implements Game {
 				out.add(com.tatnat.client.platform.EntityInfo.item(e.x, top, e.z, it.getAge(), it.getItemStack().getCustomName(), it.getItemStack().getCount()));
 			} else if (e instanceof net.minecraft.entity.LivingEntity && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity)) {
 				net.minecraft.entity.LivingEntity l = (net.minecraft.entity.LivingEntity) e;
-				out.add(com.tatnat.client.platform.EntityInfo.living(e.x, top, e.z, e instanceof net.minecraft.entity.player.PlayerEntity, l.getHealth(), l.getMaxHealth()));
+				out.add(com.tatnat.client.platform.EntityInfo.living(e.x, top, e.z, e instanceof net.minecraft.entity.player.PlayerEntity, l.getHealth(), l.getMaxHealth(), e.getName().asUnformattedString()));
 			}
 		}
 		return out;

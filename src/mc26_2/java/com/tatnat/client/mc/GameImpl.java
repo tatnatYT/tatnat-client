@@ -375,7 +375,7 @@ public final class GameImpl implements Game {
 				out.add(com.tatnat.client.platform.EntityInfo.item(e.getX(), top, e.getZ(), it.getAge(), it.getItem().getHoverName().getString(), it.getItem().getCount()));
 			} else if (e instanceof LivingEntity && !(e instanceof net.minecraft.world.entity.decoration.ArmorStand)) {
 				LivingEntity l = (LivingEntity) e;
-				out.add(com.tatnat.client.platform.EntityInfo.living(e.getX(), top, e.getZ(), e instanceof net.minecraft.world.entity.player.Player, l.getHealth(), l.getMaxHealth()));
+				out.add(com.tatnat.client.platform.EntityInfo.living(e.getX(), top, e.getZ(), e instanceof net.minecraft.world.entity.player.Player, l.getHealth(), l.getMaxHealth(), e.getName().getString()));
 			}
 		}
 		return out;

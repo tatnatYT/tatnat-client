@@ -13,6 +13,10 @@ import com.tatnat.client.modules.impl.hud.PackDisplay;
 import com.tatnat.client.modules.impl.hud.Mousestrokes;
 import com.tatnat.client.modules.impl.utility.DropPrevention;
 import com.tatnat.client.modules.impl.visual.AutohideHud;
+import com.tatnat.client.modules.impl.visual.TeamTracker;
+import com.tatnat.client.modules.impl.visual.OverlayToggles;
+import com.tatnat.client.modules.impl.visual.CameraTweaks;
+import com.tatnat.client.modules.impl.visual.MobOverlay;
 import com.tatnat.client.modules.impl.visual.AutoPerspective;
 import com.tatnat.client.modules.impl.visual.HitIndicator;
 import com.tatnat.client.modules.impl.visual.Snaplook;
@@ -123,6 +127,12 @@ public final class ModuleManager {
 		add(new Snaplook());
 		add(new AutoPerspective());
 		add(new AutohideHud());
+		add(new TeamTracker());
+		add(new OverlayToggles.BossBar());
+		add(new OverlayToggles.ToastControl());
+		add(new OverlayToggles.Subtitles());
+		add(new CameraTweaks());
+		add(new MobOverlay());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());

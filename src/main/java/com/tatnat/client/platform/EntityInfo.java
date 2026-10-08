@@ -11,7 +11,7 @@ public final class EntityInfo {
 	public final double x, top, z;
 	/** TNT: fuse ticks left. Item: age in ticks. Otherwise 0. */
 	public final int ticks;
-	/** Item: display name and stack size. */
+	/** Item: display name and stack size. Living: the name. */
 	public final String name;
 	public final int count;
 	/** Living entities: health. */
@@ -37,7 +37,7 @@ public final class EntityInfo {
 		return new EntityInfo(Kind.ITEM, x, top, z, age, name, count, 0, 0);
 	}
 
-	public static EntityInfo living(double x, double top, double z, boolean player, float health, float maxHealth) {
-		return new EntityInfo(player ? Kind.PLAYER : Kind.MOB, x, top, z, 0, "", 0, health, maxHealth);
+	public static EntityInfo living(double x, double top, double z, boolean player, float health, float maxHealth, String name) {
+		return new EntityInfo(player ? Kind.PLAYER : Kind.MOB, x, top, z, 0, name, 0, health, maxHealth);
 	}
 }
