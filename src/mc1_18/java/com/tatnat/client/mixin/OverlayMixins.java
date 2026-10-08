@@ -162,4 +162,22 @@ public final class OverlayMixins {
 			pose.translate(-side * com.tatnat.client.modules.impl.visual.ViewModel.x(), -com.tatnat.client.modules.impl.visual.ViewModel.y(), -com.tatnat.client.modules.impl.visual.ViewModel.z());
 		}
 	}
+	/** Item Physic: dropped items lie flat and stop bobbing / spinning. */
+	@Mixin(net.minecraft.client.renderer.entity.ItemEntityRenderer.class)
+	public static class ItemFlat {
+		@org.spongepowered.asm.mixin.injection.Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/item/ItemEntity;getSpin(F)F"), require = 0)
+		private float tatnat$spin(net.minecraft.world.entity.item.ItemEntity e, float partialTick) {
+			return com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? 0f : e.getSpin(partialTick);
+		}
+
+		@org.spongepowered.asm.mixin.injection.Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;sin(F)F", ordinal = 0), require = 0)
+		private float tatnat$bob(float v) {
+			return com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? -1f : net.minecraft.util.Mth.sin(v);
+		}
+
+		@org.spongepowered.asm.mixin.injection.Redirect(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lcom/mojang/math/Quaternion;)V", ordinal = 0), require = 0)
+		private void tatnat$flat(com.mojang.blaze3d.vertex.PoseStack pose, com.mojang.math.Quaternion q) {
+			pose.mulPose(com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? com.mojang.math.Vector3f.XP.rotationDegrees(90f) : q);
+		}
+	}
 }
