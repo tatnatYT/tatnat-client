@@ -147,6 +147,20 @@ public final class AccountSwitcher {
 		t.start();
 	}
 
+	/** Tells the launcher which server you're on, for its Discord status (empty = none). Fire and forget. */
+	public static void presence(String server) {
+		if (!available()) return;
+		Thread t = new Thread(() -> {
+			try {
+				get("/presence?server=" + URLEncoder.encode(server, "UTF-8"));
+			} catch (Exception ignored) {
+				// The launcher may be closed; Discord just keeps the old text.
+			}
+		}, "tatnat presence");
+		t.setDaemon(true);
+		t.start();
+	}
+
 	private static void setStatus(String s, boolean error) {
 		status = s;
 		statusError = error;

@@ -27,6 +27,7 @@ import com.tatnat.client.modules.impl.visual.UiScaling;
 import com.tatnat.client.modules.impl.visual.CustomChat;
 import com.tatnat.client.modules.impl.visual.InventoryTweaks;
 import com.tatnat.client.modules.impl.utility.SoundFilters;
+import com.tatnat.client.modules.impl.utility.DiscordStatus;
 import com.tatnat.client.modules.impl.hud.UhcOverlay;
 import com.tatnat.client.modules.impl.hud.Hypixel;
 import com.tatnat.client.modules.impl.visual.AutoPerspective;
@@ -134,6 +135,7 @@ public final class ModuleManager {
 		add(new Screenshot());
 		add(new Reconnect());
 		add(new SoundFilters());
+		add(new DiscordStatus());
 		add(new BetterTooltips());
 		add(new ScrollableTooltips());
 		add(new ChunkAnimator());
