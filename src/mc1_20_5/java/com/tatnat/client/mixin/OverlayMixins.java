@@ -66,4 +66,17 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.visual.TitleTweaker.hideSubtitles()) ci.cancel();
 		}
 	}
+	/** Inventory: no player model next to your inventory. */
+	@Mixin(net.minecraft.client.gui.screens.inventory.InventoryScreen.class)
+	public static class InventoryModel {
+		@Inject(method = "renderEntityInInventoryFollowsMouse", at = @At("HEAD"), cancellable = true, require = 0)
+		private static void tatnat$hideFollow(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.InventoryTweaks.hideModel()) ci.cancel();
+		}
+
+		@Inject(method = "renderEntityInInventory", at = @At("HEAD"), cancellable = true, require = 0)
+		private static void tatnat$hide(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.InventoryTweaks.hideModel()) ci.cancel();
+		}
+	}
 }

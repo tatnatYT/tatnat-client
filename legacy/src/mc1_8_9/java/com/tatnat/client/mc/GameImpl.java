@@ -469,6 +469,27 @@ public final class GameImpl implements Game {
 		mc.options.guiScale = Math.max(0, scale);
 	}
 
+	@Override
+	public void setChatLook(double opacity, double scale, double width) {
+		mc.options.chatScale = (float) scale;
+		mc.options.chatWidth = (float) width;
+	}
+
+	@Override
+	public float masterVolume() {
+		return mc.options.getSoundVolume(net.minecraft.client.sound.SoundCategory.MASTER);
+	}
+
+	@Override
+	public void setMasterVolume(float volume) {
+		mc.options.setSoundVolume(net.minecraft.client.sound.SoundCategory.MASTER, Math.max(0, Math.min(1, volume)));
+	}
+
+	@Override
+	public boolean underwater() {
+		return mc.player != null && mc.player.isSubmergedIn(net.minecraft.block.material.Material.WATER);
+	}
+
 	// ------------------------------------------------------------ camera
 
 	@Override

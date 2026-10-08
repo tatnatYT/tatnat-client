@@ -134,6 +134,23 @@ public interface Game {
 	double[] aboveHead(Object entity);
 
 	/** Entities within {@code range} blocks of the player (not the player itself), for world overlays. */
+	/** Chat background opacity, scale and width (0-1 each), through the game's own chat options. */
+	default void setChatLook(double opacity, double scale, double width) {
+	}
+
+	/** Master volume (0-1), for Sound Filters. */
+	default float masterVolume() {
+		return 1f;
+	}
+
+	default void setMasterVolume(float volume) {
+	}
+
+	/** True while your head is under water. */
+	default boolean underwater() {
+		return false;
+	}
+
 	/** Sets the GUI scale option (0 = auto) and applies it right away (UI Scaling). */
 	default void setGuiScale(int scale) {
 	}
