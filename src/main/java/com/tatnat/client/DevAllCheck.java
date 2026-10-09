@@ -21,12 +21,23 @@ public final class DevAllCheck {
 	/** Mods that take over the camera or the whole screen; checked on their own at the end. */
 	private static final Set<String> LATER = new HashSet<>(Arrays.asList("Freecam", "Autohide HUD", "UI Scaling", "Color Saturation", "Snaplook"));
 
+	/** "allcheck:Name|Name" limits the run to those mods (to find which one causes a problem). */
+	private static final Set<String> ONLY = new HashSet<>();
+	static {
+		String p = System.getProperty("tatnat.devtest", "");
+		if (p.startsWith("allcheck:")) ONLY.addAll(Arrays.asList(p.substring(9).split("[|]")));
+	}
+
+	private static boolean skip(Module m) {
+		return LATER.contains(m.name) || !ONLY.isEmpty() && !ONLY.contains(m.name);
+	}
+
 	private int ticks = -1, step;
 	private final List<Runnable> steps = new ArrayList<>();
 	private final List<Integer> waits = new ArrayList<>();
 
 	public static void init() {
-		if ("allcheck".equals(System.getProperty("tatnat.devtest"))) TatnatClient.EVENTS.register(new DevAllCheck());
+		if (System.getProperty("tatnat.devtest", "").startsWith("allcheck")) TatnatClient.EVENTS.register(new DevAllCheck());
 	}
 
 	private DevAllCheck() {
@@ -45,7 +56,7 @@ public final class DevAllCheck {
 		add(20, () -> {
 			int n = 0;
 			for (Module m : ModuleManager.get().all()) {
-				if (LATER.contains(m.name)) continue;
+				if (skip(m)) continue;
 				try {
 					m.setEnabled(true);
 					n++;
@@ -81,7 +92,7 @@ public final class DevAllCheck {
 		add(5, () -> {
 			// Every mod off and on again: exercises each onDisable / onEnable.
 			for (Module m : ModuleManager.get().all()) {
-				if (LATER.contains(m.name)) continue;
+				if (skip(m)) continue;
 				try {
 					m.setEnabled(false);
 					m.setEnabled(true);

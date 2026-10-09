@@ -28,7 +28,7 @@ public class DiscordStatus extends Module {
 
 	@Subscribe
 	public void onTick(Events.Tick e) {
-		String now = !showServer.on() || !game().inWorld() ? "" : game().singleplayer() ? "Singleplayer" : game().serverIp();
+		String now = !showServer.on() || !game().inWorld() ? "" : game().singleplayer() ? "Singleplayer" : String.valueOf(game().serverIp() == null ? "" : game().serverIp());
 		if (now.equals(sent)) return;
 		sent = now;
 		AccountSwitcher.presence(now);

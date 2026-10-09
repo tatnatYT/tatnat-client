@@ -9,6 +9,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$PostTextureReset",
 		"OverlayMixins$DarkInventoryLabels",
 		"OverlayMixins$TotemPop",
 		"OverlayMixins$DarkAdvancements",

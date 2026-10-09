@@ -452,6 +452,11 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public int skyDarkness() {
+		return mc().level == null ? -1 : mc().level.getSkyDarken();
+	}
+
+	@Override
 	public int blockLight(int x, int y, int z) {
 		Minecraft m = mc();
 		return m.level == null ? 15 : m.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, new net.minecraft.core.BlockPos(x, y, z));
@@ -469,6 +474,12 @@ public final class GameImpl implements Game {
 	public void setGuiScale(int scale) {
 		mc().options.guiScale().set(Math.max(0, scale));
 		mc().resizeDisplay();
+	}
+
+	@Override
+	public void postEffect(String name) {
+		if (name == null) mc().gameRenderer.clearPostEffect();
+		else ((com.tatnat.client.mixin.PostEffectAccess) mc().gameRenderer).tatnat$loadEffect(net.minecraft.resources.ResourceLocation.tryParse("tatnatclient:" + name));
 	}
 
 	@Override

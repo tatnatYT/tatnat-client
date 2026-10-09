@@ -29,7 +29,8 @@ public class Hypixel extends TextHudModule {
 	}
 
 	private boolean onHypixel() {
-		return game().serverIp().toLowerCase(Locale.ROOT).contains("hypixel");
+		String ip = game().serverIp();
+		return ip != null && ip.toLowerCase(Locale.ROOT).contains("hypixel");
 	}
 
 	@Subscribe

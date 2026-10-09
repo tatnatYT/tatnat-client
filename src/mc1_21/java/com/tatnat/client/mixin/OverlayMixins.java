@@ -263,4 +263,12 @@ public final class OverlayMixins {
 			return com.tatnat.client.modules.impl.visual.DarkMode.on() ? com.tatnat.client.modules.impl.visual.DarkMode.label(color) : color;
 		}
 	}
+	/** After a post effect: back to texture unit 0, or the HUD draws from the wrong texture. */
+	@Mixin(net.minecraft.client.renderer.PostChain.class)
+	public static class PostTextureReset {
+		@Inject(method = "process", at = @At("TAIL"), require = 0)
+		private void tatnat$unit0(CallbackInfo ci) {
+			com.mojang.blaze3d.systems.RenderSystem.activeTexture(33984);
+		}
+	}
 }

@@ -452,6 +452,11 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public int skyDarkness() {
+		return mc().level == null ? -1 : mc().level.getSkyDarken();
+	}
+
+	@Override
 	public int blockLight(int x, int y, int z) {
 		Minecraft m = mc();
 		return m.level == null ? 15 : m.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, new net.minecraft.core.BlockPos(x, y, z));
@@ -524,7 +529,7 @@ public final class GameImpl implements Game {
 	@Override
 	public void postEffect(String name) {
 		if (name == null) mc().gameRenderer.shutdownEffect();
-		else ((com.tatnat.client.mixin.PostEffectAccess) mc().gameRenderer).tatnat$loadEffect(new net.minecraft.resources.ResourceLocation("shaders/post/" + name + ".json"));
+		else ((com.tatnat.client.mixin.PostEffectAccess) mc().gameRenderer).tatnat$loadEffect(net.minecraft.resources.ResourceLocation.tryParse("tatnatclient:shaders/post/" + name + ".json"));
 	}
 
 	@Override

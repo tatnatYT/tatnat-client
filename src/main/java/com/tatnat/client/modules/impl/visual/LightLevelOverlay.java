@@ -5,33 +5,37 @@ import com.tatnat.client.event.Subscribe;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.Module;
 import com.tatnat.client.modules.settings.BooleanSetting;
+import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
 import com.tatnat.client.platform.Gfx;
+import com.tatnat.client.ui.render.Icons;
+import com.tatnat.client.ui.render.RenderUtils;
+import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.util.WorldProjector;
 
 /**
- * Marks the ground around you: a red X where mobs can spawn in the dark (block light 0, or 7 and
- * below on 1.17 and older) and a green dot on lit, safe spots. Also serves as the Block Indicator.
+ * Light Level Overlay: tints the top of every block around you (a circle, 16 blocks by default)
+ * where a mob could spawn: a solid block with room above and no block light (7 or less on 1.17
+ * and older). Light those spots up with torches and the tint goes away.
  */
 public class LightLevelOverlay extends Module {
-	private final SliderSetting radius = add(new SliderSetting("Radius", "How far around you to check", 8, 4, 16, 1, " blocks"));
-	private final BooleanSetting spawnable = add(new BooleanSetting("Show Spawnable", "Red X where mobs can spawn", true));
-	private final BooleanSetting safe = add(new BooleanSetting("Show Safe", "Green dot where they can't", false));
-	private final BooleanSetting numbers = add(new BooleanSetting("Show Light Level", "Write the light level on each block", false));
+	private final SliderSetting radius = add(new SliderSetting("Radius", "How far around you to check", 16, 4, 24, 1, " blocks"));
+	private final ColorSetting color = add(new ColorSetting("Color", "Colour of the spawnable blocks", 0x66FF2A2A, false));
+	private final BooleanSetting nightOnly = add(new BooleanSetting("Night Only", "Only while it's dark (mobs don't spawn in daylight)", false));
+	private final BooleanSetting numbers = add(new BooleanSetting("Show Light Level", "Write the block light on each marked block", false));
 
-	/** Cached scan, refreshed twice a second: {x, y, z, light} per surface block. */
+	/** Cached scan, refreshed twice a second: {x, y, z, light} per spawnable block. */
 	private int[] spots = new int[0];
 	private int count;
 	private long scannedAt;
 
 	public LightLevelOverlay() {
-		super("Light Level Overlay", "Shows where mobs can spawn", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.BULB;
+		super("Light Level Overlay", "Highlights the blocks where mobs can spawn", Category.VISUAL, false);
+		icon = Icons.Icon.BULB;
 	}
 
 	private int spawnLimit() {
-		String v = game().minecraftVersion();
-		String[] p = v.split("\\.");
+		String[] p = game().minecraftVersion().split("\\.");
 		try {
 			// 1.18 changed the rule to "block light 0".
 			return p[0].equals("1") && Integer.parseInt(p[1]) <= 17 ? 7 : 0;
@@ -41,20 +45,24 @@ public class LightLevelOverlay extends Module {
 	}
 
 	private void scan() {
-		int r = radius.intValue();
+		int r = radius.intValue(), limit = spawnLimit();
 		int px = (int) Math.floor(game().x()), py = (int) Math.floor(game().y()), pz = (int) Math.floor(game().z());
-		int[] out = new int[(2 * r + 1) * (2 * r + 1) * 4 * 3];
+		int[] out = new int[(2 * r + 1) * (2 * r + 1) * 4];
 		int n = 0;
-		for (int x = px - r; x <= px + r; x++) {
-			for (int z = pz - r; z <= pz + r; z++) {
-				for (int y = py + 2; y >= py - 3; y--) {
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				if (dx * dx + dz * dz > r * r) continue; // a circle, not a square
+				for (int y = py + 3; y >= py - 4; y--) {
+					int x = px + dx, z = pz + dz;
 					if (!game().spawnSurface(x, y, z)) continue;
-					if (n + 4 > out.length) break;
-					out[n++] = x;
-					out[n++] = y;
-					out[n++] = z;
-					out[n++] = game().blockLight(x, y, z);
-					break;
+					int light = game().blockLight(x, y, z);
+					if (light <= limit) {
+						out[n++] = x;
+						out[n++] = y;
+						out[n++] = z;
+						out[n++] = light;
+					}
+					break; // only the top surface of each column
 				}
 			}
 		}
@@ -62,33 +70,49 @@ public class LightLevelOverlay extends Module {
 		count = n;
 	}
 
+	private boolean dark() {
+		if (!nightOnly.on()) return true;
+		int d = game().skyDarkness();
+		return d < 0 || d >= 4; // unknown on this version: always show
+	}
+
 	@Subscribe
 	public void onRender(Events.Render2D e) {
-		if (!game().inWorld() || game().hudHidden()) return;
+		if (!game().inWorld() || game().hudHidden() || !dark()) return;
 		long now = System.currentTimeMillis();
 		if (now - scannedAt > 500) {
 			scannedAt = now;
 			scan();
 		}
 		Gfx g = e.gfx;
-		int limit = spawnLimit();
+		int scale = RenderUtils.beginPixels(g);
+		int fill = color.color(0), edge = Colors.withAlpha(fill, Math.min(255, (fill >>> 24) + 90));
+		float[] quad = new float[8];
 		for (int i = 0; i < count; i += 4) {
-			int light = spots[i + 3];
-			boolean danger = light <= limit;
-			if (danger ? !spawnable.on() : !safe.on()) continue;
-			double[] p = WorldProjector.project(spots[i] + 0.5, spots[i + 1] + 0.02, spots[i + 2] + 0.5);
-			if (p[2] != 1) continue;
-			int s = (int) Math.max(2, Math.min(6, 18 / Math.max(1, p[3])));
-			int x = (int) p[0], y = (int) p[1];
-			if (danger) {
-				for (int k = -s; k <= s; k++) {
-					g.rect(x + k, y + k, x + k + 1, y + k + 1, 0xE0FF3030);
-					g.rect(x + k, y - k, x + k + 1, y - k + 1, 0xE0FF3030);
-				}
-			} else {
-				g.rect(x - 1, y - 1, x + 2, y + 2, 0xC055FF55);
+			double x = spots[i], y = spots[i + 1] + 0.02, z = spots[i + 2];
+			if (!corner(quad, 0, x, y, z, scale) || !corner(quad, 2, x + 1, y, z, scale) || !corner(quad, 4, x + 1, y, z + 1, scale)
+					|| !corner(quad, 6, x, y, z + 1, scale)) continue;
+			Icons.polygon(g, quad, fill);
+			for (int c = 0; c < 4; c++) {
+				int d = (c + 1) % 4;
+				Icons.thickLine(g, quad[c * 2], quad[c * 2 + 1], quad[d * 2], quad[d * 2 + 1], Math.max(1f, scale * 0.6f), edge);
 			}
-			if (numbers.on()) g.mcText(String.valueOf(light), x - 2, y + s + 1, danger ? 0xFFFF5555 : 0xFF55FF55, true, false);
 		}
+		RenderUtils.end(g);
+		if (numbers.on()) {
+			for (int i = 0; i < count; i += 4) {
+				double[] p = WorldProjector.project(spots[i] + 0.5, spots[i + 1] + 0.05, spots[i + 2] + 0.5);
+				if (p[2] == 1 && p[3] < 12) g.mcText(String.valueOf(spots[i + 3]), (int) p[0] - 2, (int) p[1] - 4, 0xFFFF5555, true, false);
+			}
+		}
+	}
+
+	/** Projects one corner into real pixels; false when it's behind the camera (skip the face). */
+	private static boolean corner(float[] out, int at, double x, double y, double z, int scale) {
+		double[] p = WorldProjector.project(x, y, z);
+		if (p[3] <= 0.05) return false;
+		out[at] = (float) p[0] * scale;
+		out[at + 1] = (float) p[1] * scale;
+		return true;
 	}
 }

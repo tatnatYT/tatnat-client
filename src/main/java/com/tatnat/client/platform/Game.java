@@ -156,7 +156,7 @@ public interface Game {
 		return -1;
 	}
 
-	/** Loads one of the game's own post-processing shaders by name ("phosphor", "desaturate"), or none for null (1.15 - 1.20.4). */
+	/** Loads one of the mod's post-processing shaders ("motion_blur_50", "saturation_0"), or none for null (1.15 - 1.21.1, 1.21.6+). */
 	default void postEffect(String name) {
 	}
 
@@ -184,6 +184,11 @@ public interface Game {
 
 	/** Attack indicator: 0 = off, 1 = under the crosshair, 2 = by the hotbar (1.9+). */
 	default void setAttackIndicator(int mode) {
+	}
+
+	/** How dark the sky is right now (0 = day, about 11 = night), or -1 when unknown. */
+	default int skyDarkness() {
+		return -1;
 	}
 
 	/** Block light (0-15) at a position, for Light Level Overlay. */

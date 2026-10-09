@@ -4,19 +4,22 @@ import com.tatnat.client.event.Events;
 import com.tatnat.client.event.Subscribe;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.Module;
+import com.tatnat.client.modules.settings.ModeSetting;
+import com.tatnat.client.ui.render.Icons;
 
 /**
- * Motion Blur and Color Saturation, built on the game's own post-processing shaders (1.15 - 1.20.4):
- * "phosphor" leaves a fading trail behind movement, "desaturate" drains the colour out of the world.
- * One shader runs at a time, so turning one on turns the other off.
+ * Motion Blur and Color Saturation: the mod's own post-processing shaders (1.15 - 1.21.1 and 1.21.6+).
+ * Motion blur blends each frame into the blended history, like Natural Motion Blur's frame blending:
+ * a still view stays sharp and turning leaves a smooth trail; menus and the HUD are never blurred.
+ * One effect runs at a time; the last one switched on wins.
  */
 public final class PostEffects {
 	private PostEffects() {
 	}
 
+	/** The effect currently loaded ("motion_blur_50", "saturation_0"...), or null. */
 	private static String loaded;
 
-	/** Keeps the right shader loaded: the most recently enabled effect wins. */
 	static void sync(String wanted) {
 		if (wanted == null ? loaded == null : wanted.equals(loaded)) return;
 		loaded = wanted;
@@ -24,42 +27,78 @@ public final class PostEffects {
 	}
 
 	abstract static class Effect extends Module {
-		private final String shader;
+		private String world = "";
+		private boolean wasDead;
 
-		Effect(String name, String description, String shader, com.tatnat.client.ui.render.Icons.Icon icon) {
+		Effect(String name, String description, Icons.Icon icon) {
 			super(name, description, Category.VISUAL, false);
-			this.shader = shader;
 			this.icon = icon;
 		}
 
+		/** The shader to load for the current settings. */
+		abstract String shader();
+
+		abstract String prefix();
+
 		@Override
 		protected void onEnable() {
-			if (game().inWorld()) sync(shader); // the last one switched on wins
+			loaded = null; // the last one switched on wins
+			if (game().inWorld()) sync(shader());
 		}
 
 		@Subscribe
 		public void onTick(Events.Tick e) {
-			// Enabled before joining a world: load it once you're in.
-			if (loaded == null && game().inWorld()) sync(shader);
+			if (!game().inWorld()) return;
+			// The game drops post effects on a new world or a respawn: load it again then.
+			String w = game().worldKey();
+			boolean dead = game().health() <= 0;
+			if (!w.equals(world) || wasDead && !dead) loaded = null;
+			world = w;
+			wasDead = dead;
+			if (loaded == null || loaded.startsWith(prefix())) sync(shader());
 		}
 
 		@Override
 		protected void onDisable() {
-			if (shader.equals(loaded)) sync(null);
+			if (loaded != null && loaded.startsWith(prefix())) sync(null);
 		}
 	}
 
-	/** Fast camera movements leave a fading trail (the vanilla "phosphor" shader). */
+	/** Smooth trails when you move or turn. */
 	public static class MotionBlur extends Effect {
+		private final ModeSetting strength = add(new ModeSetting("Strength", "How long the trail lasts", "Medium", "Low", "Medium", "High", "Very High"));
+
 		public MotionBlur() {
-			super("Motion Blur", "Fast movement leaves a fading trail (1.15 - 1.20.4)", "phosphor", com.tatnat.client.ui.render.Icons.Icon.SPEEDLINES);
+			super("Motion Blur", "Smooth blur when you move or turn (1.15 - 1.21.1, 1.21.6+)", Icons.Icon.SPEEDLINES);
+		}
+
+		@Override
+		String prefix() {
+			return "motion_blur_";
+		}
+
+		@Override
+		String shader() {
+			return prefix() + (strength.is("Low") ? 35 : strength.is("High") ? 65 : strength.is("Very High") ? 80 : 50);
 		}
 	}
 
-	/** Greyscale world (the vanilla "desaturate" shader). */
+	/** Colour saturation of the whole world, from greyscale to extra vivid. */
 	public static class ColorSaturation extends Effect {
+		private final ModeSetting level = add(new ModeSetting("Saturation", "0% greyscale up to 200% extra vivid", "150%", "0%", "50%", "150%", "200%"));
+
 		public ColorSaturation() {
-			super("Color Saturation", "Drains the colour from the world (1.15 - 1.20.4)", "desaturate", com.tatnat.client.ui.render.Icons.Icon.WHEEL);
+			super("Color Saturation", "Make colours more vivid or greyscale (1.15 - 1.21.1, 1.21.6+)", Icons.Icon.WHEEL);
+		}
+
+		@Override
+		String prefix() {
+			return "saturation_";
+		}
+
+		@Override
+		String shader() {
+			return prefix() + level.get().replace("%", "");
 		}
 	}
 }

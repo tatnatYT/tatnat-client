@@ -956,7 +956,8 @@ public final class Icons {
 			maxY = Math.max(maxY, oy + pts[i * 2 + 1] * k);
 		}
 		float[] xs = new float[n];
-		for (int row = (int) Math.floor(minY); row < Math.ceil(maxY); row++) {
+		int first = Math.max((int) Math.floor(minY), rowMin), last = (int) Math.min(Math.ceil(maxY), rowMax);
+		for (int row = first; row < last; row++) {
 			float yc = row + 0.5f;
 			int c = 0;
 			for (int i = 0; i < n; i++) {
@@ -989,6 +990,24 @@ public final class Icons {
 		rowMax = com.tatnat.client.TatnatClient.game().windowHeight() + 64;
 		try {
 			capsule(x1, y1, x2, y2, width / 2f);
+		} finally {
+			rowMin = Integer.MIN_VALUE / 2;
+			rowMax = Integer.MAX_VALUE / 2;
+		}
+		g = null;
+	}
+
+	/** A filled polygon {x0, y0, x1, y1, ...} in pixel space (e.g. a block face projected onto the screen). */
+	public static void polygon(Gfx graphics, float[] pts, int argb) {
+		g = graphics;
+		color = argb;
+		ox = 0;
+		oy = 0;
+		k = 1;
+		rowMin = -64;
+		rowMax = com.tatnat.client.TatnatClient.game().windowHeight() + 64;
+		try {
+			fillPoly(pts);
 		} finally {
 			rowMin = Integer.MIN_VALUE / 2;
 			rowMax = Integer.MAX_VALUE / 2;
