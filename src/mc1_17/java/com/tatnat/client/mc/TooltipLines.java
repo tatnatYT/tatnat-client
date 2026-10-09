@@ -36,7 +36,7 @@ public final class TooltipLines {
 				}
 			}
 			out.removeIf(c -> com.tatnat.client.modules.impl.utility.ShulkerTooltips.isVanillaLine(c.getString()));
-			int at = Math.min(1, out.size());
+			int at = Math.min(tier != null ? 2 : 1, out.size());
 			for (String line : com.tatnat.client.modules.impl.utility.ShulkerTooltips.lines(names, counts)) out.add(at++, new net.minecraft.network.chat.TextComponent(line));
 		}
 		if (!BetterTooltips.active()) return out;

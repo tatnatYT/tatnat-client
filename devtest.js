@@ -57,6 +57,13 @@ while (Date.now() < deadline) {
 console.log('server up for ' + version);
 }
 
+// Never pause when the window loses focus (screenshots would show the pause menu).
+{
+  const o = fs.existsSync(opts) ? fs.readFileSync(opts, 'utf8') : '';
+  const lines = o.split(/\r?\n/).filter(l => l && !l.startsWith('pauseOnLostFocus:'));
+  lines.push('pauseOnLostFocus:false');
+  fs.writeFileSync(opts, lines.join('\n') + '\n');
+}
 const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, ...(audit ? [] : ['-Pquickjoin=127.0.0.1:25599'])],
   { cwd: __dirname, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 900000 });
 fs.writeFileSync(path.join(__dirname, 'build', `client-${version}.log`), (client.stdout || '') + (client.stderr || ''));
@@ -66,7 +73,7 @@ spawnSync('powershell', ['-NoProfile', '-Command',
   `Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.CommandLine -like '*tatnat-client-mod*' -and $_.CommandLine -notlike '*GradleWrapperMain*runClient*' -and $_.CommandLine -notlike '*neoforge*' -and $_.CommandLine -notlike '*legacy*' -and $_.CommandLine -notlike '*forge*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`], { stdio: 'ignore' });
 
 const out = (client.stdout || '') + (client.stderr || '');
-const problems = out.split('\n').filter(l => /\[devtest\].*FAILED|Mixin apply failed|InvalidInjectionException|---- Minecraft Crash Report/.test(l));
+const problems = out.split('\n').filter(l => /\[(devtest|allcheck)\].*FAILED|Event handler in .* failed|Mixin apply failed|InvalidInjectionException|---- Minecraft Crash Report/.test(l));
 const shots = fs.readdirSync(path.join(run, 'screenshots')).filter(f => f.startsWith('devtest-'));
 console.log(`client exit ${client.status}; ${shots.length} screenshots; ${problems.length} problems`);
 for (const p of problems.slice(0, 10)) console.log('  ' + p.trim());

@@ -50,6 +50,7 @@ import com.tatnat.client.modules.impl.visual.HitIndicator;
 import com.tatnat.client.modules.impl.visual.Snaplook;
 import com.tatnat.client.modules.impl.hud.ItemCounter;
 import com.tatnat.client.modules.impl.hud.TotemCounter;
+import com.tatnat.client.modules.impl.hud.TotemPops;
 import com.tatnat.client.modules.impl.visual.DamageIndicator;
 import com.tatnat.client.modules.impl.visual.ItemDespawn;
 import com.tatnat.client.modules.impl.visual.LootBeams;
@@ -121,6 +122,7 @@ public final class ModuleManager {
 		add(new SystemResources());
 		add(new ItemCounter());
 		add(new TotemCounter());
+		add(new TotemPops());
 		add(new DeathInfo());
 		add(new PackDisplay());
 		add(new Mousestrokes());

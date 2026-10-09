@@ -14,7 +14,7 @@ public class DeathInfo extends TextHudModule {
 	private String dim = "";
 
 	public DeathInfo() {
-		super("Death Info", "Shows where you last died", false, 0.0, 0.48);
+		super("Death Info", "Shows where you last died", false, 0.75, 0.15);
 		icon = com.tatnat.client.ui.render.Icons.Icon.SKULL;
 	}
 

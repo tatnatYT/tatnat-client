@@ -26,6 +26,47 @@ final class DevTestSteps {
 		return Minecraft.getInstance();
 	}
 
+	/**
+	 * Vanilla-screen part of the shared all-mods check (called by DevAllCheck through reflection):
+	 * 0 = shulker box with items in the hotbar + inventory open, 1 = hover it, 2 = advancements, 3 = close.
+	 */
+	public static void screens(int stage) {
+		switch (stage) {
+			case 0: {
+				mc().gameMode.setLocalMode(net.minecraft.world.level.GameType.SURVIVAL);
+				cmd("item replace entity @s hotbar.0 with shulker_box[container=[{slot:0,item:{id:\"minecraft:diamond\",count:64}},"
+						+ "{slot:1,item:{id:\"minecraft:diamond\",count:32}},{slot:2,item:{id:\"minecraft:golden_apple\",count:5}},"
+						+ "{slot:3,item:{id:\"minecraft:ender_pearl\",count:16}}]]");
+				mc().player.getInventory().setSelectedSlot(0);
+				mc().setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc().player));
+				break;
+			}
+			case 1: {
+				int scale = mc().getWindow().getGuiScale();
+				int gw = mc().getWindow().getGuiScaledWidth(), gh = mc().getWindow().getGuiScaledHeight();
+				int left = (gw - 176) / 2, top = (gh - 166) / 2;
+				double sx = (left + 8 + 8) * scale, sy = (top + 142 + 8) * scale;
+				// The test window isn't focused, so an OS cursor move never arrives: set the game's mouse.
+				try {
+					java.lang.reflect.Field fx = net.minecraft.client.MouseHandler.class.getDeclaredField("xpos");
+					java.lang.reflect.Field fy = net.minecraft.client.MouseHandler.class.getDeclaredField("ypos");
+					fx.setAccessible(true);
+					fy.setAccessible(true);
+					fx.setDouble(mc().mouseHandler, sx);
+					fy.setDouble(mc().mouseHandler, sy);
+				} catch (ReflectiveOperationException e) {
+					com.tatnat.client.TatnatClient.LOG.warn("[allcheck] could not move the mouse: {}", e.toString());
+				}
+				break;
+			}
+			case 2:
+				mc().setScreen(new net.minecraft.client.gui.screens.advancements.AdvancementsScreen(mc().player.connection.getAdvancements()));
+				break;
+			default:
+				mc().setScreen(null);
+		}
+	}
+
 	private static void cmd(String c) {
 		mc().player.connection.sendCommand(c);
 	}

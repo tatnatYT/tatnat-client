@@ -39,8 +39,9 @@ public class KeybindScreen extends ListScreen {
 	@Override
 	protected List<Row> rows() {
 		List<String[]> keys = TatnatClient.game().keyMappings();
+		// F3 + key debug combos and spectator-only keys share keys with normal controls by design.
 		Map<String, Integer> uses = new HashMap<>();
-		for (String[] k : keys) uses.merge(k[3], 1, Integer::sum);
+		for (String[] k : keys) if (countsForClash(k[0])) uses.merge(k[3], 1, Integer::sum);
 		List<Row> out = new ArrayList<>();
 		if (keys.isEmpty()) {
 			out.add(new Row("Not available on this Minecraft version", "Keybind Search needs 1.14 or newer"));
@@ -48,12 +49,16 @@ public class KeybindScreen extends ListScreen {
 		}
 		for (String[] k : keys) {
 			String id = k[0];
-			boolean clash = !k[3].isEmpty() && !"Not Bound".equalsIgnoreCase(k[3]) && uses.getOrDefault(k[3], 0) > 1;
+			boolean clash = countsForClash(id) && !k[3].isEmpty() && !"Not Bound".equalsIgnoreCase(k[3]) && uses.getOrDefault(k[3], 0) > 1;
 			String sub = k[2] + "  ·  " + k[3] + (clash ? "  ·  also used by another control" : "");
 			out.add(new Row(k[1], sub).highlight(id.equals(waiting) || clash)
 					.button(id.equals(waiting) ? "Press a key…" : "Change", () -> waiting = id));
 		}
 		return out;
+	}
+
+	private static boolean countsForClash(String id) {
+		return !id.startsWith("key.debug.") && !id.startsWith("key.spectator");
 	}
 
 	@Override

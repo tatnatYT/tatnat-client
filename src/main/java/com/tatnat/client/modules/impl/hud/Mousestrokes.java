@@ -20,7 +20,7 @@ public class Mousestrokes extends HudModule {
 	private float lastYaw = Float.NaN, lastPitch;
 
 	public Mousestrokes() {
-		super("Mousestrokes", "Graphs your mouse movement", false, 0.8, 0.6);
+		super("Mousestrokes", "Graphs your mouse movement", false, 0.8, 0.8);
 		icon = com.tatnat.client.ui.render.Icons.Icon.WAVE;
 	}
 

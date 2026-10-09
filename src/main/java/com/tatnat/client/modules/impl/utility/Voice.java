@@ -37,7 +37,7 @@ public class Voice extends Module {
 		if (!game().inWorld() || game().hudHidden()) return;
 		Gfx g = e.gfx;
 		String text = installed() ? "Voice ready" : "Voice: install Simple Voice Chat";
-		int w = g.mcTextWidth(text, false), x = game().guiWidth() - w - 8, y = 6;
+		int w = g.mcTextWidth(text, false), x = game().guiWidth() - w - 8, y = game().guiHeight() - 46;
 		g.rect(x - 4, y - 3, x + w + 4, y + 11, 0x80000000);
 		g.mcText(text, x, y, installed() ? 0xFF55FF55 : 0xFFFFFF55, false, false);
 	}

@@ -9,6 +9,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$TotemPop",
 		"OverlayMixins$HeldItem",
 		"OverlayMixins$NoFog",
 		"OverlayMixins$JumpMeter",

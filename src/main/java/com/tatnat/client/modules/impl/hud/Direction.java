@@ -13,7 +13,7 @@ public class Direction extends TextHudModule {
 	private final ModeSetting names = add(new ModeSetting("Names", "Full names or compass letters", "Full", "Full", "Short"));
 
 	public Direction() {
-		super("Direction", "Shows which way you're facing", false, 0.0, 0.27);
+		super("Direction", "Shows which way you're facing", false, 0.32, 0.0);
 		icon = com.tatnat.client.ui.render.Icons.Icon.COMPASS;
 	}
 

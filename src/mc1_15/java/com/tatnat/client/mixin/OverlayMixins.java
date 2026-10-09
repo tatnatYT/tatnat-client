@@ -157,4 +157,16 @@ public final class OverlayMixins {
 			pose.translate(-side * com.tatnat.client.modules.impl.visual.ViewModel.x(), -com.tatnat.client.modules.impl.visual.ViewModel.y(), -com.tatnat.client.modules.impl.visual.ViewModel.z());
 		}
 	}
+	/** Totem Pop Counter: entity event 35 is the totem animation (the network handler plays it itself). */
+	@Mixin(net.minecraft.client.multiplayer.ClientPacketListener.class)
+	public abstract static class TotemPop {
+		@Inject(method = "handleEntityEvent", at = @At("HEAD"), require = 0)
+		private void tatnat$pop(net.minecraft.network.protocol.game.ClientboundEntityEventPacket packet, CallbackInfo ci) {
+			net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+			// Packets arrive on the network thread first and are handled again on the game thread.
+			if (packet.getEventId() != 35 || !mc.isSameThread() || mc.level == null) return;
+			net.minecraft.world.entity.Entity e = packet.getEntity(mc.level);
+			if (e != null) com.tatnat.client.modules.impl.hud.TotemPops.popped(e.getName().getString(), e == mc.player);
+		}
+	}
 }

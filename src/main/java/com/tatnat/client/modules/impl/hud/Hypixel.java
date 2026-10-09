@@ -24,7 +24,7 @@ public class Hypixel extends TextHudModule {
 	private String gameName = "Lobby";
 
 	public Hypixel() {
-		super("Hypixel", "Coins earned and current game on Hypixel", false, 0.0, 0.57);
+		super("Hypixel", "Coins earned and current game on Hypixel", false, 0.75, 0.375);
 		icon = com.tatnat.client.ui.render.Icons.Icon.BED;
 	}
 

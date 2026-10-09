@@ -14,7 +14,7 @@ public class SpeedMeter extends TextHudModule {
 	private boolean has;
 
 	public SpeedMeter() {
-		super("Speed Meter", "Shows how fast you're moving in blocks per second", false, 0.0, 0.30);
+		super("Speed Meter", "Shows how fast you're moving in blocks per second", false, 0.32, 0.075);
 		icon = com.tatnat.client.ui.render.Icons.Icon.GAUGE;
 	}
 

@@ -10,7 +10,7 @@ public class PackDisplay extends TextHudModule {
 	private final BooleanSetting all = add(new BooleanSetting("Show All", "List every pack that's on, not just the top one", false));
 
 	public PackDisplay() {
-		super("Pack Display", "Shows which texture pack is active", false, 0.0, 0.51);
+		super("Pack Display", "Shows which texture pack is active", false, 0.75, 0.225);
 		icon = com.tatnat.client.ui.render.Icons.Icon.PALETTE;
 	}
 

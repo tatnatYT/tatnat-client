@@ -12,7 +12,7 @@ public class ItemCounter extends TextHudModule {
 	private final TextSetting filter = add(new TextSetting("Item Filter", "Item names to count, separated by commas", "wool, planks, cobblestone, terracotta", 256));
 
 	public ItemCounter() {
-		super("Item Counter", "Counts how many of an item you have", false, 0.0, 0.42);
+		super("Item Counter", "Counts how many of an item you have", false, 0.75, 0.0);
 		icon = com.tatnat.client.ui.render.Icons.Icon.STACK;
 	}
 

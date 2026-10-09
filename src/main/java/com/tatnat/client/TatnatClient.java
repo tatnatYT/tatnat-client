@@ -54,6 +54,7 @@ public final class TatnatClient {
 		EVENTS.register(new Hotkeys());
 		EVENTS.register(CpsTracker.INSTANCE);
 		EVENTS.register(HudRenderer.INSTANCE);
+		DevAllCheck.init();
 		if (System.getProperty("tatnat.accountcheck") != null) EVENTS.register(new com.tatnat.client.account.AccountSwitcher.DevCheck());
 		ModuleManager.get();
 		CONFIG.load();

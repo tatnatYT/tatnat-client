@@ -45,7 +45,8 @@ public final class DevTest {
 	public static void init() {
 		if (!enabled()) return;
 		TatnatClient.LOG.info("[devtest] enabled: {}", System.getProperty("tatnat.devtest"));
-		DevTestSteps.build(System.getProperty("tatnat.devtest"));
+		// "allcheck" is driven by the shared core (DevAllCheck); this class only joins the world.
+		if (!"allcheck".equals(System.getProperty("tatnat.devtest"))) DevTestSteps.build(System.getProperty("tatnat.devtest"));
 		TatnatClient.EVENTS.register(new DevTest());
 	}
 

@@ -19,7 +19,7 @@ public class Stopwatch extends TextHudModule {
 	private boolean running;
 
 	public Stopwatch() {
-		super("Stopwatch", "A stopwatch on your screen", false, 0.0, 0.33);
+		super("Stopwatch", "A stopwatch on your screen", false, 0.32, 0.225);
 		icon = com.tatnat.client.ui.render.Icons.Icon.STOPWATCH;
 		add(new ActionSetting("Start / Stop", "Start or pause it now", () -> running ? "Pause" : "Start", this::startStop));
 		add(new ActionSetting("Reset", "Back to 00:00:00", () -> "Reset", this::resetTimer));

@@ -169,7 +169,7 @@ public interface Game {
 	default void rebindKey(String id, int key) {
 	}
 
-	/** Resource packs the player can choose: {id, "1" if on}; on ones first, bottom to top (Pack Organizer, 1.16+). */
+	/** Resource packs the player can choose: {id, "1" if on, title}; on ones first, bottom to top (Pack Organizer, 1.16+). */
 	default java.util.List<String[]> resourcePackList() {
 		return java.util.Collections.emptyList();
 	}

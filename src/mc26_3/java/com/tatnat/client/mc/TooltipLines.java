@@ -30,7 +30,7 @@ public final class TooltipLines {
 				counts.add(in.getCount());
 			});
 			out.removeIf(c -> com.tatnat.client.modules.impl.utility.ShulkerTooltips.isVanillaLine(c.getString()));
-			int at = Math.min(1, out.size());
+			int at = Math.min(tier != null ? 2 : 1, out.size());
 			for (String line : com.tatnat.client.modules.impl.utility.ShulkerTooltips.lines(names, counts)) out.add(at++, Component.literal(line));
 		}
 		if (!BetterTooltips.active()) return out;

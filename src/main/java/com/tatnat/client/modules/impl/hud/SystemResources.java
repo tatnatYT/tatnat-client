@@ -17,7 +17,7 @@ public class SystemResources extends TextHudModule {
 	private int cpu = -1;
 
 	public SystemResources() {
-		super("System Resources", "Shows how busy your processor is", false, 0.0, 0.39);
+		super("System Resources", "Shows how busy your processor is", false, 0.32, 0.30);
 		icon = com.tatnat.client.ui.render.Icons.Icon.CHIP;
 	}
 

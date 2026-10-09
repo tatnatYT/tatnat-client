@@ -8,6 +8,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$TotemPop",
 		"OverlayMixins$HeldItem",
 		"OverlayMixins$TabFriends",
 		"OverlayMixins$ElytraLayerHide",

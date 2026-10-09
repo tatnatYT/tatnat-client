@@ -195,62 +195,55 @@ public final class OverlayMixins {
 			pose.mulPose(com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? com.mojang.math.Axis.XP.rotationDegrees(90f) : q);
 		}
 	}
-	/** Dark Mode: inventories and containers drawn in dark charcoal. */
+	/** Dark Mode: a dark panel behind the slots, lighter label text. */
 	@Mixin(net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class)
-	public static class DarkContainers {
-		@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"), require = 0)
-		private void tatnat$dark_render(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) {
-				float k = com.tatnat.client.modules.impl.visual.DarkMode.shade();
-				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
-			}
-		}
+	public abstract static class DarkContainers {
+		@org.spongepowered.asm.mixin.Shadow
+		protected int leftPos;
+		@org.spongepowered.asm.mixin.Shadow
+		protected int topPos;
+		@org.spongepowered.asm.mixin.Shadow
+		protected int imageWidth;
+		@org.spongepowered.asm.mixin.Shadow
+		protected int imageHeight;
 
 		@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V", shift = At.Shift.AFTER), require = 0)
-		private void tatnat$light_render(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		private void tatnat$dark_render(net.minecraft.client.gui.GuiGraphics g, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, com.tatnat.client.modules.impl.visual.DarkMode.overlay());
 		}
 
-		@Inject(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"), require = 0)
-		private void tatnat$dark_renderBackground(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) {
-				float k = com.tatnat.client.modules.impl.visual.DarkMode.shade();
-				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
-			}
+		@org.spongepowered.asm.mixin.injection.ModifyArg(method = "renderLabels", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)I"), index = 4, require = 0)
+		private int tatnat$label0(int color) {
+			return com.tatnat.client.modules.impl.visual.DarkMode.on() ? com.tatnat.client.modules.impl.visual.DarkMode.label(color) : color;
 		}
 
-		@Inject(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V", shift = At.Shift.AFTER), require = 0)
-		private void tatnat$light_renderBackground(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		@org.spongepowered.asm.mixin.injection.ModifyArg(method = "renderLabels", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)V"), index = 4, require = 0)
+		private int tatnat$label1(int color) {
+			return com.tatnat.client.modules.impl.visual.DarkMode.on() ? com.tatnat.client.modules.impl.visual.DarkMode.label(color) : color;
 		}
 	}
-	/** Custom Advancements: the advancements screen in dark colours. */
-	@Mixin(net.minecraft.client.gui.screens.advancements.AdvancementsScreen.class)
-	public static class DarkAdvancements {
-		@Inject(method = "renderInside", at = @At("HEAD"), require = 0)
-		private void tatnat$dark_renderInside(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) {
-				float k = com.tatnat.client.modules.impl.visual.CustomAdvancements.shade();
-				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
-			}
+	/** Totem Pop Counter: entity event 35 is the totem animation (the network handler plays it itself). */
+	@Mixin(net.minecraft.client.multiplayer.ClientPacketListener.class)
+	public abstract static class TotemPop {
+		@Inject(method = "handleEntityEvent", at = @At("HEAD"), require = 0)
+		private void tatnat$pop(net.minecraft.network.protocol.game.ClientboundEntityEventPacket packet, CallbackInfo ci) {
+			net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+			// Packets arrive on the network thread first and are handled again on the game thread.
+			if (packet.getEventId() != 35 || !mc.isSameThread() || mc.level == null) return;
+			net.minecraft.world.entity.Entity e = packet.getEntity(mc.level);
+			if (e != null) com.tatnat.client.modules.impl.hud.TotemPops.popped(e.getName().getString(), e == mc.player);
 		}
-
-		@Inject(method = "renderInside", at = @At("RETURN"), require = 0)
-		private void tatnat$light_renderInside(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+	}
+	/** Dark Mode: the player inventory draws its own labels. */
+	@Mixin(net.minecraft.client.gui.screens.inventory.InventoryScreen.class)
+	public abstract static class DarkInventoryLabels {
+		@org.spongepowered.asm.mixin.injection.ModifyArg(method = "renderLabels", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)I"), index = 4, require = 0)
+		private int tatnat$label0(int color) {
+			return com.tatnat.client.modules.impl.visual.DarkMode.on() ? com.tatnat.client.modules.impl.visual.DarkMode.label(color) : color;
 		}
-
-		@Inject(method = "renderWindow", at = @At("HEAD"), require = 0)
-		private void tatnat$dark_renderWindow(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) {
-				float k = com.tatnat.client.modules.impl.visual.CustomAdvancements.shade();
-				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
-			}
-		}
-
-		@Inject(method = "renderWindow", at = @At("RETURN"), require = 0)
-		private void tatnat$light_renderWindow(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		@org.spongepowered.asm.mixin.injection.ModifyArg(method = "renderLabels", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)V"), index = 4, require = 0)
+		private int tatnat$label1(int color) {
+			return com.tatnat.client.modules.impl.visual.DarkMode.on() ? com.tatnat.client.modules.impl.visual.DarkMode.label(color) : color;
 		}
 	}
 }

@@ -13,6 +13,7 @@ import com.tatnat.client.platform.UiScreen;
 public class PackScreen extends ListScreen {
 	/** Packs that are on, bottom to top (the last one wins), and the rest. */
 	private final List<String> on = new ArrayList<>(), off = new ArrayList<>();
+	private final java.util.Map<String, String> titles = new java.util.HashMap<>();
 	private boolean changed;
 
 	public PackScreen(UiScreen parent) {
@@ -23,7 +24,10 @@ public class PackScreen extends ListScreen {
 	private void load() {
 		on.clear();
 		off.clear();
-		for (String[] p : TatnatClient.game().resourcePackList()) (p[1].equals("1") ? on : off).add(p[0]);
+		for (String[] p : TatnatClient.game().resourcePackList()) {
+			(p[1].equals("1") ? on : off).add(p[0]);
+			if (p.length > 2 && !p[2].isEmpty()) titles.put(p[0], p[2]);
+		}
 		changed = false;
 	}
 
@@ -37,8 +41,8 @@ public class PackScreen extends ListScreen {
 		return changed ? "Changes are waiting: press Apply on the top row to reload the packs" : "Top of the list wins. Turn packs on or off and move them up or down";
 	}
 
-	private static String pretty(String id) {
-		String s = id.startsWith("file/") ? id.substring(5) : id;
+	private String pretty(String id) {
+		String s = titles.containsKey(id) ? titles.get(id) : id.startsWith("file/") ? id.substring(5) : id;
 		return s.replaceAll("§.", "");
 	}
 

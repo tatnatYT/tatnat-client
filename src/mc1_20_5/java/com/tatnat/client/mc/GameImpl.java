@@ -499,11 +499,11 @@ public final class GameImpl implements Game {
 		java.util.Collection<String> on = r.getSelectedIds();
 		for (String id : on) {
 			net.minecraft.server.packs.repository.Pack p = r.getPack(id);
-			if (p != null && !p.isRequired()) out.add(new String[] {id, "1"});
+			if (p != null && !p.isRequired()) out.add(new String[] {id, "1", p.getTitle().getString()});
 		}
 		for (String id : r.getAvailableIds()) {
 			net.minecraft.server.packs.repository.Pack p = r.getPack(id);
-			if (!on.contains(id) && p != null && !p.isRequired()) out.add(new String[] {id, "0"});
+			if (!on.contains(id) && p != null && !p.isRequired()) out.add(new String[] {id, "0", p.getTitle().getString()});
 		}
 		return out;
 	}

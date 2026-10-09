@@ -32,7 +32,7 @@ public class Keystrokes extends HudModule {
 	private long lastFrame = System.nanoTime();
 
 	public Keystrokes() {
-		super("Keystrokes", "Shows WASD and mouse buttons lighting up as you press them", true, 0.0, 0.55);
+		super("Keystrokes", "Shows WASD and mouse buttons lighting up as you press them", true, 0.0, 0.62);
 		icon = Icons.Icon.KEYBOARD;
 	}
 
