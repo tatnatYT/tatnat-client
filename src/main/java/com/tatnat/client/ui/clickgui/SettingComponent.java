@@ -77,7 +77,8 @@ public abstract class SettingComponent<S extends Setting<?>> {
 		this.y = y;
 		this.w = w;
 		boolean hover = Widgets.inside(mx, my, x, y, w, boxH());
-		RenderUtils.roundedRect(g, x, y, w, boxH(), Ui.px(Theme.RADIUS), hover ? Theme.HOVER : Theme.PANEL);
+		RenderUtils.surface(g, x, y, w, boxH(), Ui.px(Theme.RADIUS_LARGE), hover ? Theme.CARD_HOVER_TOP : Theme.CARD_TOP,
+				hover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, hover ? Theme.BORDER_HOVER : Theme.BORDER);
 		int textW = w - pad() * 3 - controlWidth();
 		int mid = y + boxH() / 2;
 		UIFont.TITLE.draw(g, UIFont.TITLE.trim(label(), textW), x + pad(), mid - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);

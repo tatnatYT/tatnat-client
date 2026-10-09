@@ -169,6 +169,64 @@ public final class RenderUtils {
 		}
 	}
 
+	/**
+	 * Soft round glow: {@code layers} discs, each smaller and adding a little more of
+	 * {@code color}, so it fades out towards the edge. Cheap (no anti-aliased edge pixels).
+	 */
+	public static void glow(Gfx g, int cx, int cy, int radius, int color, int layers) {
+		if (!com.tatnat.client.modules.Performance.shadows() || radius <= 0) return;
+		int a = Colors.alpha(color);
+		for (int i = 0; i < layers; i++) {
+			int r = Math.max(1, Math.round(radius * (1f - i / (float) layers)));
+			disc(g, cx, cy, r, Colors.withAlpha(color, Math.max(1, a / layers)));
+		}
+	}
+
+	/**
+	 * A filled disc from horizontal bands. Bands get taller as the disc grows (a glow layer
+	 * doesn't need crisp edges), so even a big glow is a few dozen fills.
+	 */
+	private static void disc(Gfx g, int cx, int cy, int r, int color) {
+		int step = Math.max(1, r / 12);
+		for (int dy = -r; dy < r; dy += step) {
+			int h = Math.min(step, r - dy);
+			float mid = dy + h / 2f;
+			int half = (int) Math.round(Math.sqrt(Math.max(0, r * (double) r - mid * mid)));
+			if (half > 0) rect(g, cx - half, cy + dy, cx + half, cy + dy + h, color);
+		}
+	}
+
+	/**
+	 * A rounded rectangle filled with a top-to-bottom gradient (opaque colours look best: the
+	 * caps and the gradient band overlap by one radius).
+	 */
+	public static void roundedGradient(Gfx g, int x, int y, int w, int h, int radius, int top, int bottom) {
+		if (w <= 0 || h <= 0) return;
+		int r = com.tatnat.client.modules.Performance.roundedCorners() ? Math.max(0, Math.min(radius, Math.min(w, h) / 2)) : 0;
+		if (r == 0 || top == bottom) {
+			if (top == bottom) roundedRect(g, x, y, w, h, radius, top);
+			else verticalGradient(g, x, y, x + w, y + h, top, bottom);
+			return;
+		}
+		roundedRect(g, x, y, w, r * 2, r, top, true, true, false, false);
+		roundedRect(g, x, y + h - r * 2, w, r * 2, r, bottom, false, false, true, true);
+		float t1 = r / (float) h, t2 = 1 - t1;
+		verticalGradient(g, x, y + r, x + w, y + h - r, Colors.lerp(top, bottom, t1), Colors.lerp(top, bottom, t2));
+	}
+
+	/**
+	 * A raised surface: 1px {@code border}, then the gradient body inside it. The look of every
+	 * card, row and input in the menus.
+	 */
+	public static void surface(Gfx g, int x, int y, int w, int h, int radius, int top, int bottom, int border) {
+		if (Colors.alpha(border) > 0) {
+			roundedRect(g, x, y, w, h, radius, Colors.lerp(Colors.withAlpha(top, 255), border | 0xFF000000, Colors.alpha(border) / 255f));
+			roundedGradient(g, x + 1, y + 1, w - 2, h - 2, Math.max(0, radius - 1), top, bottom);
+		} else {
+			roundedGradient(g, x, y, w, h, radius, top, bottom);
+		}
+	}
+
 	/** Top-to-bottom gradient. */
 	public static void verticalGradient(Gfx g, int x1, int y1, int x2, int y2, int top, int bottom) {
 		if (x2 <= x1 || y2 <= y1) return;

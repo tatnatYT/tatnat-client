@@ -11,6 +11,7 @@ import com.tatnat.client.ui.render.RectBatch;
 import com.tatnat.client.ui.render.RenderUtils;
 import com.tatnat.client.ui.render.UIFont;
 import com.tatnat.client.ui.render.Ui;
+import com.tatnat.client.ui.theme.Colors;
 import com.tatnat.client.ui.theme.Theme;
 import com.tatnat.client.util.KeyCodes;
 
@@ -101,29 +102,34 @@ public abstract class ListScreen implements UiScreen {
 		int W = TatnatClient.game().windowWidth(), H = TatnatClient.game().windowHeight();
 		int pw = Math.min(W - Ui.px(40), Ui.px(820)), ph = Math.min(H - Ui.px(40), Ui.px(660));
 		int px = (W - pw) / 2, py = (H - ph) / 2;
-		RenderUtils.shadow(g, px, py, pw, ph, Ui.px(Theme.RADIUS_LARGE), 8, 0.35f);
-		RenderUtils.roundedRect(g, px, py, pw, ph, Ui.px(Theme.RADIUS_LARGE), Theme.BACKGROUND);
+		RenderUtils.verticalGradient(g, 0, 0, W, H, 0x66050508, 0xB0050508);
+		int wr = Ui.px(Theme.RADIUS_WINDOW);
+		RenderUtils.shadow(g, px, py, pw, ph, wr, 14, 0.6f);
+		RenderUtils.roundedGradient(g, px, py, pw, ph, wr, Theme.WINDOW_TOP, Theme.WINDOW_BOTTOM);
+		RenderUtils.glow(g, px + Ui.px(100), py + Ui.px(50), Ui.px(200), 0x18E5323E, 8);
+		RenderUtils.roundedOutline(g, px, py, pw, ph, wr, 1, Theme.BORDER);
+		RenderUtils.rect(g, px + wr, py + 1, px + pw - wr, py + 2, 0x14FFFFFF);
 
-		int x = px + Ui.px(22), w = pw - Ui.px(44);
-		UIFont.HEADER.draw(g, title(), x, py + Ui.px(20), Theme.TEXT);
-		UIFont.SMALL.draw(g, hint(), x, py + Ui.px(56), Theme.TEXT_MUTED);
-		// Back button.
-		int bw = Ui.px(90), bh = Ui.px(34), bx = px + pw - bw - Ui.px(22), by = py + Ui.px(18);
-		Widgets.button(g, bx, by, bw, bh, "Back", UIFont.BODY, Theme.PANEL, Theme.TEXT, Widgets.inside(mx, my, bx, by, bw, bh));
-		hit(bx, by, bw, bh, this::close);
+		int x = px + Ui.px(28), w = pw - Ui.px(56);
+		// Back button, then the title and hint next to it.
+		int bs = Ui.px(40), by = py + Ui.px(26);
+		Widgets.iconButton(g, x, by, bs, com.tatnat.client.ui.render.Icons.Icon.BACK, Widgets.inside(mx, my, x, by, bs, bs), false, 0);
+		hit(x, by, bs, bs, this::close);
+		UIFont.HEADER.draw(g, title(), x + bs + Ui.px(16), py + Ui.px(22), Theme.TEXT);
+		UIFont.SMALL.draw(g, UIFont.SMALL.trim(hint(), w - bs - Ui.px(16)), x + bs + Ui.px(16), py + Ui.px(56), Theme.TEXT_MUTED);
 
 		// Search box (always typing into it).
-		int sy = py + Ui.px(84), sh = Ui.px(40);
-		RenderUtils.roundedRect(g, x - 1, sy - 1, w + 2, sh + 2, Ui.px(Theme.RADIUS), Theme.ACCENT);
-		RenderUtils.roundedRect(g, x, sy, w, sh, Ui.px(Theme.RADIUS), Theme.PANEL);
+		int sy = py + Ui.px(92), sh = Ui.px(42);
+		RenderUtils.surface(g, x, sy, w, sh, sh / 2, 0xFF22242B, 0xFF16171B, Colors.withAlpha(Theme.ACCENT, 0xB0));
+		com.tatnat.client.ui.render.Icons.draw(g, com.tatnat.client.ui.render.Icons.Icon.SEARCH, x + Ui.px(22), sy + sh / 2, Ui.px(16), Theme.ACCENT);
 		String shown = search.isEmpty() ? "Type to search…" : search + (System.currentTimeMillis() / 500 % 2 == 0 ? "_" : "");
-		UIFont.BODY.drawMid(g, shown, x + Ui.px(14), sy + sh / 2, search.isEmpty() ? Theme.TEXT_MUTED : Theme.TEXT);
+		UIFont.BODY.drawMid(g, shown, x + Ui.px(44), sy + sh / 2, search.isEmpty() ? 0xFF7A7C84 : Theme.TEXT);
 
 		// Rows.
 		String q = search.toLowerCase(Locale.ROOT).trim();
 		List<Row> list = new ArrayList<>();
 		for (Row r : rows()) if (q.isEmpty() || (r.label + " " + r.sub).toLowerCase(Locale.ROOT).contains(q)) list.add(r);
-		int top = sy + sh + Ui.px(14), bottom = py + ph - Ui.px(18), rh = Ui.px(54), gap = Ui.px(6);
+		int top = sy + sh + Ui.px(16), bottom = py + ph - Ui.px(22), rh = Ui.px(60), gap = Ui.px(8);
 		int total = list.size() * (rh + gap);
 		scroll = Math.max(0, Math.min(scroll, Math.max(0, total - (bottom - top))));
 		scrollShown += (scroll - scrollShown) * 0.35;
@@ -131,8 +137,10 @@ public abstract class ListScreen implements UiScreen {
 		int y = top - (int) Math.round(scrollShown);
 		for (Row r : list) {
 			if (y + rh >= top && y <= bottom) {
-				RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), r.highlight ? Theme.HOVER : Theme.PANEL);
-				if (r.highlight) RenderUtils.rect(g, x, y + Ui.px(8), x + Ui.px(3), y + rh - Ui.px(8), Theme.ACCENT);
+				boolean rowHover = Widgets.inside(mx, my, x, y, w, rh) && my >= top && my <= bottom;
+				RenderUtils.surface(g, x, y, w, rh, Ui.px(Theme.RADIUS_CARD), r.highlight ? Theme.CARD_ON_TOP : rowHover ? Theme.CARD_HOVER_TOP : Theme.CARD_TOP,
+						rowHover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, r.highlight ? 0x70E5323E : rowHover ? Theme.BORDER_HOVER : Theme.BORDER);
+				if (r.highlight) RenderUtils.roundedRect(g, x + Ui.px(6), y + Ui.px(14), Math.max(2, Ui.px(4)), rh - Ui.px(28), Math.max(1, Ui.px(2)), Theme.ACCENT);
 				UIFont.TITLE.draw(g, r.label, x + Ui.px(16), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
 				UIFont.SMALL.draw(g, r.sub, x + Ui.px(16), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
 				int right = x + w - Ui.px(12);
@@ -141,7 +149,7 @@ public abstract class ListScreen implements UiScreen {
 					int tw = Math.max(Ui.px(70), UIFont.BODY.width(t) + Ui.px(24)), th = Ui.px(34);
 					int tx = right - tw, ty = y + (rh - th) / 2;
 					boolean hov = Widgets.inside(mx, my, tx, ty, tw, th) && my >= top && my <= bottom;
-					Widgets.button(g, tx, ty, tw, th, t, UIFont.BODY, i == 0 ? Theme.ACCENT : Theme.HOVER, 0xFFFFFFFF, hov);
+					Widgets.button(g, tx, ty, tw, th, t, UIFont.BODY, i == 0 ? Theme.ACCENT : 0xFF2A2C33, 0xFFFFFFFF, hov);
 					if (ty >= top && ty + th <= bottom) hit(tx, ty, tw, th, r.actions.get(i));
 					right = tx - Ui.px(8);
 				}

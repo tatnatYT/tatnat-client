@@ -41,8 +41,33 @@ public final class Theme {
 	/** Mod icons while the mod is off: a dark red. */
 	public static final int ICON_OFF = 0xFF6A2328;
 
+	/** The menu window: a deep charcoal gradient, barely see-through. */
+	public static final int WINDOW_TOP = 0xF61A1C22;
+	public static final int WINDOW_BOTTOM = 0xF60D0E11;
+	/** The sidebar strip inside the window (drawn over the window). */
+	public static final int RAIL = 0x40000000;
+	/** Hairline border around the window and on cards. */
+	public static final int BORDER = 0x1CFFFFFF;
+	public static final int BORDER_HOVER = 0x3DFFFFFF;
+	/** Cards and rows: a subtle top-lit gradient. */
+	public static final int CARD_TOP = 0xFF1F2128;
+	public static final int CARD_BOTTOM = 0xFF17181D;
+	public static final int CARD_HOVER_TOP = 0xFF272A32;
+	public static final int CARD_HOVER_BOTTOM = 0xFF1C1E24;
+	/** Enabled cards: lit red from the top. */
+	public static final int CARD_ON_TOP = 0xFF3A1C22;
+	public static final int CARD_ON_BOTTOM = 0xFF1C1619;
+	/** The accent at low strength: active nav item, selected pills, the wash on enabled cards. */
+	public static final int ACCENT_SOFT = 0x2EE5323E;
+	/** Glow behind enabled icons and switches. */
+	public static final int ACCENT_GLOW = 0x55E5323E;
+	/** Lighter accent for the top of gradients. */
+	public static final int ACCENT_LIGHT = 0xFFF0505A;
+
 	/** Corner radii in design pixels. */
 	public static final int RADIUS_SMALL = 4;
 	public static final int RADIUS = 7;
 	public static final int RADIUS_LARGE = 10;
+	public static final int RADIUS_CARD = 12;
+	public static final int RADIUS_WINDOW = 18;
 }

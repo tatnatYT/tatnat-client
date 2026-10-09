@@ -32,19 +32,11 @@ import com.tatnat.client.platform.UiScreen;
 import com.tatnat.client.util.KeyCodes;
 
 /**
- * The Right Shift mod menu, laid out like Feather's:
- *
- * <pre>
- *                      v                  [move][heart][grid][list]
- *  [logo ]  [ Mod Menu /  All  HUD  Visual  Utility  Cosmetic   [search] ]
- *  [ MODS]  [ +--------+  +--------+  +--------+                         ]
- *  [ HUD ]  [ |  icon  |  |  icon  |  |  icon  |   3-column card grid   ]
- *  [ SET ]  [ |name [o]|  |name [o]|  |name [o]|   (or a list)          ]
- * </pre>
- *
- * Clicking a card opens that mod's settings in the same panel; the red tab turns into a back
- * button. Everything is drawn in real pixels, laid out for 1920x1080 and scaled by {@link Ui}.
- * The menu fades in and rises 10px over 200ms; toggles slide over 150ms; lists scroll smoothly.
+ * The Right Shift mod menu: one window with a sidebar (brand, navigation with a sliding
+ * highlight, your account) and a content area (page title, search, header actions, category
+ * tabs and a grid or list of mod cards). Clicking a card opens that mod's settings in place.
+ * Everything is drawn in real pixels, laid out for 1920x1080 and scaled by {@link Ui}. The
+ * window fades in and rises, cards cascade in, and toggles, hovers and indicators all glide.
  */
 public class ClickGuiScreen implements UiScreen {
 	private static final String YOUTUBE = "https://www.youtube.com/@tatnatmc";
@@ -205,6 +197,15 @@ public class ClickGuiScreen implements UiScreen {
 
 	// ---------------------------------------------------------------- drawing
 
+	// Window layout in design pixels (1920x1080 reference, scaled by Ui).
+	private static final int WIN_W = 1160, WIN_H = 712, RAIL_W = 236, PAD = 32;
+
+	/** When the menu opened (cards fade in one after another from here). */
+	private final long openedAt = System.currentTimeMillis();
+	/** Sliding indicators: the sidebar highlight and the category pill. */
+	private float navY = -1, pillX = -1, pillW;
+	private double dt = 1 / 60.0;
+
 	@Override
 	public void render(Gfx raw, double mouseX, double mouseY) {
 		// Thousands of tiny fills per frame: batch them (see RectBatch).
@@ -218,7 +219,7 @@ public class ClickGuiScreen implements UiScreen {
 
 	private void renderBatched(Gfx g, double mouseX, double mouseY) {
 		long now = System.nanoTime();
-		double dt = lastFrame == 0 ? 1 / 60.0 : Math.min(0.1, (now - lastFrame) / 1e9);
+		dt = lastFrame == 0 ? 1 / 60.0 : Math.min(0.1, (now - lastFrame) / 1e9);
 		lastFrame = now;
 		scrollEase = Performance.smoothScroll() ? 1 - Math.exp(-dt * 18) : 1;
 		if (closing && open.isDone()) {
@@ -233,205 +234,278 @@ public class ClickGuiScreen implements UiScreen {
 		double mx = Widgets.mouseX(), my = Widgets.mouseY();
 
 		int W = TatnatClient.game().windowWidth(), H = TatnatClient.game().windowHeight();
-		int sideW = Ui.px(96), gap = Ui.px(14), panelW = Ui.px(912), panelH = Ui.px(666);
-		int groupX = (W - (sideW + gap + panelW)) / 2;
-		int panelX = groupX + sideW + gap;
-		int panelY = (H - panelH) / 2 + Ui.px(18) + Math.round((1 - o) * Ui.px(10));
+		// Dim the world so the window stands out (darker towards the bottom).
+		RenderUtils.verticalGradient(g, 0, 0, W, H, 0x66050508, 0xB0050508);
 
-		drawToolbar(g, panelX, panelY, panelW, mx, my);
-		drawSidebar(g, groupX, panelY, sideW, panelH, mx, my);
+		int ww = Ui.px(WIN_W), wh = Ui.px(WIN_H);
+		int wx = (W - ww) / 2, wy = (H - wh) / 2 + Math.round((1 - o) * Ui.px(14));
+		int wr = Ui.px(Theme.RADIUS_WINDOW);
+		RenderUtils.shadow(g, wx, wy, ww, wh, wr, 14, 0.6f);
+		RenderUtils.roundedGradient(g, wx, wy, ww, wh, wr, Theme.WINDOW_TOP, Theme.WINDOW_BOTTOM);
+		// A faint red light in the top-left corner, behind the brand.
+		RenderUtils.glow(g, wx + Ui.px(120), wy + Ui.px(60), Ui.px(220), 0x18E5323E, 8);
+		RenderUtils.roundedOutline(g, wx, wy, ww, wh, wr, 1, Theme.BORDER);
+		RenderUtils.rect(g, wx + wr, wy + 1, wx + ww - wr, wy + 2, 0x14FFFFFF);
 
-		RenderUtils.shadow(g, panelX, panelY, panelW, panelH, Ui.px(Theme.RADIUS_LARGE), 8, 0.35f);
-		RenderUtils.roundedRect(g, panelX, panelY, panelW, panelH, Ui.px(Theme.RADIUS_LARGE), Theme.BACKGROUND);
-		if (page == Page.MODS) drawModsPage(g, panelX, panelY, panelW, panelH, mx, my);
-		else if (page == Page.PERFORMANCE) drawPerformancePage(g, panelX, panelY, panelW, panelH, mx, my);
-		else if (page == Page.ACCOUNTS) drawAccountsPage(g, panelX, panelY, panelW, panelH, mx, my);
-		else drawSettingsPage(g, panelX, panelY, panelW, panelH, mx, my);
+		drawRail(g, wx, wy, Ui.px(RAIL_W), wh, mx, my);
+
+		int cx = wx + Ui.px(RAIL_W) + Ui.px(PAD), cw = ww - Ui.px(RAIL_W) - Ui.px(PAD) * 2;
+		int top = wy + Ui.px(28), bottom = wy + wh - Ui.px(24);
+		if (page == Page.MODS) drawModsPage(g, cx, top, cw, bottom, mx, my);
+		else if (page == Page.PERFORMANCE) drawPerformancePage(g, cx, top, cw, bottom, mx, my);
+		else if (page == Page.ACCOUNTS) drawAccountsPage(g, cx, top, cw, bottom, mx, my);
+		else drawSettingsPage(g, cx, top, cw, bottom, mx, my);
 
 		RenderUtils.end(g);
 		RenderUtils.alpha = 1f;
 	}
 
-	/** The small bar above the panel: close chevron in the middle, view buttons on the right. */
-	private void drawToolbar(Gfx g, int px, int py, int pw, double mx, double my) {
-		int cy = py - Ui.px(40);
-		int cs = Ui.px(30);
-		boolean chevHover = Widgets.inside(mx, my, px + pw / 2 - cs, cy - cs / 2, cs * 2, cs);
-		// Drop shadow first so the chevron stays visible over bright terrain.
-		Icons.draw(g, Icon.CHEVRON_DOWN, px + pw / 2, cy + Math.max(1, Ui.px(2)), cs, 0x90000000);
-		Icons.draw(g, Icon.CHEVRON_DOWN, px + pw / 2, cy, cs, chevHover ? 0xFFFFFFFF : 0xFFE8E8E8);
-		hit(px + pw / 2 - cs, cy - cs / 2, cs * 2, cs, false, this::close, null);
-
-		int bs = Ui.px(46), bgap = Ui.px(4), padd = Ui.px(5);
-		Icon[] icons = {Icon.MOVE, favoritesOnly ? Icon.HEART_FILLED : Icon.HEART, Icon.GRID, Icon.LIST};
-		int tw = icons.length * bs + (icons.length - 1) * bgap + padd * 2, th = bs + padd * 2;
-		int tx = px + pw - tw, ty = py - th - Ui.px(12);
-		RenderUtils.roundedRect(g, tx, ty, tw, th, Ui.px(Theme.RADIUS), Theme.BACKGROUND);
-		for (int i = 0; i < icons.length; i++) {
-			int bx = tx + padd + i * (bs + bgap), by = ty + padd;
-			boolean active = (i == 1 && favoritesOnly) || (i == 2 && !listView) || (i == 3 && listView);
-			boolean hover = Widgets.inside(mx, my, bx, by, bs, bs);
-			if (hover) RenderUtils.roundedRect(g, bx, by, bs, bs, Ui.px(Theme.RADIUS_SMALL), Theme.HOVER);
-			int col = i == 1 && favoritesOnly ? Theme.ACCENT : active || hover ? 0xFFFFFFFF : Theme.TEXT_MUTED;
-			Icons.draw(g, icons[i], bx + bs / 2, by + bs / 2, Ui.px(24), col);
-			final int idx = i;
-			hit(bx, by, bs, bs, false, () -> {
-				if (idx == 0) {
-					TatnatClient.game().openScreen(new HudEditorScreen(this));
-				} else if (idx == 1) {
-					favoritesOnly = !favoritesOnly;
-					page = Page.MODS;
-					closeSettings();
-					scrollTarget = 0;
-				} else {
-					listView = idx == 3;
-				}
-			}, null);
-		}
+	/** Eases {@code from} towards {@code to}, time-based (same feel at any frame rate). */
+	private float glide(float from, float to) {
+		if (from < 0 || !Performance.animations()) return to;
+		float k = (float) (1 - Math.exp(-dt * 16));
+		float v = from + (to - from) * k;
+		return Math.abs(to - v) < 0.5f ? to : v;
 	}
 
-	private void drawSidebar(Gfx g, int x, int y, int w, int h, double mx, double my) {
-		RenderUtils.shadow(g, x, y, w, h, Ui.px(Theme.RADIUS_LARGE), 8, 0.35f);
-		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS_LARGE), Theme.BACKGROUND);
+	/** The sidebar: brand, navigation with a sliding highlight, and who you're playing as. */
+	private void drawRail(Gfx g, int x, int y, int w, int h, double mx, double my) {
+		int r = Ui.px(Theme.RADIUS_WINDOW);
+		RenderUtils.roundedRect(g, x, y, w, h, r, Theme.RAIL, true, false, true, false);
+		RenderUtils.rect(g, x + w - 1, y + Ui.px(20), x + w, y + h - Ui.px(20), Theme.BORDER);
 
-		// Logo (the player's head), drawn at an exact multiple of 8 so the pixels stay square.
-		int logo = Math.max(32, Ui.px(56) / 8 * 8);
-		g.logo(x + (w - logo) / 2, y + Ui.px(18), logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
-		RenderUtils.rect(g, x + Ui.px(16), y + Ui.px(90), x + w - Ui.px(16), y + Ui.px(91), Theme.DIVIDER);
+		// Brand: the player's head (a multiple of 8 so the pixels stay square) and the wordmark.
+		int logo = Math.max(24, Ui.px(44) / 8 * 8);
+		int lx = x + Ui.px(24), ly = y + Ui.px(30);
+		RenderUtils.glow(g, lx + logo / 2, ly + logo / 2, logo, 0x30E5323E, 6);
+		RenderUtils.roundedRect(g, lx - Ui.px(3), ly - Ui.px(3), logo + Ui.px(6), logo + Ui.px(6), Ui.px(8), 0x30FFFFFF);
+		g.logo(lx, ly, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
+		int tx = lx + logo + Ui.px(14);
+		UIFont.HEADER.draw(g, "tatnat", tx, ly - Ui.px(2), Theme.TEXT);
+		UIFont.TINY.draw(g, "C L I E N T", tx + Ui.px(1), ly + Ui.px(28), Theme.ACCENT);
 
-		String[] labels = {"MOD MENU", "HUD EDITOR", "PERFORMANCE", "SETTINGS", "ACCOUNTS"};
+		UIFont.TINY.draw(g, "MENU", x + Ui.px(28), y + Ui.px(118), 0xFF6C6E76);
+		String[] labels = {"Mods", "HUD Editor", "Performance", "Settings", "Accounts"};
 		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.CHIP, Icon.GEAR, Icon.USER};
-		int bw = w - Ui.px(16), bh = Ui.px(70);
+		int bx = x + Ui.px(14), bw = w - Ui.px(28), bh = Ui.px(46), step = bh + Ui.px(6), first = y + Ui.px(140);
+		int active = page == Page.MODS ? 0 : page == Page.PERFORMANCE ? 2 : page == Page.SETTINGS ? 3 : 4;
+		navY = glide(navY, first + active * step);
+		int ny = Math.round(navY);
+		RenderUtils.roundedRect(g, bx, ny, bw, bh, Ui.px(Theme.RADIUS_LARGE), Theme.ACCENT_SOFT);
+		RenderUtils.roundedRect(g, bx, ny + bh / 2 - Ui.px(11), Math.max(2, Ui.px(4)), Ui.px(22), Math.max(1, Ui.px(2)), Theme.ACCENT);
 		for (int i = 0; i < labels.length; i++) {
-			int bx = x + Ui.px(8), by = y + Ui.px(104) + i * (bh + Ui.px(8));
-			boolean active = (i == 0 && page == Page.MODS) || (i == 2 && page == Page.PERFORMANCE) || (i == 3 && page == Page.SETTINGS)
-					|| (i == 4 && page == Page.ACCOUNTS);
-			boolean hover = Performance.hoverEffects() && Widgets.inside(mx, my, bx, by, bw, bh);
-			if (active) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS), Theme.ACCENT);
-			else if (hover) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS), Theme.HOVER);
-			int col = active || hover ? 0xFFFFFFFF : Theme.TEXT_MUTED;
-			Icons.draw(g, icons[i], bx + bw / 2, by + Ui.px(28), Ui.px(28), col);
-			UIFont.TINY.drawCentered(g, labels[i], bx + bw / 2, by + Ui.px(50), col);
-			final int idx = i;
-			hit(bx, by, bw, bh, false, () -> {
-				if (idx == 0) {
-					page = Page.MODS;
-					closeSettings();
-					view.snap(0f);
-				} else if (idx == 1) {
-					TatnatClient.game().openScreen(new HudEditorScreen(this));
-				} else if (idx == 2) {
-					openPerformance();
-				} else if (idx == 3) {
-					page = Page.SETTINGS;
-				} else {
-					page = Page.ACCOUNTS;
-					AccountSwitcher.refresh();
-				}
-			}, null);
-		}
-	}
-
-	/** Red slanted tab in the panel's top-left corner. Returns its right edge. */
-	private int drawTab(Gfx g, int x, int y, String text, boolean back, double mx, double my) {
-		int th = Ui.px(64), slant = Ui.px(26);
-		int textX = x + Ui.px(back ? 52 : 26);
-		int tw = textX - x + UIFont.HEADER.width(text) + Ui.px(26) + slant;
-		int r = Ui.px(Theme.RADIUS_LARGE);
-		boolean hover = back && Widgets.inside(mx, my, x, y, tw, th);
-		int col = hover ? Colors.shade(Theme.ACCENT, 1.1f) : Theme.ACCENT;
-		// Square-ish body with the panel's rounded top-left corner, then the slanted right edge.
-		RenderUtils.roundedRect(g, x, y, tw - slant, th, r, col, true, false, false, false);
-		for (int row = 0; row < th; row++) {
-			float right = tw - slant * (row + 0.5f) / th;
-			int start = x + tw - slant;
-			float end = x + right;
-			if (end > start) {
-				int full = (int) Math.floor(end);
-				RenderUtils.rect(g, start, y + row, full, y + row + 1, col);
-				float frac = end - full;
-				if (frac > 0.02f) RenderUtils.rect(g, full, y + row, full + 1, y + row + 1, Colors.fade(col, frac));
+			int by = first + i * step;
+			boolean on = i == active;
+			boolean hover = !on && Performance.hoverEffects() && Widgets.inside(mx, my, bx, by, bw, bh);
+			if (hover) RenderUtils.roundedRect(g, bx, by, bw, bh, Ui.px(Theme.RADIUS_LARGE), 0x0DFFFFFF);
+			int col = on ? 0xFFFFFFFF : hover ? Theme.TEXT : Theme.TEXT_MUTED;
+			Icons.draw(g, icons[i], bx + Ui.px(28), by + bh / 2, Ui.px(20), on ? Theme.ACCENT : col);
+			UIFont.BODY.drawMid(g, labels[i], bx + Ui.px(52), by + bh / 2, col);
+			if (i == 0) {
+				String n = String.valueOf(enabledCount());
+				int pw = UIFont.TINY.width(n) + Ui.px(14), ph = Ui.px(20);
+				int px = bx + bw - pw - Ui.px(12), py = by + (bh - ph) / 2;
+				RenderUtils.roundedRect(g, px, py, pw, ph, ph / 2, on ? Theme.ACCENT : 0x1AFFFFFF);
+				UIFont.TINY.drawCentered(g, n, px + pw / 2, py + (ph - UIFont.TINY.size()) / 2, 0xFFFFFFFF);
 			}
+			final int idx = i;
+			hit(bx, by, bw, bh, false, () -> nav(idx), null);
 		}
-		if (back) Icons.draw(g, Icon.BACK, x + Ui.px(28), y + th / 2, Ui.px(20), Theme.ON_ACCENT);
-		UIFont.HEADER.drawMid(g, text, textX, y + th / 2, Theme.ON_ACCENT);
-		if (back) hit(x, y, tw, th, false, this::closeSettings, null);
-		return x + tw;
+
+		// Who you're playing as, at the bottom.
+		int ch = Ui.px(64), cy = y + h - ch - Ui.px(16), cxl = x + Ui.px(14), cwid = w - Ui.px(28);
+		boolean cHover = Widgets.inside(mx, my, cxl, cy, cwid, ch);
+		RenderUtils.surface(g, cxl, cy, cwid, ch, Ui.px(Theme.RADIUS_LARGE), cHover ? Theme.CARD_HOVER_TOP : Theme.CARD_TOP,
+				cHover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, cHover ? Theme.BORDER_HOVER : Theme.BORDER);
+		int head = Math.max(16, Ui.px(32) / 8 * 8);
+		g.logo(cxl + Ui.px(14), cy + (ch - head) / 2, head, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
+		int nx = cxl + Ui.px(14) + head + Ui.px(12), nw = cwid - (nx - cxl) - Ui.px(10);
+		UIFont.BODY.draw(g, UIFont.BODY.trim(AccountSwitcher.currentName(), nw), nx, cy + ch / 2 - UIFont.BODY.size() + Ui.px(1), Theme.TEXT);
+		RenderUtils.circle(g, nx + Ui.px(4), cy + ch / 2 + Ui.px(11), Math.max(2, Ui.px(4)), 0xFF3DDC84);
+		UIFont.SMALL.draw(g, "v" + TatnatClient.VERSION, nx + Ui.px(14), cy + ch / 2 + Ui.px(3), Theme.TEXT_MUTED);
+		hit(cxl, cy, cwid, ch, false, () -> nav(4), null);
 	}
 
-	private void drawModsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
+	private void nav(int idx) {
+		if (idx == 0) {
+			page = Page.MODS;
+			closeSettings();
+			view.snap(0f);
+		} else if (idx == 1) {
+			TatnatClient.game().openScreen(new HudEditorScreen(this));
+		} else if (idx == 2) {
+			openPerformance();
+		} else if (idx == 3) {
+			page = Page.SETTINGS;
+		} else {
+			page = Page.ACCOUNTS;
+			AccountSwitcher.refresh();
+		}
+	}
+
+	private static int enabledCount() {
+		int n = 0;
+		for (Module m : ModuleManager.get().all()) if (m.isEnabled()) n++;
+		return n;
+	}
+
+	/** Page title and a muted line under it. Returns the x where the title block ends. */
+	private int drawTitle(Gfx g, int x, int y, String title, String subtitle, int maxW) {
+		UIFont.HEADER.draw(g, UIFont.HEADER.trim(title, maxW), x, y, Theme.TEXT);
+		if (subtitle != null) UIFont.SMALL.draw(g, UIFont.SMALL.trim(subtitle, maxW), x, y + Ui.px(34), Theme.TEXT_MUTED);
+		return x + Math.min(maxW, UIFont.HEADER.width(title));
+	}
+
+	/** The close button in the window's top-right corner. Returns its left edge. */
+	private int drawClose(Gfx g, int right, int y, double mx, double my) {
+		int s = Ui.px(40), x = right - s;
+		boolean hover = Widgets.inside(mx, my, x, y, s, s);
+		Widgets.iconButton(g, x, y, s, Icon.CLOSE, hover, false, 0);
+		hit(x, y, s, s, false, this::close, null);
+		return x;
+	}
+
+	private void drawModsPage(Gfx g, int x, int top, int w, int bottom, double mx, double my) {
 		float v = view.get();
 		boolean inSettings = v > 0.5f && shown != null;
-		int tabRight = drawTab(g, px, py, inSettings ? shown.name : "Mod Menu", inSettings, mx, my);
-		int headMid = py + Ui.px(32);
-
-		int contentX = px + Ui.px(18), contentY = py + Ui.px(82), contentW = pw - Ui.px(36), contentBottom = py + ph - Ui.px(18);
+		int right = x + w;
+		int bs = Ui.px(40), gap = Ui.px(8);
+		int left = drawClose(g, right, top, mx, my) - gap;
 
 		if (!inSettings) {
-			// Filter pills.
-			int x = tabRight + Ui.px(16);
-			int pillH = Ui.px(32);
-			Category[] cats = Category.values();
-			for (int i = 0; i <= cats.length; i++) {
-				String label = i == 0 ? "All" : cats[i - 1].label;
-				Category c = i == 0 ? null : cats[i - 1];
-				int lw = UIFont.SMALL.width(label) + Ui.px(28);
-				boolean active = search.isEmpty() && c == category;
-				boolean hover = Widgets.inside(mx, my, x, headMid - pillH / 2, lw, pillH);
-				if (active) RenderUtils.roundedRect(g, x, headMid - pillH / 2, lw, pillH, Ui.px(Theme.RADIUS), 0xFFF2F2F2);
-				else if (hover) RenderUtils.roundedRect(g, x, headMid - pillH / 2, lw, pillH, Ui.px(Theme.RADIUS), Theme.HOVER);
-				UIFont.SMALL.drawCentered(g, label, x + lw / 2, headMid - UIFont.SMALL.size() / 2,
-						active ? 0xFF141416 : hover ? Theme.TEXT : Theme.TEXT_MUTED);
-				final Category cat = c;
-				hit(x, headMid - pillH / 2, lw, pillH, false, () -> {
-					category = cat;
-					search = "";
-					searchFocused = false;
-					scrollTarget = 0;
+			// Header actions: HUD editor, grid / list, favourites; then the search box.
+			Icon[] icons = {Icon.MOVE, listView ? Icon.GRID : Icon.LIST, favoritesOnly ? Icon.HEART_FILLED : Icon.HEART};
+			for (int i = 0; i < icons.length; i++) {
+				int bx = left - bs;
+				boolean hover = Widgets.inside(mx, my, bx, top, bs, bs);
+				Widgets.iconButton(g, bx, top, bs, icons[i], hover, i == 2 && favoritesOnly, Theme.ACCENT);
+				final int idx = i;
+				hit(bx, top, bs, bs, false, () -> {
+					if (idx == 0) {
+						TatnatClient.game().openScreen(new HudEditorScreen(this));
+					} else if (idx == 1) {
+						listView = !listView;
+					} else {
+						favoritesOnly = !favoritesOnly;
+						scrollTarget = 0;
+					}
 				}, null);
-				x += lw + Ui.px(4);
+				left = bx - gap;
 			}
-			drawSearch(g, px + pw - Ui.px(18) - Ui.px(230), headMid - Ui.px(21), Ui.px(230), Ui.px(42), mx, my);
+			int sw = Ui.px(250);
+			drawSearch(g, left - sw - Ui.px(4), top, sw, bs, mx, my);
+			int n = ModuleManager.get().all().size();
+			drawTitle(g, x, top - Ui.px(2), favoritesOnly ? "Favourites" : "Mods", enabledCount() + " of " + n + " enabled", left - sw - x - Ui.px(24));
+			drawCategories(g, x, top + Ui.px(66), w, mx, my);
 		} else {
-			UIFont.SMALL.drawMid(g, UIFont.SMALL.trim(shown.description, px + pw - tabRight - Ui.px(170)), tabRight + Ui.px(18), headMid, Theme.TEXT_MUTED);
-			int rw = Ui.px(120), rh = Ui.px(38);
-			int rx = px + pw - Ui.px(18) - rw, ry = headMid - rh / 2;
-			Widgets.button(g, rx, ry, rw, rh, "Reset", UIFont.BODY, Theme.PANEL, Theme.TEXT, Widgets.inside(mx, my, rx, ry, rw, rh));
-			hit(rx, ry, rw, rh, false, () -> {
+			// Back button, the mod's icon, name and description; Reset on the right.
+			boolean bHover = Widgets.inside(mx, my, x, top, bs, bs);
+			Widgets.iconButton(g, x, top, bs, Icon.BACK, bHover, false, 0);
+			hit(x, top, bs, bs, false, this::closeSettings, null);
+			int ix = x + bs + Ui.px(14);
+			int tile = Ui.px(44);
+			RenderUtils.roundedRect(g, ix, top - Ui.px(2), tile, tile, Ui.px(Theme.RADIUS_LARGE), shown.isEnabled() ? Theme.ACCENT_SOFT : 0x10FFFFFF);
+			Icons.draw(g, shown.icon(), ix + tile / 2, top - Ui.px(2) + tile / 2, Ui.px(26), shown.isEnabled() ? Theme.ICON : Theme.ICON_OFF);
+			int rw = Ui.px(110);
+			int rx = left - rw;
+			Widgets.button(g, rx, top, rw, bs, "Reset", UIFont.BODY, 0xFF22242A, Theme.TEXT, Widgets.inside(mx, my, rx, top, rw, bs));
+			hit(rx, top, rw, bs, false, () -> {
 				Module m = shown;
 				m.resetToDefaults();
 				openSettings(m);
 				view.snap(1f);
 			}, null);
+			int tx = ix + tile + Ui.px(16);
+			drawTitle(g, tx, top - Ui.px(2), shown.name, shown.available() ? shown.description : "Not available on this Minecraft version", rx - tx - Ui.px(20));
 		}
 
+		int contentY = top + (inSettings ? Ui.px(68) : Ui.px(124));
 		// Cross-fade + slide between the grid and the settings page.
 		float prev = RenderUtils.alpha;
-		clip(g, contentX, contentY, contentW, contentBottom - contentY);
+		clip(g, x - Ui.px(8), contentY, w + Ui.px(16), bottom - contentY);
 		if (v < 0.999f) {
 			RenderUtils.alpha = prev * (1 - v);
-			drawModList(g, contentX - Math.round(v * Ui.px(30)), contentY, contentW, contentBottom, mx, my, v < 0.5f);
+			drawModList(g, x - Math.round(v * Ui.px(30)), contentY, w, bottom, mx, my, v < 0.5f);
 		}
 		if (v > 0.001f && shown != null) {
 			RenderUtils.alpha = prev * v;
-			drawSettingsList(g, contentX + Math.round((1 - v) * Ui.px(30)), contentY, contentW, contentBottom, mx, my);
+			drawSettingsList(g, x + Math.round((1 - v) * Ui.px(30)), contentY, w, bottom, mx, my);
 		}
 		g.endScissor();
 		RenderUtils.alpha = prev;
+		// Fade the list out under the header and at the bottom edge.
+		RenderUtils.verticalGradient(g, x - Ui.px(8), bottom - Ui.px(18), x + w + Ui.px(8), bottom, 0x000D0E11, Colors.withAlpha(Theme.WINDOW_BOTTOM, 0xF0));
+	}
+
+	/** Segmented category control with a highlight that slides to the selected one. */
+	private void drawCategories(Gfx g, int x, int y, int maxW, double mx, double my) {
+		int h = Ui.px(38), pad = Ui.px(4);
+		Category[] cats = Category.values();
+		int[] counts = new int[cats.length];
+		for (Module m : ModuleManager.get().all()) counts[m.category.ordinal()]++;
+		int n = cats.length + 1;
+		String[] labels = new String[n], nums = new String[n];
+		int[] widths = new int[n];
+		int total = pad * 2;
+		for (int i = 0; i < n; i++) {
+			labels[i] = i == 0 ? "All" : cats[i - 1].label;
+			nums[i] = String.valueOf(i == 0 ? ModuleManager.get().all().size() : counts[i - 1]);
+			widths[i] = UIFont.SMALL.width(labels[i]) + Ui.px(8) + UIFont.TINY.width(nums[i]) + Ui.px(32);
+			total += widths[i];
+		}
+		RenderUtils.roundedRect(g, x, y, Math.min(maxW, total), h, h / 2, 0x0FFFFFFF);
+		RenderUtils.roundedOutline(g, x, y, Math.min(maxW, total), h, h / 2, 1, 0x10FFFFFF);
+
+		int activeIdx = search.isEmpty() ? (category == null ? 0 : category.ordinal() + 1) : -1;
+		int px = x + pad;
+		int ax = px, aw = widths[0];
+		for (int i = 0; i < n; i++) {
+			if (i == activeIdx) {
+				ax = px;
+				aw = widths[i];
+			}
+			px += widths[i];
+		}
+		if (activeIdx >= 0) {
+			pillX = glide(pillX, ax);
+			pillW = pillW <= 0 ? aw : glide(pillW, aw);
+			int ih = h - pad * 2;
+			RenderUtils.surface(g, Math.round(pillX), y + pad, Math.round(pillW), ih, ih / 2, Theme.ACCENT_LIGHT, Theme.ACCENT, 0x40FFFFFF);
+		}
+		px = x + pad;
+		for (int i = 0; i < n; i++) {
+			int iw = widths[i], ih = h - pad * 2;
+			boolean on = i == activeIdx;
+			boolean hover = !on && Widgets.inside(mx, my, px, y + pad, iw, ih);
+			if (hover) RenderUtils.roundedRect(g, px, y + pad, iw, ih, ih / 2, 0x0DFFFFFF);
+			int col = on ? 0xFFFFFFFF : hover ? Theme.TEXT : Theme.TEXT_MUTED;
+			int lx = px + Ui.px(16);
+			UIFont.SMALL.drawMid(g, labels[i], lx, y + h / 2, col);
+			UIFont.TINY.drawMid(g, nums[i], lx + UIFont.SMALL.width(labels[i]) + Ui.px(8), y + h / 2, on ? 0xC0FFFFFF : 0xFF6C6E76);
+			final Category cat = i == 0 ? null : cats[i - 1];
+			hit(px, y + pad, iw, ih, false, () -> {
+				category = cat;
+				search = "";
+				searchFocused = false;
+				scrollTarget = 0;
+			}, null);
+			px += iw;
+		}
 	}
 
 	private void drawSearch(Gfx g, int x, int y, int w, int h, double mx, double my) {
 		boolean hover = Widgets.inside(mx, my, x, y, w, h);
-		int b = Math.max(1, Ui.px(1));
-		RenderUtils.roundedRect(g, x - b, y - b, w + b * 2, h + b * 2, Ui.px(Theme.RADIUS), searchFocused ? Theme.ACCENT : Theme.DIVIDER);
-		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), hover && !searchFocused ? Theme.HOVER : Theme.PANEL);
-		Icons.draw(g, Icon.SEARCH, x + Ui.px(20), y + h / 2, Ui.px(16), Theme.TEXT_MUTED);
-		int tx = x + Ui.px(38);
+		int r = h / 2;
+		if (searchFocused) RenderUtils.glow(g, x + w / 2, y + h / 2, w / 2 + Ui.px(10), 0x20E5323E, 5);
+		RenderUtils.surface(g, x, y, w, h, r, hover || searchFocused ? 0xFF22242B : 0xFF1B1D22, 0xFF16171B,
+				searchFocused ? Colors.withAlpha(Theme.ACCENT, 0xB0) : hover ? Theme.BORDER_HOVER : Theme.BORDER);
+		Icons.draw(g, Icon.SEARCH, x + Ui.px(22), y + h / 2, Ui.px(16), searchFocused ? Theme.ACCENT : Theme.TEXT_MUTED);
+		int tx = x + Ui.px(42);
 		if (search.isEmpty() && !searchFocused) {
-			UIFont.SMALL.drawMid(g, "Search Mods", tx, y + h / 2, Theme.TEXT_MUTED);
+			UIFont.SMALL.drawMid(g, "Search mods...", tx, y + h / 2, 0xFF7A7C84);
 		} else {
 			String s = search;
-			while (UIFont.SMALL.width(s) > w - Ui.px(50) && !s.isEmpty()) s = s.substring(1);
+			while (UIFont.SMALL.width(s) > w - Ui.px(60) && !s.isEmpty()) s = s.substring(1);
 			UIFont.SMALL.drawMid(g, s, tx, y + h / 2, Theme.TEXT);
 			if (searchFocused && System.currentTimeMillis() / 500 % 2 == 0) {
 				int cx = tx + UIFont.SMALL.width(s) + 1;
@@ -444,67 +518,115 @@ public class ClickGuiScreen implements UiScreen {
 		});
 	}
 
+	/** 0 -> 1 as card {@code i} fades in after the menu opens (a quick cascade). */
+	private float appear(int i) {
+		if (!Performance.animations()) return 1f;
+		long t = System.currentTimeMillis() - openedAt - Math.min(i, 14) * 22L;
+		float k = Math.max(0f, Math.min(1f, t / 260f));
+		return 1 - (1 - k) * (1 - k) * (1 - k);
+	}
+
 	private void drawModList(Gfx g, int x, int y, int w, int bottom, double mx, double my, boolean interactive) {
 		List<Module> mods = visibleModules();
-		int gap = Ui.px(14);
+		int gap = Ui.px(16);
 		int cols = listView ? 1 : 3;
-		int cardW = (w - gap * (cols - 1) - Ui.px(10)) / cols;
-		int cardH = listView ? Ui.px(78) : Ui.px(190);
+		int cardW = (w - gap * (cols - 1) - Ui.px(12)) / cols;
+		int cardH = listView ? Ui.px(76) : Ui.px(188);
 		int rows = (mods.size() + cols - 1) / cols;
-		contentH = Math.max(0, rows * (cardH + gap) - gap);
+		int pad = Ui.px(4);
+		contentH = Math.max(0, rows * (cardH + gap) - gap + pad * 2);
 		scrollTarget = clampScroll(scrollTarget, contentH, bottom - y);
 		scroll += (scrollTarget - scroll) * scrollEase;
 		if (Math.abs(scrollTarget - scroll) < 0.5) scroll = scrollTarget;
 
 		boolean inArea = Widgets.inside(mx, my, clipX, clipY, clipW, clipH);
+		float base = RenderUtils.alpha;
 		for (int i = 0; i < mods.size(); i++) {
 			int cx = x + (i % cols) * (cardW + gap);
-			int cy = y + (i / cols) * (cardH + gap) - (int) Math.round(scroll);
+			int cy = y + pad + (i / cols) * (cardH + gap) - (int) Math.round(scroll);
 			if (cy + cardH < y || cy > bottom) continue;
+			float a = appear(i);
+			RenderUtils.alpha = base * a;
+			cy += Math.round((1 - a) * Ui.px(16));
 			Module m = mods.get(i);
 			if (listView) drawRow(g, m, cx, cy, cardW, cardH, mx, my, inArea && interactive);
 			else drawCard(g, m, cx, cy, cardW, cardH, mx, my, inArea && interactive);
 		}
+		RenderUtils.alpha = base;
 		if (mods.isEmpty()) {
-			String msg = favoritesOnly ? "No favourites yet: click the heart on a mod" : "No mods match \"" + search + "\"";
-			UIFont.BODY.drawCentered(g, msg, x + w / 2, y + Ui.px(40), Theme.TEXT_MUTED);
+			int my0 = y + Ui.px(90);
+			Icons.draw(g, favoritesOnly ? Icon.HEART : Icon.SEARCH, x + w / 2, my0, Ui.px(48), 0xFF4A4C54);
+			String msg = favoritesOnly ? "No favourites yet" : "No mods match \"" + search + "\"";
+			String sub = favoritesOnly ? "Click the heart on a mod to pin it here" : "Try a shorter or different word";
+			UIFont.TITLE.drawCentered(g, msg, x + w / 2, my0 + Ui.px(44), Theme.TEXT);
+			UIFont.SMALL.drawCentered(g, sub, x + w / 2, my0 + Ui.px(72), Theme.TEXT_MUTED);
 		}
 		drawScrollbar(g, x + w - Ui.px(4), y, bottom - y, scroll, contentH);
+	}
+
+	/** Small rounded label (the card's category). */
+	private static int chip(Gfx g, String text, int x, int y, int bg, int fg) {
+		int h = Ui.px(20), w = UIFont.TINY.width(text) + Ui.px(14);
+		RenderUtils.roundedRect(g, x, y, w, h, h / 2, bg);
+		UIFont.TINY.drawCentered(g, text, x + w / 2, y + (h - UIFont.TINY.size()) / 2, fg);
+		return w;
 	}
 
 	private void drawCard(Gfx g, Module m, int x, int y, int w, int h, double mx, double my, boolean interactive) {
 		boolean hover = interactive && Widgets.inside(mx, my, x, y, w, h);
 		Animation ha = hoverAnim(m);
 		ha.animateTo(hover && Performance.hoverEffects() ? 1f : 0f);
-		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.lerp(Theme.PANEL, Theme.HOVER, ha.get()));
+		float hv = ha.get();
+		Animation ta = toggleAnim(m);
+		ta.animateTo(m.isEnabled() ? 1f : 0f);
+		float on = ta.get();
+		y -= Math.round(hv * Ui.px(3)); // lift on hover
+		int r = Ui.px(Theme.RADIUS_CARD);
 
-		// Big line-art icon, dimmed while the mod is off.
-		int iconCol = m.isEnabled() ? Theme.ICON : Theme.ICON_OFF;
-		Icons.draw(g, m.icon(), x + w / 2, y + Ui.px(80), Ui.px(82), iconCol);
+		if (hv > 0.01f) RenderUtils.shadow(g, x, y, w, h, r, 6, 0.35f * hv);
+		int border = Colors.lerp(Colors.lerp(Theme.BORDER, Theme.BORDER_HOVER, hv), 0x80E5323E, on * 0.75f);
+		// Enabled: the card is lit red from the top, with a glow behind the icon.
+		RenderUtils.surface(g, x, y, w, h, r, Colors.lerp(Colors.lerp(Theme.CARD_TOP, Theme.CARD_HOVER_TOP, hv), Theme.CARD_ON_TOP, on * 0.9f),
+				Colors.lerp(Colors.lerp(Theme.CARD_BOTTOM, Theme.CARD_HOVER_BOTTOM, hv), Theme.CARD_ON_BOTTOM, on * 0.6f), border);
+		int iconY = y + Ui.px(74);
+		if (on > 0.01f) RenderUtils.glow(g, x + w / 2, iconY, Ui.px(58), Colors.fade(0x50E5323E, on), 8);
+		int iconCol = Colors.lerp(Theme.ICON_OFF, Theme.ICON, on);
+		if (!m.available()) iconCol = 0xFF3A3C42;
+		Icons.draw(g, m.icon(), x + w / 2, iconY, Ui.px(62), iconCol);
 
-		// Favourite heart, top-right.
-		int hs = Ui.px(20), hx = x + w - Ui.px(26), hy = y + Ui.px(24);
+		chip(g, m.category.label.toUpperCase(Locale.ROOT), x + Ui.px(14), y + Ui.px(14), 0x12FFFFFF, 0xFF8A8C94);
+
+		// Favourite heart, top-right: always shown when set, otherwise only on hover.
+		int hs = Ui.px(18), hx = x + w - Ui.px(26), hy = y + Ui.px(24);
 		boolean heartHover = hover && Widgets.inside(mx, my, hx - hs, hy - hs, hs * 2, hs * 2);
-		Icons.draw(g, m.isFavorite() ? Icon.HEART_FILLED : Icon.HEART, hx, hy, hs,
-				m.isFavorite() ? Theme.ACCENT : heartHover ? 0xFFFFFFFF : 0xFF77777C);
+		if (m.isFavorite() || hv > 0.01f) {
+			float prev = RenderUtils.alpha;
+			if (!m.isFavorite()) RenderUtils.alpha = prev * hv;
+			Icons.draw(g, m.isFavorite() ? Icon.HEART_FILLED : Icon.HEART, hx, hy, hs,
+					m.isFavorite() ? Theme.ACCENT : heartHover ? 0xFFFFFFFF : 0xFF8A8C94);
+			RenderUtils.alpha = prev;
+		}
 
-		// Name + switch along the bottom.
-		int mid = y + h - Ui.px(30);
+		// Divider, then name + status on the left and the switch on the right.
+		RenderUtils.rect(g, x + Ui.px(16), y + h - Ui.px(66), x + w - Ui.px(16), y + h - Ui.px(65), 0x0DFFFFFF);
+		int mid = y + h - Ui.px(33);
 		int tw = Widgets.toggleW();
+		int textW = w - tw - Ui.px(48);
+		UIFont.TITLE.draw(g, UIFont.TITLE.trim(m.name, textW), x + Ui.px(18), mid - UIFont.TITLE.size() + Ui.px(1), m.available() ? Theme.TEXT : Theme.TEXT_MUTED);
+		int sy = mid + Ui.px(5);
 		if (!m.available()) {
-			// This Minecraft version can't run it: greyed out, no switch.
-			UIFont.TITLE.drawMid(g, UIFont.TITLE.trim(m.name, w - Ui.px(32)), x + Ui.px(16), mid - Ui.px(8), Theme.TEXT_MUTED);
-			UIFont.SMALL.drawMid(g, "Not on this version", x + Ui.px(16), mid + Ui.px(12), 0xFF6E6E73);
+			UIFont.SMALL.draw(g, "Not on this version", x + Ui.px(18), sy, 0xFF6E6E73);
 			if (interactive) {
 				hit(x, y, w, h, true, () -> openSettings(m), null);
 				hit(hx - hs, hy - hs, hs * 2, hs * 2, true, () -> m.setFavorite(!m.isFavorite()), null);
 			}
 			return;
 		}
-		UIFont.TITLE.drawMid(g, UIFont.TITLE.trim(m.name, w - tw - Ui.px(44)), x + Ui.px(16), mid, Theme.TEXT);
-		Animation ta = toggleAnim(m);
-		ta.animateTo(m.isEnabled() ? 1f : 0f);
-		int tx = x + w - Ui.px(16) - tw, ty = mid - Widgets.toggleH() / 2;
+		int dot = Math.max(2, Ui.px(4));
+		RenderUtils.circle(g, x + Ui.px(18) + dot, sy + UIFont.SMALL.size() / 2, dot, m.isEnabled() ? Theme.ACCENT : 0xFF55575F);
+		UIFont.SMALL.draw(g, m.isEnabled() ? "Enabled" : "Disabled", x + Ui.px(18) + dot * 2 + Ui.px(8), sy, m.isEnabled() ? 0xFFF07B83 : 0xFF7A7C84);
+
+		int tx = x + w - Ui.px(18) - tw, ty = mid - Widgets.toggleH() / 2;
 		Widgets.toggle(g, tx, ty, ta, hover && Widgets.inside(mx, my, tx - Ui.px(6), ty - Ui.px(8), tw + Ui.px(12), Widgets.toggleH() + Ui.px(16)));
 
 		if (!interactive) return;
@@ -518,25 +640,39 @@ public class ClickGuiScreen implements UiScreen {
 		boolean hover = interactive && Widgets.inside(mx, my, x, y, w, h);
 		Animation ha = hoverAnim(m);
 		ha.animateTo(hover && Performance.hoverEffects() ? 1f : 0f);
-		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.lerp(Theme.PANEL, Theme.HOVER, ha.get()));
-		Icons.draw(g, m.icon(), x + Ui.px(42), y + h / 2, Ui.px(40), m.isEnabled() ? Theme.ICON : Theme.ICON_OFF);
+		float hv = ha.get();
+		Animation ta = toggleAnim(m);
+		ta.animateTo(m.isEnabled() ? 1f : 0f);
+		float on = ta.get();
+		int r = Ui.px(Theme.RADIUS_CARD);
+		int border = Colors.lerp(Colors.lerp(Theme.BORDER, Theme.BORDER_HOVER, hv), 0x80E5323E, on * 0.6f);
+		RenderUtils.surface(g, x, y, w, h, r, Colors.lerp(Colors.lerp(Theme.CARD_TOP, Theme.CARD_HOVER_TOP, hv), Theme.CARD_ON_TOP, on * 0.6f),
+				Colors.lerp(Colors.lerp(Theme.CARD_BOTTOM, Theme.CARD_HOVER_BOTTOM, hv), Theme.CARD_ON_BOTTOM, on * 0.4f), border);
+
+		// Icon tile.
+		int tile = Ui.px(48), tlx = x + Ui.px(14), tly = y + (h - tile) / 2;
+		if (on > 0.01f) RenderUtils.glow(g, tlx + tile / 2, tly + tile / 2, Ui.px(34), Colors.fade(0x40E5323E, on), 6);
+		RenderUtils.roundedRect(g, tlx, tly, tile, tile, Ui.px(Theme.RADIUS_LARGE), Colors.lerp(0x10FFFFFF, Theme.ACCENT_SOFT, on));
+		Icons.draw(g, m.icon(), tlx + tile / 2, tly + tile / 2, Ui.px(28), m.available() ? Colors.lerp(Theme.ICON_OFF, Theme.ICON, on) : 0xFF3A3C42);
 
 		int tw = Widgets.toggleW();
-		int tx = x + w - Ui.px(18) - tw, ty = y + (h - Widgets.toggleH()) / 2;
-		int hs = Ui.px(20), hx = tx - Ui.px(30), hy = y + h / 2;
-		int textW = hx - hs - (x + Ui.px(80)) - Ui.px(10);
-		UIFont.TITLE.draw(g, UIFont.TITLE.trim(m.name, textW), x + Ui.px(80), y + h / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
-		UIFont.SMALL.draw(g, UIFont.SMALL.trim(m.available() ? m.description : "Not available on this Minecraft version", textW),
-				x + Ui.px(80), y + h / 2 + Ui.px(4), Theme.TEXT_MUTED);
+		int tx = x + w - Ui.px(20) - tw, ty = y + (h - Widgets.toggleH()) / 2;
+		int hs = Ui.px(18), hx = tx - Ui.px(34), hy = y + h / 2;
+		int textX = tlx + tile + Ui.px(16);
+		String cat = m.category.label.toUpperCase(Locale.ROOT);
+		int chipW = UIFont.TINY.width(cat) + Ui.px(14);
+		int textW = hx - hs - textX - chipW - Ui.px(28);
+		UIFont.TITLE.draw(g, UIFont.TITLE.trim(m.name, textW), textX, y + h / 2 - UIFont.TITLE.size() + Ui.px(1), m.available() ? Theme.TEXT : Theme.TEXT_MUTED);
+		UIFont.SMALL.draw(g, UIFont.SMALL.trim(m.available() ? m.description : "Not available on this Minecraft version", textW + chipW),
+				textX, y + h / 2 + Ui.px(5), Theme.TEXT_MUTED);
+		chip(g, cat, hx - hs - Ui.px(14) - chipW, y + (h - Ui.px(20)) / 2, 0x12FFFFFF, 0xFF8A8C94);
 		boolean heartHover = hover && Widgets.inside(mx, my, hx - hs, hy - hs, hs * 2, hs * 2);
 		Icons.draw(g, m.isFavorite() ? Icon.HEART_FILLED : Icon.HEART, hx, hy, hs,
-				m.isFavorite() ? Theme.ACCENT : heartHover ? 0xFFFFFFFF : 0xFF77777C);
+				m.isFavorite() ? Theme.ACCENT : heartHover ? 0xFFFFFFFF : 0xFF6C6E76);
 		if (!m.available()) {
 			if (interactive) hit(hx - hs, hy - hs, hs * 2, hs * 2, true, () -> m.setFavorite(!m.isFavorite()), null);
 			return;
 		}
-		Animation ta = toggleAnim(m);
-		ta.animateTo(m.isEnabled() ? 1f : 0f);
 		Widgets.toggle(g, tx, ty, ta, hover && Widgets.inside(mx, my, tx - Ui.px(6), y, tw + Ui.px(24), h));
 
 		if (!interactive) return;
@@ -555,7 +691,7 @@ public class ClickGuiScreen implements UiScreen {
 
 		boolean inArea = Widgets.inside(mx, my, clipX, clipY, clipW, clipH);
 		int cy = y - (int) Math.round(setScroll);
-		int rowW = w - Ui.px(12);
+		int rowW = w - Ui.px(14);
 		for (SettingComponent<?> c : components) {
 			if (!c.visible()) continue;
 			int ch = c.height();
@@ -580,37 +716,43 @@ public class ClickGuiScreen implements UiScreen {
 		openPerformance();
 	}
 
-	private void drawPerformancePage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
-		int tabRight = drawTab(g, px, py, "Performance", false, mx, my);
-		UIFont.SMALL.drawMid(g, "Turn effects off to make the menus lighter on slow PCs", tabRight + Ui.px(18), py + Ui.px(32), Theme.TEXT_MUTED);
-		int contentX = px + Ui.px(18), contentY = py + Ui.px(82), contentW = pw - Ui.px(36), contentBottom = py + ph - Ui.px(18);
-		clip(g, contentX, contentY, contentW, contentBottom - contentY);
-		drawSettingsList(g, contentX, contentY, contentW, contentBottom, mx, my);
+	private void drawPerformancePage(Gfx g, int x, int top, int w, int bottom, double mx, double my) {
+		int left = drawClose(g, x + w, top, mx, my);
+		drawTitle(g, x, top - Ui.px(2), "Performance", "Turn effects off to make the menus lighter on slow PCs", left - x - Ui.px(20));
+		int contentY = top + Ui.px(68);
+		clip(g, x - Ui.px(8), contentY, w + Ui.px(16), bottom - contentY);
+		drawSettingsList(g, x, contentY, w, bottom, mx, my);
 		g.endScissor();
 	}
 
-	/** Sidebar "Settings": about the client, links and reset buttons. */
+	/** A plain information card (surface) used by the Settings and Accounts pages. */
+	private static void card(Gfx g, int x, int y, int w, int h, boolean hover) {
+		RenderUtils.surface(g, x, y, w, h, Ui.px(Theme.RADIUS_CARD), hover ? Theme.CARD_HOVER_TOP : Theme.CARD_TOP,
+				hover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, hover ? Theme.BORDER_HOVER : Theme.BORDER);
+	}
+
 	/** Switch between the launcher's accounts without restarting the game. */
-	private void drawAccountsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
-		drawTab(g, px, py, "Accounts", false, mx, my);
-		int x = px + Ui.px(18), w = pw - Ui.px(36);
-		int y = py + Ui.px(86);
+	private void drawAccountsPage(Gfx g, int x, int top, int w, int bottom, double mx, double my) {
+		int left = drawClose(g, x + w, top, mx, my);
+		drawTitle(g, x, top - Ui.px(2), "Accounts", "Switch accounts without restarting the game", left - x - Ui.px(20));
+		int y = top + Ui.px(72);
 
 		// Who you are now.
-		int ch = Ui.px(96);
-		RenderUtils.roundedRect(g, x, y, w, ch, Ui.px(Theme.RADIUS), Theme.PANEL);
+		int ch = Ui.px(104);
+		RenderUtils.surface(g, x, y, w, ch, Ui.px(Theme.RADIUS_CARD), Theme.CARD_ON_TOP, Theme.CARD_BOTTOM, 0x50E5323E);
 		int logo = Math.max(32, Ui.px(56) / 8 * 8);
-		g.logo(x + Ui.px(20), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
-		int tx = x + Ui.px(20) + logo + Ui.px(20);
-		UIFont.SMALL.draw(g, "PLAYING AS", tx, y + Ui.px(22), Theme.TEXT_MUTED);
+		RenderUtils.glow(g, x + Ui.px(24) + logo / 2, y + ch / 2, logo, 0x40E5323E, 6);
+		g.logo(x + Ui.px(24), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
+		int tx = x + Ui.px(24) + logo + Ui.px(22);
+		UIFont.TINY.draw(g, "PLAYING AS", tx, y + Ui.px(26), Theme.ACCENT);
 		UIFont.HUGE.draw(g, AccountSwitcher.currentName(), tx, y + Ui.px(42), Theme.TEXT);
 		if (AccountSwitcher.available()) {
-			int rw = Ui.px(130), rh = Ui.px(40), rx = x + w - rw - Ui.px(20), ry = y + (ch - rh) / 2;
+			int rw = Ui.px(130), rh = Ui.px(40), rx = x + w - rw - Ui.px(24), ry = y + (ch - rh) / 2;
 			boolean rHover = Widgets.inside(mx, my, rx, ry, rw, rh);
-			Widgets.button(g, rx, ry, rw, rh, AccountSwitcher.loading() ? "Loading…" : "Refresh", UIFont.BODY, Theme.BACKGROUND, Theme.TEXT, rHover);
+			Widgets.button(g, rx, ry, rw, rh, AccountSwitcher.loading() ? "Loading…" : "Refresh", UIFont.BODY, 0xFF22242A, Theme.TEXT, rHover);
 			hit(rx, ry, rw, rh, false, AccountSwitcher::refresh, null);
 		}
-		y += ch + Ui.px(16);
+		y += ch + Ui.px(18);
 
 		if (!AccountSwitcher.available()) {
 			UIFont.BODY.draw(g, "Start the game from the tatnat launcher to switch accounts here.", x, y, Theme.TEXT_MUTED);
@@ -628,86 +770,93 @@ public class ClickGuiScreen implements UiScreen {
 			UIFont.BODY.draw(g, AccountSwitcher.loading() ? "Loading accounts…" : "No accounts in the launcher yet.", x, y, Theme.TEXT_MUTED);
 			return;
 		}
-		int rh = Ui.px(60), bottom = py + ph - Ui.px(18);
+		int rh = Ui.px(64);
 		for (AccountSwitcher.Account a : list) {
 			if (y + rh > bottom) break;
 			boolean isCurrent = a.name.equalsIgnoreCase(current);
 			boolean hover = !isCurrent && Widgets.inside(mx, my, x, y, w, rh);
-			RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), hover ? Theme.HOVER : Theme.PANEL);
-			Icons.draw(g, Icon.USER, x + Ui.px(30), y + rh / 2, Ui.px(26), isCurrent ? Theme.ACCENT : Theme.TEXT_MUTED);
-			UIFont.TITLE.draw(g, a.name, x + Ui.px(58), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			card(g, x, y, w, rh, hover);
+			int tile = Ui.px(40);
+			RenderUtils.roundedRect(g, x + Ui.px(14), y + (rh - tile) / 2, tile, tile, Ui.px(Theme.RADIUS_LARGE), isCurrent ? Theme.ACCENT_SOFT : 0x10FFFFFF);
+			Icons.draw(g, Icon.USER, x + Ui.px(14) + tile / 2, y + rh / 2, Ui.px(22), isCurrent ? Theme.ACCENT : Theme.TEXT_MUTED);
+			UIFont.TITLE.draw(g, a.name, x + Ui.px(68), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
 			UIFont.SMALL.draw(g, a.microsoft() ? "Microsoft account" : "Offline account (singleplayer and offline servers)",
-					x + Ui.px(58), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
-			int bw = Ui.px(140), bh = Ui.px(38), bx = x + w - bw - Ui.px(14), by = y + (rh - bh) / 2;
+					x + Ui.px(68), y + rh / 2 + Ui.px(5), Theme.TEXT_MUTED);
+			int bw = Ui.px(130), bh = Ui.px(38), bx = x + w - bw - Ui.px(14), by = y + (rh - bh) / 2;
 			if (isCurrent) {
-				UIFont.BODY.drawRight(g, "In use", x + w - Ui.px(24), y + rh / 2 - UIFont.BODY.size() / 2, Theme.ACCENT);
+				chip(g, "IN USE", x + w - Ui.px(24) - UIFont.TINY.width("IN USE") - Ui.px(14), y + (rh - Ui.px(20)) / 2, Theme.ACCENT_SOFT, 0xFFF07B83);
 			} else {
 				boolean bHover = Widgets.inside(mx, my, bx, by, bw, bh);
 				boolean busy = AccountSwitcher.switching();
-				Widgets.button(g, bx, by, bw, bh, busy ? "…" : "Switch", UIFont.BODY,
-						bHover && !busy ? Colors.shade(Theme.ACCENT, 1.15f) : Theme.ACCENT, 0xFFFFFFFF, bHover);
+				Widgets.button(g, bx, by, bw, bh, busy ? "…" : "Switch", UIFont.BODY, Theme.ACCENT, 0xFFFFFFFF, bHover && !busy);
 				hit(x, y, w, rh, false, () -> AccountSwitcher.switchTo(a), null);
 			}
-			y += rh + Ui.px(8);
+			y += rh + Ui.px(10);
 		}
 		UIFont.SMALL.draw(g, "Switching keeps the game open. On a server, leave and rejoin to play there as the new account.",
 				x, Math.min(y + Ui.px(6), bottom - UIFont.SMALL.size()), Theme.TEXT_MUTED);
 	}
 
-	private void drawSettingsPage(Gfx g, int px, int py, int pw, int ph, double mx, double my) {
-		drawTab(g, px, py, "Settings", false, mx, my);
-		int x = px + Ui.px(18), w = pw - Ui.px(36);
-		int y = py + Ui.px(86);
+	/** Sidebar "Settings": about the client, links and reset buttons. */
+	private void drawSettingsPage(Gfx g, int x, int top, int w, int bottom, double mx, double my) {
+		int left = drawClose(g, x + w, top, mx, my);
+		drawTitle(g, x, top - Ui.px(2), "Settings", "About the client, tips and resets", left - x - Ui.px(20));
+		int y = top + Ui.px(72);
 
 		// About card.
-		int ch = Ui.px(150);
-		RenderUtils.roundedRect(g, x, y, w, ch, Ui.px(Theme.RADIUS), Theme.PANEL);
-		int logo = Math.max(32, Ui.px(96) / 8 * 8);
+		int ch = Ui.px(140);
+		RenderUtils.surface(g, x, y, w, ch, Ui.px(Theme.RADIUS_CARD), Theme.CARD_ON_TOP, Theme.CARD_BOTTOM, 0x50E5323E);
+		int logo = Math.max(32, Ui.px(88) / 8 * 8);
+		RenderUtils.glow(g, x + Ui.px(28) + logo / 2, y + ch / 2, logo, 0x45E5323E, 7);
 		g.logo(x + Ui.px(28), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = x + Ui.px(28) + logo + Ui.px(26);
 		UIFont.HUGE.draw(g, "tatnat client", tx, y + Ui.px(30), Theme.TEXT);
-		UIFont.BODY.draw(g, "Version " + TatnatClient.VERSION + "   ·   made by tatnat", tx, y + Ui.px(84), Theme.TEXT_MUTED);
-		int yw = Ui.px(250), yh = Ui.px(40), yx = x + w - yw - Ui.px(24), yy = y + (ch - yh) / 2;
+		UIFont.BODY.draw(g, "Version " + TatnatClient.VERSION + "   ·   made by tatnat", tx, y + Ui.px(82), Theme.TEXT_MUTED);
+		int yw = Ui.px(240), yh = Ui.px(42), yx = x + w - yw - Ui.px(24), yy = y + (ch - yh) / 2;
 		boolean yHover = Widgets.inside(mx, my, yx, yy, yw, yh);
-		RenderUtils.roundedRect(g, yx, yy, yw, yh, Ui.px(Theme.RADIUS), yHover ? Colors.shade(Theme.ACCENT, 1.15f) : Theme.ACCENT);
-		Icons.draw(g, Icon.YOUTUBE, yx + Ui.px(26), yy + yh / 2, Ui.px(24), 0xFFFFFFFF);
-		UIFont.BODY.drawMid(g, "Subscribe: @tatnatmc", yx + Ui.px(48), yy + yh / 2, 0xFFFFFFFF);
+		if (yHover) RenderUtils.glow(g, yx + yw / 2, yy + yh / 2, yw / 2 + Ui.px(10), 0x30E5323E, 6);
+		RenderUtils.surface(g, yx, yy, yw, yh, yh / 2, yHover ? Colors.shade(Theme.ACCENT_LIGHT, 1.1f) : Theme.ACCENT_LIGHT, Theme.ACCENT, 0x40FFFFFF);
+		Icons.draw(g, Icon.YOUTUBE, yx + Ui.px(30), yy + yh / 2, Ui.px(24), 0xFFFFFFFF);
+		UIFont.BODY.drawMid(g, "Subscribe: @tatnatmc", yx + Ui.px(52), yy + yh / 2, 0xFFFFFFFF);
 		hit(yx, yy, yw, yh, false, () -> TatnatClient.game().openUrl(YOUTUBE), null);
-		y += ch + Ui.px(16);
+		y += ch + Ui.px(18);
 
-		// Info + actions.
+		// Tips.
 		String[][] rows = {
-				{"Open the menu", "Right Shift (or the chevron above the menu to close it)"},
-				{"Move your HUD", "HUD Editor in the sidebar: drag, scroll to resize, right-click for settings"},
-				{"Toggle a mod quickly", "Right-click its card, or give it a Toggle Key in its settings"},
+				{"Open the menu", "Right Shift"},
+				{"Move your HUD", "HUD Editor: drag, scroll to resize, right-click for settings"},
+				{"Toggle a mod quickly", "Right-click its card, or give it a Toggle Key"},
 		};
-		for (String[] r : rows) {
-			int rh = Ui.px(56);
-			RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), Theme.PANEL);
-			UIFont.TITLE.drawMid(g, r[0], x + Ui.px(18), y + rh / 2, Theme.TEXT);
-			UIFont.SMALL.drawRight(g, r[1], x + w - Ui.px(18), y + rh / 2 - UIFont.SMALL.size() / 2, Theme.TEXT_MUTED);
+		Icon[] tipIcons = {Icon.KEYBOARD, Icon.MOVE, Icon.MOUSE};
+		int rh = Ui.px(56);
+		for (int i = 0; i < rows.length; i++) {
+			card(g, x, y, w, rh, false);
+			Icons.draw(g, tipIcons[i], x + Ui.px(30), y + rh / 2, Ui.px(20), Theme.ACCENT);
+			UIFont.TITLE.drawMid(g, rows[i][0], x + Ui.px(56), y + rh / 2, Theme.TEXT);
+			UIFont.SMALL.drawRight(g, rows[i][1], x + w - Ui.px(20), y + rh / 2 - UIFont.SMALL.size() / 2, Theme.TEXT_MUTED);
 			y += rh + Ui.px(8);
 		}
 		// Client options with a switch.
 		{
-			int rh = Ui.px(56);
 			ClientOptions opt = ClientOptions.INSTANCE;
-			RenderUtils.roundedRect(g, x, y, w, rh, Ui.px(Theme.RADIUS), Theme.PANEL);
-			UIFont.TITLE.draw(g, opt.titleButton.name, x + Ui.px(18), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
-			UIFont.SMALL.draw(g, opt.titleButton.description, x + Ui.px(18), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
-			int sw = Widgets.toggleW(), sx = x + w - Ui.px(18) - sw, sy = y + (rh - Widgets.toggleH()) / 2;
+			boolean hover = Widgets.inside(mx, my, x, y, w, rh);
+			card(g, x, y, w, rh, hover);
+			Icons.draw(g, Icon.MONITOR, x + Ui.px(30), y + rh / 2, Ui.px(20), Theme.ACCENT);
+			UIFont.TITLE.draw(g, opt.titleButton.name, x + Ui.px(56), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			UIFont.SMALL.draw(g, opt.titleButton.description, x + Ui.px(56), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
+			int sw = Widgets.toggleW(), sx = x + w - Ui.px(20) - sw, sy = y + (rh - Widgets.toggleH()) / 2;
 			titleButtonAnim.animateTo(opt.titleButton.on() ? 1f : 0f);
-			Widgets.toggle(g, sx, sy, titleButtonAnim, Widgets.inside(mx, my, x, y, w, rh));
+			Widgets.toggle(g, sx, sy, titleButtonAnim, hover);
 			hit(x, y, w, rh, false, () -> {
 				opt.titleButton.set(!opt.titleButton.on());
 				TatnatClient.CONFIG.markDirty();
 			}, null);
 			y += rh + Ui.px(8);
 		}
-		y += Ui.px(8);
+		y += Ui.px(10);
 		int bw = Ui.px(220), bh = Ui.px(44);
 		boolean h1 = Widgets.inside(mx, my, x, y, bw, bh);
-		Widgets.button(g, x, y, bw, bh, "Reset HUD layout", UIFont.BODY, Theme.PANEL, Theme.TEXT, h1);
+		Widgets.button(g, x, y, bw, bh, "Reset HUD layout", UIFont.BODY, 0xFF22242A, Theme.TEXT, h1);
 		hit(x, y, bw, bh, false, () -> {
 			for (HudModule m : ModuleManager.get().hud()) {
 				m.resetPosition();
@@ -719,7 +868,7 @@ public class ClickGuiScreen implements UiScreen {
 		int bx2 = x + bw + Ui.px(12);
 		boolean h2 = Widgets.inside(mx, my, bx2, y, bw, bh);
 		Widgets.button(g, bx2, y, bw, bh, confirming ? "Click again to confirm" : "Reset all mods", UIFont.BODY,
-				confirming ? Theme.ACCENT : Theme.PANEL, Theme.TEXT, h2);
+				confirming ? Theme.ACCENT : 0xFF22242A, Theme.TEXT, h2);
 		hit(bx2, y, bw, bh, false, () -> {
 			if (System.currentTimeMillis() - confirmResetAll < 3000) {
 				for (Module m : ModuleManager.get().all()) m.resetToDefaults();
@@ -732,9 +881,11 @@ public class ClickGuiScreen implements UiScreen {
 
 	private void drawScrollbar(Gfx g, int x, int top, int height, double scroll, int content) {
 		if (content <= height) return;
-		int barH = Math.max(Ui.px(30), height * height / content);
+		int bw = Math.max(2, Ui.px(4));
+		RenderUtils.roundedRect(g, x, top, bw, height, bw / 2, 0x0AFFFFFF);
+		int barH = Math.max(Ui.px(36), height * height / content);
 		int barY = top + (int) Math.round((height - barH) * (scroll / (content - height)));
-		RenderUtils.roundedRect(g, x, barY, Math.max(2, Ui.px(4)), barH, Math.max(1, Ui.px(2)), 0x50FFFFFF);
+		RenderUtils.roundedRect(g, x, barY, bw, barH, bw / 2, 0x45FFFFFF);
 	}
 
 	private void clip(Gfx g, int x, int y, int w, int h) {

@@ -77,6 +77,29 @@ public final class DevAllCheck {
 		});
 		add(5, () -> TatnatClient.game().openScreen(new com.tatnat.client.ui.clickgui.ClickGuiScreen()));
 		add(25, () -> shot("allcheck-02-menu"));
+		add(2, () -> {
+			com.tatnat.client.ui.clickgui.ClickGuiScreen s = new com.tatnat.client.ui.clickgui.ClickGuiScreen();
+			s.devShow(false, true);
+			TatnatClient.game().openScreen(s);
+		});
+		add(25, () -> shot("allcheck-02b-menu-list"));
+		add(2, () -> {
+			com.tatnat.client.ui.clickgui.ClickGuiScreen s = new com.tatnat.client.ui.clickgui.ClickGuiScreen();
+			for (Module m : ModuleManager.get().all()) if (m.name.equals("Keystrokes")) s.openSettingsFor(m);
+			TatnatClient.game().openScreen(s);
+		});
+		add(25, () -> shot("allcheck-02c-mod-settings"));
+		add(2, () -> {
+			com.tatnat.client.ui.clickgui.ClickGuiScreen s = new com.tatnat.client.ui.clickgui.ClickGuiScreen();
+			s.devShow(true, false);
+			TatnatClient.game().openScreen(s);
+		});
+		add(25, () -> shot("allcheck-02d-settings"));
+		add(2, () -> {
+			com.tatnat.client.ui.clickgui.ClickGuiScreen s = new com.tatnat.client.ui.clickgui.ClickGuiScreen();
+			s.devShow(false, false);
+			TatnatClient.game().openScreen(s);
+		});
 		add(2, () -> TatnatClient.game().openScreen(new com.tatnat.client.ui.clickgui.KeybindScreen(null)));
 		add(15, () -> shot("allcheck-03-keybinds"));
 		add(2, () -> TatnatClient.game().openScreen(new com.tatnat.client.ui.clickgui.PackScreen(null)));

@@ -76,7 +76,7 @@ public class ColorComponent extends SettingComponent<ColorSetting> {
 		int ph = pickerHeight() - Ui.px(8);
 		// Clip to the animated height so the picker unfolds instead of popping in.
 		g.scissor(x, py, x + w, py + Math.round(pickerHeight() * t));
-		RenderUtils.roundedRect(g, x, py, w, ph, Ui.px(Theme.RADIUS), Theme.PANEL);
+		RenderUtils.surface(g, x, py, w, ph, Ui.px(Theme.RADIUS_LARGE), Theme.CARD_TOP, Theme.CARD_BOTTOM, Theme.BORDER);
 
 		int pad = pad();
 		bar = Ui.px(18);

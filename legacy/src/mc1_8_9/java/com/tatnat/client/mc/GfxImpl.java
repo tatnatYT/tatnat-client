@@ -65,6 +65,8 @@ public final class GfxImpl implements Gfx {
 	public void rects(int[] d, int n) {
 		begin();
 		GlStateManager.enableBlend();
+		// Faint fills (glows, hairlines) sit under the alpha test's 10% cut-off.
+		GlStateManager.disableAlphaTest();
 		GlStateManager.disableTexture();
 		GlStateManager.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
 		Tessellator t = Tessellator.getInstance();
@@ -80,6 +82,7 @@ public final class GfxImpl implements Gfx {
 		}
 		t.draw();
 		GlStateManager.enableTexture();
+		GlStateManager.enableAlphaTest();
 		GlStateManager.disableBlend();
 		end();
 	}
@@ -226,6 +229,7 @@ public final class GfxImpl implements Gfx {
 		begin();
 		GlStateManager.enableTexture();
 		GlStateManager.enableBlend();
+		GlStateManager.disableAlphaTest();
 		GlStateManager.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
 		GlStateManager.color(((argb >> 16) & 255) / 255f, ((argb >> 8) & 255) / 255f, (argb & 255) / 255f, ((argb >>> 24) & 255) / 255f);
 		mc.getTextureManager().bindTexture(id);
@@ -238,6 +242,7 @@ public final class GfxImpl implements Gfx {
 		b.vertex(x, y, 0).texture(0, 0).next();
 		t.draw();
 		GlStateManager.color(1f, 1f, 1f, 1f);
+		GlStateManager.enableAlphaTest();
 		end();
 	}
 

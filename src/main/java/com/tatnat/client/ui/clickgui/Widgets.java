@@ -30,19 +30,36 @@ public final class Widgets {
 	public static void toggle(Gfx g, int x, int y, Animation anim, boolean hovered) {
 		float t = anim.get();
 		int w = toggleW(), h = toggleH();
-		int track = Colors.lerp(Theme.TRACK, Theme.ACCENT, t);
-		if (hovered) track = Colors.shade(track, 1.15f);
-		RenderUtils.roundedRect(g, x, y, w, h, h / 2, track);
+		// A soft red halo while on.
+		if (t > 0.01f) RenderUtils.glow(g, x + w / 2, y + h / 2, Math.round(w * 0.62f), Colors.fade(Theme.ACCENT_GLOW, t * 0.35f), 4);
+		int top = Colors.lerp(0xFF2E3037, Theme.ACCENT_LIGHT, t), bottom = Colors.lerp(0xFF24262C, Theme.ACCENT, t);
+		if (hovered) {
+			top = Colors.shade(top, 1.12f);
+			bottom = Colors.shade(bottom, 1.12f);
+		}
+		RenderUtils.surface(g, x, y, w, h, h / 2, top, bottom, Colors.lerp(Theme.BORDER, 0x40FFFFFF, t));
 		int pad = Math.max(2, Ui.px(3));
 		int knob = h - pad * 2;
 		int kx = Math.round(x + pad + (w - knob - pad * 2) * t);
-		RenderUtils.circle(g, kx + knob / 2, y + pad + knob / 2, knob / 2, Colors.lerp(Theme.KNOB_OFF, 0xFFFFFFFF, t));
+		// Knob with a little shadow under it.
+		RenderUtils.circle(g, kx + knob / 2, y + pad + knob / 2 + Math.max(1, Ui.px(1)), knob / 2, 0x40000000);
+		RenderUtils.circle(g, kx + knob / 2, y + pad + knob / 2, knob / 2, Colors.lerp(0xFF8A8C94, 0xFFFFFFFF, t));
 	}
 
-	/** A rounded button with centred text. */
+	/** A rounded button with centred text: a raised surface in {@code bg}. */
 	public static void button(Gfx g, int x, int y, int w, int h, String text, UIFont font, int bg, int fg, boolean hovered) {
-		RenderUtils.roundedRect(g, x, y, w, h, Ui.px(Theme.RADIUS), hovered ? Colors.shade(bg, 1.18f) : bg);
+		int base = hovered ? Colors.shade(bg, 1.18f) : bg;
+		RenderUtils.surface(g, x, y, w, h, Ui.px(Theme.RADIUS), Colors.shade(base, 1.08f), base, hovered ? Theme.BORDER_HOVER : Theme.BORDER);
 		font.drawCentered(g, text, x + w / 2, y + (h - font.size()) / 2, fg);
+	}
+
+	/** A round icon button (header actions): faint until hovered or {@code active}. */
+	public static void iconButton(Gfx g, int x, int y, int size, com.tatnat.client.ui.render.Icons.Icon icon, boolean hovered, boolean active, int activeColor) {
+		int bg = active ? Theme.ACCENT_SOFT : hovered ? 0x1AFFFFFF : 0x0DFFFFFF;
+		RenderUtils.roundedRect(g, x, y, size, size, Ui.px(Theme.RADIUS + 3), bg);
+		if (hovered || active) RenderUtils.roundedOutline(g, x, y, size, size, Ui.px(Theme.RADIUS + 3), 1, active ? Colors.withAlpha(Theme.ACCENT, 0x80) : Theme.BORDER_HOVER);
+		com.tatnat.client.ui.render.Icons.draw(g, icon, x + size / 2, y + size / 2, Math.round(size * 0.5f),
+				active ? activeColor : hovered ? 0xFFFFFFFF : Theme.TEXT_MUTED);
 	}
 
 	public static boolean inside(double mx, double my, int x, int y, int w, int h) {
