@@ -79,7 +79,7 @@ public final class PostEffects {
 
 		@Override
 		String shader() {
-			return prefix() + (strength.is("Low") ? 35 : strength.is("High") ? 65 : strength.is("Very High") ? 80 : 50);
+			return prefix() + (strength.is("Low") ? 70 : strength.is("High") ? 88 : strength.is("Very High") ? 94 : 80);
 		}
 	}
 
