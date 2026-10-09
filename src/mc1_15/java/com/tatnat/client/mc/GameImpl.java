@@ -478,6 +478,14 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public boolean opaque(int x, int y, int z) {
+		Minecraft m = mc();
+		if (m.level == null) return false;
+		net.minecraft.core.BlockPos p = new net.minecraft.core.BlockPos(x, y, z);
+		return !m.level.getBlockState(p).getCollisionShape(m.level, p).isEmpty();
+	}
+
+	@Override
 	public void setGuiScale(int scale) {
 		mc().options.guiScale = Math.max(0, scale);
 		mc().resizeDisplay();

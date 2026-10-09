@@ -201,6 +201,11 @@ public interface Game {
 		return false;
 	}
 
+	/** True when the block at a position hides what's behind it (Light Level Overlay's line of sight). */
+	default boolean opaque(int x, int y, int z) {
+		return false;
+	}
+
 	/** True while the "Disconnected" screen is open (also remembers the server while connected). */
 	default boolean disconnectedScreen() {
 		return false;

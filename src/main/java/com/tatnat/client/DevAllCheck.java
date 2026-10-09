@@ -117,6 +117,12 @@ public final class DevAllCheck {
 		add(2, () -> later("Color Saturation", true));
 		add(20, () -> shot("allcheck-07-saturation"));
 		add(2, () -> later("Color Saturation", false));
+		// Motion Blur: a still view, then a shot halfway through a turn (should show a trail).
+		add(2, () -> later("Motion Blur", true));
+		add(20, () -> shot("allcheck-11-blur-still"));
+		for (int i = 0; i < 6; i++) add(1, () -> cmd("tp @s ~ ~ ~ ~15 ~"));
+		add(1, () -> shot("allcheck-12-blur-turning"));
+		add(20, () -> shot("allcheck-13-blur-after"));
 		add(2, () -> later("Freecam", true));
 		add(10, () -> later("Freecam", false));
 		add(5, () -> {

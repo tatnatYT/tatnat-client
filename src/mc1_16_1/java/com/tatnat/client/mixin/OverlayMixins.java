@@ -193,6 +193,8 @@ public final class OverlayMixins {
 		@Inject(method = "process", at = @At("TAIL"), require = 0)
 		private void tatnat$unit0(CallbackInfo ci) {
 			com.mojang.blaze3d.systems.RenderSystem.activeTexture(33984);
+			// 1.15 - 1.16: the effect cleanup also switches texturing off; the hotbar would draw white.
+			com.mojang.blaze3d.systems.RenderSystem.enableTexture();
 		}
 	}
 }

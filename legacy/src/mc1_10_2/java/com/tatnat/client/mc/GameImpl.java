@@ -465,6 +465,11 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public boolean opaque(int x, int y, int z) {
+		return mc.world != null && mc.world.getBlockState(new net.minecraft.util.math.BlockPos(x, y, z)).isFullBlock();
+	}
+
+	@Override
 	public void setGuiScale(int scale) {
 		mc.options.guiScale = Math.max(0, scale);
 	}

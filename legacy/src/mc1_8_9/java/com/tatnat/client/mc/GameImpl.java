@@ -465,6 +465,11 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public boolean opaque(int x, int y, int z) {
+		return mc.world != null && net.minecraft.world.World.isOpaque(mc.world, new net.minecraft.util.math.BlockPos(x, y, z));
+	}
+
+	@Override
 	public void setGuiScale(int scale) {
 		mc.options.guiScale = Math.max(0, scale);
 	}
