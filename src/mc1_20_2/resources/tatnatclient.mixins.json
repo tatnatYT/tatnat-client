@@ -9,6 +9,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$DarkAdvancements",
 		"OverlayMixins$DarkContainers",
 		"OverlayMixins$ItemFlat",
 		"OverlayMixins$BarColors",

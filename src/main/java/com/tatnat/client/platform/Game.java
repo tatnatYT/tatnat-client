@@ -160,6 +160,24 @@ public interface Game {
 	default void postEffect(String name) {
 	}
 
+	/** Every control: {id, name, category, key name} (Keybind Search, 1.14+). */
+	default java.util.List<String[]> keyMappings() {
+		return java.util.Collections.emptyList();
+	}
+
+	/** Binds a control to a keyboard key (GLFW code), or unbinds it for -1, and saves the options. */
+	default void rebindKey(String id, int key) {
+	}
+
+	/** Resource packs the player can choose: {id, "1" if on}; on ones first, bottom to top (Pack Organizer, 1.16+). */
+	default java.util.List<String[]> resourcePackList() {
+		return java.util.Collections.emptyList();
+	}
+
+	/** Switches exactly these packs on (bottom to top) and reloads. Built-in required packs stay on. */
+	default void applyResourcePacks(java.util.List<String> ids) {
+	}
+
 	/** Sets the GUI scale option (0 = auto) and applies it right away (UI Scaling). */
 	default void setGuiScale(int scale) {
 	}

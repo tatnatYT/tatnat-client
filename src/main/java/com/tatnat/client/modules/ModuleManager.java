@@ -35,6 +35,11 @@ import com.tatnat.client.modules.impl.visual.PostEffects;
 import com.tatnat.client.modules.impl.visual.HudColors;
 import com.tatnat.client.modules.impl.visual.ItemPhysic;
 import com.tatnat.client.modules.impl.visual.DarkMode;
+import com.tatnat.client.modules.impl.visual.CustomAdvancements;
+import com.tatnat.client.modules.impl.visual.OldAnimations;
+import com.tatnat.client.modules.impl.utility.ShulkerTooltips;
+import com.tatnat.client.modules.impl.utility.ScreenTools;
+import com.tatnat.client.modules.impl.utility.Voice;
 import com.tatnat.client.modules.impl.utility.SoundFilters;
 import com.tatnat.client.modules.impl.utility.DiscordStatus;
 import com.tatnat.client.modules.impl.hud.UhcOverlay;
@@ -147,6 +152,10 @@ public final class ModuleManager {
 		add(new Reconnect());
 		add(new SoundFilters());
 		add(new DiscordStatus());
+		add(new ShulkerTooltips());
+		add(new ScreenTools.KeybindSearch());
+		add(new ScreenTools.PackOrganizer());
+		add(new Voice());
 		add(new BetterTooltips());
 		add(new ScrollableTooltips());
 		add(new ChunkAnimator());
@@ -181,6 +190,8 @@ public final class ModuleManager {
 		add(new HudColors.ArmorBar());
 		add(new ItemPhysic());
 		add(new DarkMode());
+		add(new CustomAdvancements());
+		add(new OldAnimations());
 		// Cosmetic
 		add(new CustomCapes());
 		add(new EnchantGlint());

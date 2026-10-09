@@ -55,7 +55,7 @@ public final class TooltipMixins {
 	public static class Lines {
 		@Inject(method = "getTooltipLines", at = @At("RETURN"), cancellable = true)
 		private void tatnat$lines(Player player, TooltipFlag flag, CallbackInfoReturnable<List<Component>> cir) {
-			if (BetterTooltips.active() || com.tatnat.client.modules.impl.utility.TierTagger.active()) cir.setReturnValue(com.tatnat.client.mc.TooltipLines.extend((ItemStack) (Object) this, cir.getReturnValue(), flag.isAdvanced()));
+			if (BetterTooltips.active() || com.tatnat.client.modules.impl.utility.TierTagger.active() || com.tatnat.client.modules.impl.utility.ShulkerTooltips.active()) cir.setReturnValue(com.tatnat.client.mc.TooltipLines.extend((ItemStack) (Object) this, cir.getReturnValue(), flag.isAdvanced()));
 		}
 	}
 

@@ -8,6 +8,7 @@
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",
 		"OverlayMixins$Toasts",
+		"OverlayMixins$DarkAdvancements",
 		"OverlayMixins$DarkContainers",
 		"OverlayMixins$BarColors",
 		"OverlayMixins$HeldItem",

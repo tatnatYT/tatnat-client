@@ -224,4 +224,33 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.visual.DarkMode.on()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		}
 	}
+	/** Custom Advancements: the advancements screen in dark colours. */
+	@Mixin(net.minecraft.client.gui.screens.advancements.AdvancementsScreen.class)
+	public static class DarkAdvancements {
+		@Inject(method = "renderInside", at = @At("HEAD"), require = 0)
+		private void tatnat$dark_renderInside(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) {
+				float k = com.tatnat.client.modules.impl.visual.CustomAdvancements.shade();
+				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
+			}
+		}
+
+		@Inject(method = "renderInside", at = @At("RETURN"), require = 0)
+		private void tatnat$light_renderInside(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		}
+
+		@Inject(method = "renderWindow", at = @At("HEAD"), require = 0)
+		private void tatnat$dark_renderWindow(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) {
+				float k = com.tatnat.client.modules.impl.visual.CustomAdvancements.shade();
+				com.mojang.blaze3d.systems.RenderSystem.setShaderColor(k, k, k * 1.08f, 1f);
+			}
+		}
+
+		@Inject(method = "renderWindow", at = @At("RETURN"), require = 0)
+		private void tatnat$light_renderWindow(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		}
+	}
 }

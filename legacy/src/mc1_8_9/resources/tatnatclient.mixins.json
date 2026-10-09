@@ -25,7 +25,8 @@
 		"PlayerMixins$TooltipText",
 		"PlayerMixins$TooltipHover",
 		"PlayerMixins$Tooltip",
-		"TitleButtonMixin"
+		"TitleButtonMixin",
+		"AnimationMixins"
 	],
 	"injectors": {
 		"defaultRequire": 1

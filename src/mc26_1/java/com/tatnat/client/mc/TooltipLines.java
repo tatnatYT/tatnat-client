@@ -21,6 +21,18 @@ public final class TooltipLines {
 		List<Component> out = new ArrayList<>(lines);
 		String tier = com.tatnat.client.modules.impl.utility.TierTagger.line(stack.getRarity().ordinal(), stack.getRarity().name());
 		if (tier != null) out.add(Math.min(1, out.size()), Component.literal(tier));
+		if (com.tatnat.client.modules.impl.utility.ShulkerTooltips.active() && stack.getItem().getDescriptionId().contains("shulker_box")) {
+			java.util.List<String> names = new java.util.ArrayList<>();
+			java.util.List<Integer> counts = new java.util.ArrayList<>();
+			net.minecraft.world.item.component.ItemContainerContents box = stack.get(net.minecraft.core.component.DataComponents.CONTAINER);
+			if (box != null) box.nonEmptyItemCopyStream().forEach(in -> {
+				names.add(in.getHoverName().getString());
+				counts.add(in.getCount());
+			});
+			out.removeIf(c -> com.tatnat.client.modules.impl.utility.ShulkerTooltips.isVanillaLine(c.getString()));
+			int at = Math.min(1, out.size());
+			for (String line : com.tatnat.client.modules.impl.utility.ShulkerTooltips.lines(names, counts)) out.add(at++, Component.literal(line));
+		}
 		if (!BetterTooltips.active()) return out;
 		if (bt.durability.on() && stack.isDamageableItem() && !advanced) {
 			int left = stack.getMaxDamage() - stack.getDamageValue();

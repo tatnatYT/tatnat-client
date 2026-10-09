@@ -478,6 +478,59 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public java.util.List<String[]> keyMappings() {
+		java.util.List<String[]> out = new java.util.ArrayList<>();
+		for (net.minecraft.client.KeyMapping k : mc().options.keyMappings) {
+			Object key = k.getTranslatedKeyMessage();
+			String keyName = key instanceof net.minecraft.network.chat.Component ? ((net.minecraft.network.chat.Component) key).getString() : String.valueOf(key);
+			out.add(new String[] {k.getName(), net.minecraft.client.resources.language.I18n.get(k.getName()), net.minecraft.client.resources.language.I18n.get(k.getCategory()), keyName});
+		}
+		return out;
+	}
+
+	@Override
+	public void rebindKey(String id, int key) {
+		for (net.minecraft.client.KeyMapping k : mc().options.keyMappings) {
+			if (k.getName().equals(id)) k.setKey(key < 0 ? com.mojang.blaze3d.platform.InputConstants.UNKNOWN : com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM.getOrCreate(key));
+		}
+		net.minecraft.client.KeyMapping.resetMapping();
+		mc().options.save();
+	}
+
+	@Override
+	public java.util.List<String[]> resourcePackList() {
+		net.minecraft.server.packs.repository.PackRepository r = mc().getResourcePackRepository();
+		r.reload();
+		java.util.List<String[]> out = new java.util.ArrayList<>();
+		java.util.Collection<String> on = r.getSelectedIds();
+		for (String id : on) {
+			net.minecraft.server.packs.repository.Pack p = r.getPack(id);
+			if (p != null && !p.isRequired()) out.add(new String[] {id, "1"});
+		}
+		for (String id : r.getAvailableIds()) {
+			net.minecraft.server.packs.repository.Pack p = r.getPack(id);
+			if (!on.contains(id) && p != null && !p.isRequired()) out.add(new String[] {id, "0"});
+		}
+		return out;
+	}
+
+	@Override
+	public void applyResourcePacks(java.util.List<String> ids) {
+		net.minecraft.server.packs.repository.PackRepository r = mc().getResourcePackRepository();
+		java.util.List<String> all = new java.util.ArrayList<>();
+		for (String id : r.getSelectedIds()) {
+			net.minecraft.server.packs.repository.Pack p = r.getPack(id);
+			if (p != null && p.isRequired()) all.add(id);
+		}
+		for (String id : ids) if (!all.contains(id)) all.add(id);
+		r.setSelected(all);
+		mc().options.resourcePacks.clear();
+		mc().options.resourcePacks.addAll(ids);
+		mc().options.save();
+		mc().reloadResourcePacks();
+	}
+
+	@Override
 	public void postEffect(String name) {
 		if (name == null) mc().gameRenderer.shutdownEffect();
 		else ((com.tatnat.client.mixin.PostEffectAccess) mc().gameRenderer).tatnat$loadEffect(new net.minecraft.resources.ResourceLocation("shaders/post/" + name + ".json"));
