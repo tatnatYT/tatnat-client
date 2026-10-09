@@ -11,7 +11,7 @@ public class Playtime extends TextHudModule {
 	private final ModeSetting format = add(new ModeSetting("Format", "Hours and minutes, or a clock", "2h 14m", "2h 14m", "02:14:05", "134 min"));
 
 	public Playtime() {
-		super("Playtime", "Shows how long you've been playing this session", false, 0.32, 0.15);
+		super("Playtime", "Shows how long you've been playing this session", false, 0.38, 0.15);
 		icon = com.tatnat.client.ui.render.Icons.Icon.HOURGLASS;
 	}
 

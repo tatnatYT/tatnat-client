@@ -8,7 +8,7 @@ public class TotemCounter extends TextHudModule {
 	private final BooleanSetting hideWhenNone = add(new BooleanSetting("Hide When None", "Only show it while you carry totems", false));
 
 	public TotemCounter() {
-		super("Totem Counter", "Shows how many Totems of Undying you have", false, 0.75, 0.075);
+		super("Totem Counter", "Shows how many Totems of Undying you have", false, 0.75, 0.15);
 		icon = com.tatnat.client.ui.render.Icons.Icon.TOTEM;
 	}
 

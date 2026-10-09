@@ -19,7 +19,7 @@ public class Clock extends TextHudModule {
 	private static final DateTimeFormatter H12S = DateTimeFormatter.ofPattern("h:mm:ss a", Locale.ENGLISH);
 
 	public Clock() {
-		super("Clock", "Shows the current time", false, 0.5, 0.0);
+		super("Clock", "Shows the current time", false, 0.75, 0.0);
 		icon = com.tatnat.client.ui.render.Icons.Icon.CLOCK;
 	}
 

@@ -9,7 +9,7 @@ public class UhcOverlay extends TextHudModule {
 	private final BooleanSetting health = add(new BooleanSetting("Show Health", "Add your health", true));
 
 	public UhcOverlay() {
-		super("UHC Overlay", "Golden apples, heads and health for UHC", false, 0.75, 0.30);
+		super("UHC Overlay", "Golden apples, heads and health for UHC", false, 0.75, 0.375);
 		icon = com.tatnat.client.ui.render.Icons.Icon.APPLE;
 	}
 
