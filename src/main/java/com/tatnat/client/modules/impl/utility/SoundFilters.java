@@ -21,7 +21,7 @@ public class SoundFilters extends Module {
 
 	public SoundFilters() {
 		super("Sound Filters", "Muffles sound under water and in menus", Category.UTILITY, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.SIGNAL;
+		icon = com.tatnat.client.ui.render.Icons.Icon.SPEAKER;
 	}
 
 	@Subscribe

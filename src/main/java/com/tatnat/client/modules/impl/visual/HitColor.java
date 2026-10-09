@@ -26,7 +26,7 @@ public class HitColor extends Module {
 
 	public HitColor() {
 		super("Hit Color", "Change the red flash when something gets hit", Category.VISUAL, false);
-		icon = Icons.Icon.SWORD;
+		icon = Icons.Icon.BURST;
 		INSTANCE = this;
 	}
 

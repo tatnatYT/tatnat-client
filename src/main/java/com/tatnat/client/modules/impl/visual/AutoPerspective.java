@@ -11,7 +11,7 @@ public class AutoPerspective extends Module {
 
 	public AutoPerspective() {
 		super("Auto Perspective", "Third person while riding, flying or gliding", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CAMERA;
+		icon = com.tatnat.client.ui.render.Icons.Icon.SWAP;
 	}
 
 	@Subscribe

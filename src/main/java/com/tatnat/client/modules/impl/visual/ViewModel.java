@@ -15,7 +15,7 @@ public class ViewModel extends Module {
 
 	public ViewModel() {
 		super("ViewModel", "Move and resize the item in your hand", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.SWORD;
+		icon = com.tatnat.client.ui.render.Icons.Icon.HAND;
 		instance = this;
 	}
 

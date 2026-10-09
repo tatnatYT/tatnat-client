@@ -12,7 +12,7 @@ public class CameraTweaks extends Module {
 
 	public CameraTweaks() {
 		super("Camera", "Change the third-person camera distance", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CAMERA;
+		icon = com.tatnat.client.ui.render.Icons.Icon.VIDEOCAM;
 		instance = this;
 	}
 

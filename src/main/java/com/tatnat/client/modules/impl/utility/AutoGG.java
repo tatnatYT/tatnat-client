@@ -27,7 +27,7 @@ public class AutoGG extends Module {
 
 	public AutoGG() {
 		super("Auto GG", "Automatically says gg when a game ends", Category.UTILITY, false);
-		icon = Icons.Icon.CHAT;
+		icon = Icons.Icon.TROPHY;
 	}
 
 	@Subscribe

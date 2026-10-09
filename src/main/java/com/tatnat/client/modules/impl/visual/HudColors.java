@@ -48,7 +48,7 @@ public final class HudColors {
 
 		public ArmorBar() {
 			super("Armor Bar", "Recolour the armor icons above your health", Category.VISUAL, false);
-			icon = com.tatnat.client.ui.render.Icons.Icon.ARMOR;
+			icon = com.tatnat.client.ui.render.Icons.Icon.SHIELD;
 			HudColors.armor = this;
 		}
 	}

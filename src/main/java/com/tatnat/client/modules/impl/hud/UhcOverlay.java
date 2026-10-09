@@ -10,7 +10,7 @@ public class UhcOverlay extends TextHudModule {
 
 	public UhcOverlay() {
 		super("UHC Overlay", "Golden apples, heads and health for UHC", false, 0.0, 0.54);
-		icon = com.tatnat.client.ui.render.Icons.Icon.HEART;
+		icon = com.tatnat.client.ui.render.Icons.Icon.APPLE;
 	}
 
 	@Override

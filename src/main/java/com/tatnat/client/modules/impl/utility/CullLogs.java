@@ -33,7 +33,7 @@ public class CullLogs extends Module {
 
 	public CullLogs() {
 		super("Cull Logs", "Hides spam messages from chat", Category.UTILITY, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CHAT;
+		icon = com.tatnat.client.ui.render.Icons.Icon.FILTER;
 		INSTANCE = this;
 	}
 

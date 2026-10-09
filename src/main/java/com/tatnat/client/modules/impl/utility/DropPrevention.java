@@ -13,7 +13,7 @@ import com.tatnat.client.platform.Bind;
 public class DropPrevention extends Module {
 	public DropPrevention() {
 		super("Drop Prevention", "Hold Sneak to drop items, so you never drop by accident", Category.UTILITY, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.BOX;
+		icon = com.tatnat.client.ui.render.Icons.Icon.LOCK;
 	}
 
 	@Subscribe

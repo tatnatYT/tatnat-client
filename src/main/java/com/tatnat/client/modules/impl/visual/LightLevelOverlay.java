@@ -26,7 +26,7 @@ public class LightLevelOverlay extends Module {
 
 	public LightLevelOverlay() {
 		super("Light Level Overlay", "Shows where mobs can spawn", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.SUN;
+		icon = com.tatnat.client.ui.render.Icons.Icon.BULB;
 	}
 
 	private int spawnLimit() {

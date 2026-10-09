@@ -20,6 +20,7 @@ public final class Icons {
 		KEYBOARD, MONITOR, MOUSE, MAP, ARMOR, CLOCK, CHIP, SIGNAL, GLOBE, CUBE, SUN, ZOOM, RUN,
 		COMBO, RULER, POTION, CROSSHAIR, EYE, DROP, SWORD, BOX, MASK, MOON, LAYERS, CHAT, KEY, TOOLTIP, SCROLL, CAMERA, PIN,
 		CAPE, SPARKLE, USER, COMPASS, GAUGE, HOURGLASS, STOPWATCH, TNT, FLAG, REFRESH, CLOUD, BEAM,
+		RAM, STACK, TOTEM, SKULL, PALETTE, WAVE, APPLE, BED, HORSESHOE, BURST, DAYNIGHT, TRASH, HEALTHBAR, CREEPER, ALERT, UTURN, SWAP, EYE_OFF, VIDEOCAM, BOSSBAR, BREAD, CAPTIONS, HAND, BULB, TITLE, EXPAND, CHEST, BUG, SPEEDLINES, WHEEL, SHIELD, DROPITEM, PLANE, TROPHY, SAVE, FILTER, LOCK, STAR, SPEAKER, BROADCAST, MEDAL, FOLDER, KEYSEARCH, SHULKER, ANIMATION, MIC,
 		GRID, GEAR, MOVE, HEART, HEART_FILLED, SEARCH, BACK, FORWARD, CHEVRON_DOWN, LIST, YOUTUBE
 	}
 
@@ -464,6 +465,333 @@ public final class Icons {
 				line(22, 14, 22, 36, w * 0.7f);
 				line(42, 14, 42, 36, w * 0.7f);
 				disc(32, 50, 7f);
+			}
+			break;
+			case RAM: {
+				box(6, 20, 52, 22, 3, w);
+				for (int i = 0; i < 4; i++) fillRect(12 + i * 11, 25, 7, 11);
+				for (int i = 0; i < 6; i++) line(10 + i * 9, 42, 10 + i * 9, 48, 3f);
+			}
+			break;
+			case STACK: {
+				box(6, 34, 23, 22, 3, w);
+				box(35, 34, 23, 22, 3, w);
+				box(20, 8, 24, 22, 3, w);
+			}
+			break;
+			case TOTEM: {
+				box(19, 12, 26, 44, 6, w);
+				fillRect(25, 22, 5, 5);
+				fillRect(34, 22, 5, 5);
+				line(26, 40, 38, 40, w);
+				poly(w, 19, 28, 6, 22, 8, 40, 19, 40);
+				poly(w, 45, 28, 58, 22, 56, 40, 45, 40);
+			}
+			break;
+			case SKULL: {
+				poly(w, 12, 30, 14, 14, 32, 6, 50, 14, 52, 30, 46, 40, 46, 54, 18, 54, 18, 40, 12, 30);
+				disc(24, 30, 5.5f);
+				disc(40, 30, 5.5f);
+				line(28, 54, 28, 47, 3f);
+				line(36, 54, 36, 47, 3f);
+			}
+			break;
+			case PALETTE: {
+				poly(w, 32, 6, 50, 10, 58, 26, 54, 42, 40, 44, 38, 52, 30, 58, 14, 52, 6, 36, 10, 18, 32, 6);
+				disc(22, 22, 4f);
+				disc(34, 16, 4f);
+				disc(46, 24, 4f);
+				disc(20, 38, 4f);
+			}
+			break;
+			case WAVE: {
+				line(6, 32, 58, 32, 2.4f);
+				poly(w, 6, 32, 13, 32, 19, 12, 26, 52, 33, 18, 39, 46, 45, 26, 50, 32, 58, 32);
+			}
+			break;
+			case APPLE: {
+				poly(w, 32, 18, 22, 12, 10, 20, 10, 38, 20, 56, 32, 52, 44, 56, 54, 38, 54, 20, 42, 12, 32, 18);
+				line(32, 18, 34, 6, w);
+				poly(3.4f, 36, 11, 44, 6, 48, 11, 40, 14, 36, 11);
+			}
+			break;
+			case BED: {
+				line(6, 22, 6, 56, w);
+				line(58, 38, 58, 56, w);
+				box(6, 36, 52, 12, 2, w);
+				fillRoundRect(11, 27, 14, 8, 3);
+			}
+			break;
+			case HORSESHOE: {
+				arc(32, 30, 18, 0.5, 1.0, w * 1.5f);
+				line(14, 30, 16, 56, w * 1.5f);
+				line(50, 30, 48, 56, w * 1.5f);
+				disc(21, 20, 2f);
+				disc(43, 20, 2f);
+				disc(17, 38, 2f);
+				disc(47, 38, 2f);
+			}
+			break;
+			case BURST: {
+				for (int i = 0; i < 8; i++) {
+					double a = Math.PI * 2 * i / 8;
+					float r0 = 12, r1 = i % 2 == 0 ? 28 : 20;
+					line(32 + (float) Math.cos(a) * r0, 32 + (float) Math.sin(a) * r0, 32 + (float) Math.cos(a) * r1, 32 + (float) Math.sin(a) * r1, w);
+				}
+				disc(32, 32, 6f);
+			}
+			break;
+			case DAYNIGHT: {
+				ring(20, 20, 8, w);
+				for (int i = 0; i < 8; i++) {
+					double a = Math.PI * 2 * i / 8;
+					line(20 + (float) Math.cos(a) * 12, 20 + (float) Math.sin(a) * 12, 20 + (float) Math.cos(a) * 16, 20 + (float) Math.sin(a) * 16, 3f);
+				}
+				crescent(42, 42, 15, 50, 35, 13, w);
+			}
+			break;
+			case TRASH: {
+				box(14, 18, 36, 40, 4, w);
+				line(8, 14, 56, 14, w);
+				poly(w, 26, 14, 26, 8, 38, 8, 38, 14);
+				line(26, 26, 26, 48, 3f);
+				line(38, 26, 38, 48, 3f);
+			}
+			break;
+			case HEALTHBAR: {
+				box(6, 24, 52, 16, 4, w);
+				fillRoundRect(10, 28, 28, 8, 2);
+			}
+			break;
+			case CREEPER: {
+				box(8, 8, 48, 48, 4, w);
+				fillRect(18, 20, 9, 9);
+				fillRect(37, 20, 9, 9);
+				fillRect(28, 30, 8, 10);
+				fillRect(22, 36, 6, 12);
+				fillRect(36, 36, 6, 12);
+			}
+			break;
+			case ALERT: {
+				poly(w, 32, 6, 58, 54, 6, 54, 32, 6);
+				line(32, 22, 32, 38, w);
+				disc(32, 46, 3f);
+			}
+			break;
+			case UTURN: {
+				line(18, 58, 18, 28, w);
+				arc(31, 28, 13, 0.5, 1.0, w);
+				line(44, 28, 44, 42, w);
+				poly(w, 36, 34, 44, 44, 52, 34);
+			}
+			break;
+			case SWAP: {
+				line(10, 22, 52, 22, w);
+				poly(w, 42, 12, 52, 22, 42, 32);
+				line(54, 42, 12, 42, w);
+				poly(w, 22, 32, 12, 42, 22, 52);
+			}
+			break;
+			case EYE_OFF: {
+				ellipse(32, 32, 27, 15, w);
+				ring(32, 32, 8, w);
+				line(10, 54, 54, 10, w);
+			}
+			break;
+			case VIDEOCAM: {
+				box(6, 18, 36, 28, 5, w);
+				poly(w, 42, 27, 58, 18, 58, 46, 42, 37);
+			}
+			break;
+			case BOSSBAR: {
+				box(6, 34, 52, 12, 3, w);
+				fillRect(9, 37, 26, 6);
+				ring(32, 16, 8, 3.4f);
+				disc(29, 15, 1.8f);
+				disc(35, 15, 1.8f);
+			}
+			break;
+			case BREAD: {
+				poly(w, 14, 56, 14, 26, 10, 22, 10, 14, 16, 8, 48, 8, 54, 14, 54, 22, 50, 26, 50, 56, 14, 56);
+			}
+			break;
+			case CAPTIONS: {
+				box(6, 14, 52, 36, 6, w);
+				arc(23, 32, 7, 0.15, 0.85, 3.4f);
+				arc(41, 32, 7, 0.15, 0.85, 3.4f);
+			}
+			break;
+			case HAND: {
+				box(16, 30, 32, 28, 9, w);
+				line(22, 30, 22, 12, w);
+				line(30, 30, 30, 7, w);
+				line(38, 30, 38, 9, w);
+				line(46, 34, 46, 17, w);
+				line(16, 42, 8, 32, w);
+			}
+			break;
+			case BULB: {
+				arc(32, 24, 16, 0.35, 1.15, w);
+				line(22.6f, 36.9f, 25, 46, w);
+				line(41.4f, 36.9f, 39, 46, w);
+				line(24, 46, 40, 46, w);
+				line(26, 52, 38, 52, w);
+				line(29, 58, 35, 58, w);
+			}
+			break;
+			case TITLE: {
+				line(12, 12, 52, 12, w * 1.5f);
+				line(32, 12, 32, 54, w * 1.5f);
+			}
+			break;
+			case EXPAND: {
+				poly(w, 8, 22, 8, 8, 22, 8);
+				line(8, 8, 24, 24, w);
+				poly(w, 42, 8, 56, 8, 56, 22);
+				line(56, 8, 40, 24, w);
+				poly(w, 8, 42, 8, 56, 22, 56);
+				line(8, 56, 24, 40, w);
+				poly(w, 56, 42, 56, 56, 42, 56);
+				line(56, 56, 40, 40, w);
+			}
+			break;
+			case CHEST: {
+				box(6, 16, 52, 40, 4, w);
+				line(6, 30, 58, 30, w);
+				fillRect(28, 26, 8, 10);
+			}
+			break;
+			case BUG: {
+				ellipse(32, 37, 13, 18, w);
+				line(32, 24, 32, 54, 3f);
+				line(19, 31, 8, 25, w);
+				line(19, 41, 8, 44, w);
+				line(45, 31, 56, 25, w);
+				line(45, 41, 56, 44, w);
+				disc(32, 16, 6.5f);
+				line(29, 11, 23, 4, 3f);
+				line(35, 11, 41, 4, 3f);
+			}
+			break;
+			case SPEEDLINES: {
+				line(6, 20, 40, 20, w);
+				line(16, 32, 58, 32, w);
+				line(6, 44, 40, 44, w);
+				disc(50, 20, 2.5f);
+				disc(50, 44, 2.5f);
+			}
+			break;
+			case WHEEL: {
+				ring(32, 32, 26, w);
+				for (int i = 0; i < 6; i++) {
+					double a = Math.PI * 2 * i / 6;
+					line(32, 32, 32 + (float) Math.cos(a) * 26, 32 + (float) Math.sin(a) * 26, 3f);
+				}
+				disc(32, 32, 5f);
+			}
+			break;
+			case SHIELD: {
+				poly(w, 32, 6, 54, 14, 52, 36, 32, 58, 12, 36, 10, 14, 32, 6);
+				line(32, 14, 32, 50, 3f);
+			}
+			break;
+			case DROPITEM: {
+				box(20, 6, 24, 24, 3, w);
+				line(14, 38, 14, 48, 3f);
+				line(32, 36, 32, 50, 3f);
+				line(50, 38, 50, 48, 3f);
+				line(6, 58, 58, 58, w);
+			}
+			break;
+			case PLANE: {
+				poly(w, 6, 30, 58, 8, 40, 56, 30, 36, 6, 30);
+				line(30, 36, 58, 8, 3f);
+			}
+			break;
+			case TROPHY: {
+				poly(w, 18, 8, 46, 8, 44, 28, 32, 36, 20, 28, 18, 8);
+				arc(15, 17, 7, 0.25, 0.75, 3.4f);
+				arc(49, 17, 7, 0.75, 1.25, 3.4f);
+				line(32, 36, 32, 46, w);
+				line(24, 46, 40, 46, w);
+				line(20, 55, 44, 55, w);
+			}
+			break;
+			case SAVE: {
+				poly(w, 8, 8, 46, 8, 56, 18, 56, 56, 8, 56, 8, 8);
+				box(18, 8, 22, 14, 1, 3f);
+				box(16, 34, 32, 22, 2, 3f);
+			}
+			break;
+			case FILTER: {
+				poly(w, 6, 8, 58, 8, 38, 32, 38, 52, 26, 58, 26, 32, 6, 8);
+			}
+			break;
+			case LOCK: {
+				box(12, 28, 40, 30, 5, w);
+				arc(32, 28, 12, 0.5, 1.0, w);
+				disc(32, 40, 4f);
+				line(32, 42, 32, 50, w);
+			}
+			break;
+			case STAR: {
+				poly(w, 32, 6, 38.5f, 23.1f, 56.7f, 24, 42.4f, 35.4f, 47.3f, 53, 32, 43, 16.7f, 53, 21.6f, 35.4f, 7.3f, 24, 25.5f, 23.1f, 32, 6);
+			}
+			break;
+			case SPEAKER: {
+				poly(w, 8, 24, 18, 24, 32, 12, 32, 52, 18, 40, 8, 40, 8, 24);
+				arc(32, 32, 12, 0.88, 1.12, w);
+				arc(32, 32, 22, 0.86, 1.14, w);
+			}
+			break;
+			case BROADCAST: {
+				disc(32, 32, 5f);
+				arc(32, 32, 14, 0.38, 0.62, w);
+				arc(32, 32, 14, 0.88, 1.12, w);
+				arc(32, 32, 25, 0.38, 0.62, w);
+				arc(32, 32, 25, 0.88, 1.12, w);
+			}
+			break;
+			case MEDAL: {
+				ring(32, 42, 14, w);
+				poly(w, 23, 31, 14, 6, 26, 6, 32, 22);
+				poly(w, 41, 31, 50, 6, 38, 6, 32, 22);
+				disc(32, 42, 4f);
+			}
+			break;
+			case FOLDER: {
+				poly(w, 6, 14, 24, 14, 30, 20, 58, 20, 58, 54, 6, 54, 6, 14);
+				line(6, 27, 58, 27, 3f);
+			}
+			break;
+			case KEYSEARCH: {
+				box(4, 10, 40, 26, 4, w);
+				fillRect(10, 16, 5, 5);
+				fillRect(19, 16, 5, 5);
+				fillRect(28, 16, 5, 5);
+				fillRect(12, 26, 18, 4);
+				ring(44, 44, 9, w);
+				line(51, 51, 58, 58, w);
+			}
+			break;
+			case SHULKER: {
+				box(8, 26, 48, 30, 4, w);
+				poly(w, 8, 26, 12, 8, 52, 8, 56, 26);
+				disc(32, 40, 5f);
+			}
+			break;
+			case ANIMATION: {
+				line(16, 50, 46, 18, w);
+				line(10, 44, 22, 56, w);
+				line(12, 54, 6, 60, w);
+				arc(30, 42, 26, 0.62, 0.9, 3f);
+			}
+			break;
+			case MIC: {
+				box(22, 6, 20, 32, 10, w);
+				arc(32, 28, 16, 0.0, 0.5, w);
+				line(32, 44, 32, 56, w);
+				line(22, 56, 42, 56, w);
 			}
 			break;
 			case CAPE: {

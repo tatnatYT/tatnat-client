@@ -12,7 +12,7 @@ public class InventoryTweaks extends Module {
 
 	public InventoryTweaks() {
 		super("Inventory", "Tweaks for the inventory screen", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.BOX;
+		icon = com.tatnat.client.ui.render.Icons.Icon.CHEST;
 		instance = this;
 	}
 

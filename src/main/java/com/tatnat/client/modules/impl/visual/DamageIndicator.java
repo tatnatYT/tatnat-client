@@ -19,7 +19,7 @@ public class DamageIndicator extends Module {
 
 	public DamageIndicator() {
 		super("Damage Indicator", "Health bars over mobs and players", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.HEART;
+		icon = com.tatnat.client.ui.render.Icons.Icon.HEALTHBAR;
 	}
 
 	@Subscribe

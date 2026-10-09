@@ -21,7 +21,7 @@ public class ItemDespawn extends Module {
 
 	public ItemDespawn() {
 		super("Item Despawn", "Shows when dropped items will despawn", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.HOURGLASS;
+		icon = com.tatnat.client.ui.render.Icons.Icon.TRASH;
 	}
 
 	@Subscribe

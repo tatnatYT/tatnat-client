@@ -13,7 +13,7 @@ public class TitleTweaker extends Module {
 
 	public TitleTweaker() {
 		super("Title Tweaker", "Hides the titles servers show in the middle of the screen", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.TOOLTIP;
+		icon = com.tatnat.client.ui.render.Icons.Icon.TITLE;
 		instance = this;
 	}
 

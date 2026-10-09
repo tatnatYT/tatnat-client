@@ -17,7 +17,7 @@ public class Snaplook extends Module {
 
 	public Snaplook() {
 		super("Snaplook", "Hold a key to look behind you", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.EYE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.UTURN;
 	}
 
 	@Subscribe

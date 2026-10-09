@@ -52,14 +52,14 @@ public final class PostEffects {
 	/** Fast camera movements leave a fading trail (the vanilla "phosphor" shader). */
 	public static class MotionBlur extends Effect {
 		public MotionBlur() {
-			super("Motion Blur", "Fast movement leaves a fading trail (1.15 - 1.20.4)", "phosphor", com.tatnat.client.ui.render.Icons.Icon.RUN);
+			super("Motion Blur", "Fast movement leaves a fading trail (1.15 - 1.20.4)", "phosphor", com.tatnat.client.ui.render.Icons.Icon.SPEEDLINES);
 		}
 	}
 
 	/** Greyscale world (the vanilla "desaturate" shader). */
 	public static class ColorSaturation extends Effect {
 		public ColorSaturation() {
-			super("Color Saturation", "Drains the colour from the world (1.15 - 1.20.4)", "desaturate", com.tatnat.client.ui.render.Icons.Icon.DROP);
+			super("Color Saturation", "Drains the colour from the world (1.15 - 1.20.4)", "desaturate", com.tatnat.client.ui.render.Icons.Icon.WHEEL);
 		}
 	}
 }

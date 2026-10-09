@@ -11,7 +11,7 @@ public class TierTagger extends Module {
 
 	public TierTagger() {
 		super("Tier Tagger", "Shows each item's rarity in its tooltip", Category.UTILITY, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.SPARKLE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.STAR;
 		instance = this;
 	}
 

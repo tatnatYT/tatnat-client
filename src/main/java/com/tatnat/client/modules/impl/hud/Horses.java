@@ -18,7 +18,7 @@ public class Horses extends HudModule {
 
 	public Horses() {
 		super("Horses", "A cleaner jump bar when riding horses", false, 0.5, 0.82);
-		icon = com.tatnat.client.ui.render.Icons.Icon.RUN;
+		icon = com.tatnat.client.ui.render.Icons.Icon.HORSESHOE;
 		instance = this;
 	}
 

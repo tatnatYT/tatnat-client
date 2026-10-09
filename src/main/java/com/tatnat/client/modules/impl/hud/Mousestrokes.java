@@ -21,7 +21,7 @@ public class Mousestrokes extends HudModule {
 
 	public Mousestrokes() {
 		super("Mousestrokes", "Graphs your mouse movement", false, 0.8, 0.6);
-		icon = com.tatnat.client.ui.render.Icons.Icon.MOUSE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.WAVE;
 	}
 
 	@Subscribe

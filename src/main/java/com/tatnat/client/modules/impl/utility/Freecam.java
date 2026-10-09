@@ -30,7 +30,7 @@ public class Freecam extends Module {
 
 	public Freecam() {
 		super("Freecam", "Fly the camera around without moving (F4)", Category.UTILITY, false);
-		icon = Icons.Icon.CAMERA;
+		icon = Icons.Icon.PLANE;
 		defaultToggleKey(KeyCodes.F4);
 		INSTANCE = this;
 	}

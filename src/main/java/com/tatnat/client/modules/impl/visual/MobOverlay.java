@@ -14,7 +14,7 @@ public class MobOverlay extends Module {
 
 	public MobOverlay() {
 		super("Mob Overlay", "Glowing outlines on mobs, even through walls", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.EYE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.CREEPER;
 		instance = this;
 	}
 

@@ -17,7 +17,7 @@ public class UiScaling extends Module {
 
 	public UiScaling() {
 		super("UI Scaling", "Change the size of the game's interface", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.MONITOR;
+		icon = com.tatnat.client.ui.render.Icons.Icon.EXPAND;
 	}
 
 	@Override

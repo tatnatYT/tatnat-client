@@ -12,7 +12,7 @@ public class CustomF3 extends Module {
 
 	public CustomF3() {
 		super("Custom F3", "A cleaner debug screen", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.SEARCH;
+		icon = com.tatnat.client.ui.render.Icons.Icon.BUG;
 		instance = this;
 	}
 

@@ -32,7 +32,7 @@ public final class OverlayToggles {
 	public static class BossBar extends Module {
 		public BossBar() {
 			super("Boss Bar", "Hides the boss health bar at the top of the screen", Category.VISUAL, false);
-			icon = Icons.Icon.HEART;
+			icon = Icons.Icon.BOSSBAR;
 			boss = this;
 		}
 	}
@@ -41,7 +41,7 @@ public final class OverlayToggles {
 	public static class ToastControl extends Module {
 		public ToastControl() {
 			super("Toast Control", "Hides the advancement, recipe and tutorial pop-ups", Category.VISUAL, false);
-			icon = Icons.Icon.CHAT;
+			icon = Icons.Icon.BREAD;
 			toasts = this;
 		}
 	}
@@ -50,7 +50,7 @@ public final class OverlayToggles {
 	public static class Subtitles extends Module {
 		public Subtitles() {
 			super("Subtitles", "Hides the sound subtitles in the corner", Category.VISUAL, false);
-			icon = Icons.Icon.TOOLTIP;
+			icon = Icons.Icon.CAPTIONS;
 			subtitles = this;
 		}
 	}

@@ -18,7 +18,7 @@ public class DiscordStatus extends Module {
 
 	public DiscordStatus() {
 		super("Discord", "Shows the server you're on in your Discord status", Category.UTILITY, true);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CHAT;
+		icon = com.tatnat.client.ui.render.Icons.Icon.BROADCAST;
 	}
 
 	@Override

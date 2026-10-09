@@ -11,7 +11,7 @@ public class PackDisplay extends TextHudModule {
 
 	public PackDisplay() {
 		super("Pack Display", "Shows which texture pack is active", false, 0.0, 0.51);
-		icon = com.tatnat.client.ui.render.Icons.Icon.LAYERS;
+		icon = com.tatnat.client.ui.render.Icons.Icon.PALETTE;
 	}
 
 	private static String clean(String id) {

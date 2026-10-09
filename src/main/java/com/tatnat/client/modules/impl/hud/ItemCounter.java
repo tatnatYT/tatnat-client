@@ -13,7 +13,7 @@ public class ItemCounter extends TextHudModule {
 
 	public ItemCounter() {
 		super("Item Counter", "Counts how many of an item you have", false, 0.0, 0.42);
-		icon = com.tatnat.client.ui.render.Icons.Icon.BOX;
+		icon = com.tatnat.client.ui.render.Icons.Icon.STACK;
 	}
 
 	/** Total of every stack whose name or id contains one of the comma-separated words. */

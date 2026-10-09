@@ -9,7 +9,7 @@ public class TotemCounter extends TextHudModule {
 
 	public TotemCounter() {
 		super("Totem Counter", "Shows how many Totems of Undying you have", false, 0.0, 0.45);
-		icon = com.tatnat.client.ui.render.Icons.Icon.HEART;
+		icon = com.tatnat.client.ui.render.Icons.Icon.TOTEM;
 	}
 
 	private int totems(boolean preview) {

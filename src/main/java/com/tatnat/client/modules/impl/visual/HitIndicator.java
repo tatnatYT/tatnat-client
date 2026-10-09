@@ -19,7 +19,7 @@ public class HitIndicator extends Module {
 
 	public HitIndicator() {
 		super("Hit Indicator", "Flashes the screen edges when you're hurt", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CROSSHAIR;
+		icon = com.tatnat.client.ui.render.Icons.Icon.ALERT;
 	}
 
 	@Subscribe

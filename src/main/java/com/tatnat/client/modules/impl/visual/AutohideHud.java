@@ -20,7 +20,7 @@ public class AutohideHud extends Module {
 
 	public AutohideHud() {
 		super("Autohide HUD", "Hides the HUD while you stand still", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.EYE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.EYE_OFF;
 	}
 
 	@Subscribe

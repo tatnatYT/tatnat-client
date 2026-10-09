@@ -18,7 +18,7 @@ public class TimeChanger extends Module {
 
 	public TimeChanger() {
 		super("Time Changer", "Pick your own time of day and weather", Category.VISUAL, false);
-		icon = Icons.Icon.MOON;
+		icon = Icons.Icon.DAYNIGHT;
 		INSTANCE = this;
 	}
 

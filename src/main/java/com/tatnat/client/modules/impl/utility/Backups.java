@@ -32,7 +32,7 @@ public class Backups extends Module {
 
 	public Backups() {
 		super("Backups", "Automatic backups of your tatnat client settings", Category.UTILITY, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.REFRESH;
+		icon = com.tatnat.client.ui.render.Icons.Icon.SAVE;
 		add(new ActionSetting("Back up now", "Make a backup right away", () -> lastResult.isEmpty() ? "Back up" : lastResult, this::backup));
 		add(new ActionSetting("Open folder", "Show the backups", () -> "Open", () -> TatnatClient.game().openPath(dir())));
 	}

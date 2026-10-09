@@ -9,7 +9,7 @@ public class ItemPhysic extends Module {
 
 	public ItemPhysic() {
 		super("Item Physic", "Dropped items lie flat on the ground", Category.VISUAL, false);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CUBE;
+		icon = com.tatnat.client.ui.render.Icons.Icon.DROPITEM;
 		instance = this;
 	}
 

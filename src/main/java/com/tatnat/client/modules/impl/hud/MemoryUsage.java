@@ -9,7 +9,7 @@ public class MemoryUsage extends TextHudModule {
 
 	public MemoryUsage() {
 		super("Memory Usage", "Shows how much RAM the game is using", false, 0.0, 0.225);
-		icon = com.tatnat.client.ui.render.Icons.Icon.CHIP;
+		icon = com.tatnat.client.ui.render.Icons.Icon.RAM;
 	}
 
 	@Override
