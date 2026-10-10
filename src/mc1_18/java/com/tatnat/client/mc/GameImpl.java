@@ -525,7 +525,14 @@ public final class GameImpl implements Game {
 	public String biome() {
 		Minecraft m = mc();
 		if (m.level == null) return "";
-		return m.level.getBiome(new net.minecraft.core.BlockPos((int) Math.floor(x()), (int) Math.floor(y()), (int) Math.floor(z()))).unwrapKey().map(k -> k.location().toString()).orElse("");
+		// 1.18.1 returns the Biome, 1.18.2 a Holder (whose text names its key); this folder builds both.
+		Object b = m.level.getBiome(new net.minecraft.core.BlockPos((int) Math.floor(x()), (int) Math.floor(y()), (int) Math.floor(z())));
+		if (b instanceof net.minecraft.world.level.biome.Biome) {
+			Object k = m.level.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getKey((net.minecraft.world.level.biome.Biome) b);
+			return k == null ? "" : k.toString();
+		}
+		java.util.regex.Matcher id = java.util.regex.Pattern.compile("/ ([a-z0-9_.-]+:[a-z0-9_/.-]+)[\\]]").matcher(String.valueOf(b));
+		return id.find() ? id.group(1) : "";
 	}
 
 	@Override
