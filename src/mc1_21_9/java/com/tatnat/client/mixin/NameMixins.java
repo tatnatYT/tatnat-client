@@ -24,7 +24,7 @@ public class NameMixins {
 	/** Tier Tagger in the tab list. */
 	@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true)
 	private void tatnat$tierTab(PlayerInfo info, CallbackInfoReturnable<Component> cir) {
-		com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = com.tatnat.client.modules.impl.utility.TierTagger.tabTag(info.getProfile().id());
+		com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = com.tatnat.client.modules.impl.utility.TierTagger.tabTag(info.getProfile().id(), info.getProfile().name());
 		if (tier != null && cir.getReturnValue() != null) cir.setReturnValue(com.tatnat.client.mc.TierText.prefix(tier, cir.getReturnValue()));
 	}
 }

@@ -23,12 +23,14 @@ if (!fs.existsSync(props)) {
 // Skip first-launch screens (accessibility onboarding, multiplayer warning) that block auto-join.
 const opts = path.join(run, "options.txt");
 if (!fs.existsSync(opts)) fs.writeFileSync(opts, ["onboardAccessibility:false", "skipMultiplayerWarning:true", "joinedFirstServer:true", "tutorialStep:none", "narrator:0"].join("\n") + "\n");
+// The dev player's name: DEVNAME=Verniq node devtest.js ... plays as a tier-listed player (offline account).
+const DEVNAME = process.env.DEVNAME || 'tatnat';
 // Op the dev player ("tatnat", offline UUID) so the test can use commands.
-const h = crypto.createHash('md5').update('OfflinePlayer:tatnat').digest();
+const h = crypto.createHash('md5').update('OfflinePlayer:' + DEVNAME).digest();
 h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80;
 const x = h.toString('hex');
 const uuid = `${x.slice(0, 8)}-${x.slice(8, 12)}-${x.slice(12, 16)}-${x.slice(16, 20)}-${x.slice(20)}`;
-fs.writeFileSync(path.join(run, 'ops.json'), JSON.stringify([{ uuid, name: 'tatnat', level: 4, bypassesPlayerLimit: false }]));
+fs.writeFileSync(path.join(run, 'ops.json'), JSON.stringify([{ uuid, name: DEVNAME, level: 4, bypassesPlayerLimit: false }]));
 for (const f of fs.readdirSync(path.join(run, 'screenshots'))) if (f.startsWith('devtest-')) fs.rmSync(path.join(run, 'screenshots', f));
 fs.rmSync(path.join(run, 'config', 'tatnat-client.json'), { force: true });
 // Every run starts at world spawn (the test moves the player 400 blocks at the end).
@@ -64,7 +66,7 @@ console.log('server up for ' + version);
   lines.push('pauseOnLostFocus:false');
   fs.writeFileSync(opts, lines.join('\n') + '\n');
 }
-const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, ...(audit ? [] : ['-Pquickjoin=127.0.0.1:25599'])],
+const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, `-Pdevname=${DEVNAME}`, ...(audit ? [] : ['-Pquickjoin=127.0.0.1:25599'])],
   { cwd: __dirname, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 900000 });
 fs.writeFileSync(path.join(__dirname, 'build', `client-${version}.log`), (client.stdout || '') + (client.stderr || ''));
 server.kill();

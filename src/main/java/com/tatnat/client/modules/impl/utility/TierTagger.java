@@ -85,26 +85,33 @@ public class TierTagger extends Module {
 	}
 
 	/** The tag for a player's name tag, or null (unknown player, not ranked, still loading or mod off). */
-	public static Tag nameTag(UUID uuid) {
-		return active() ? lookup(uuid) : null;
+	public static Tag nameTag(UUID uuid, String name) {
+		return active() ? lookup(uuid, name) : null;
 	}
 
 	/** The tag for a player's tab list entry, or null. */
-	public static Tag tabTag(UUID uuid) {
-		return active() && instance.tab.on() ? lookup(uuid) : null;
+	public static Tag tabTag(UUID uuid, String name) {
+		return active() && instance.tab.on() ? lookup(uuid, name) : null;
 	}
 
-	private static Tag lookup(UUID uuid) {
-		// Only real (Mojang) accounts are on the tier lists; offline-mode UUIDs are version 3.
-		if (uuid == null || uuid.version() != 4) return null;
+	private static Tag lookup(UUID uuid, String name) {
+		if (uuid == null) return null;
+		// Real (Mojang) accounts are looked up by their UUID. Offline-mode / cracked servers give
+		// everyone a made-up (version 3) UUID, so there the player's name is looked up instead.
+		boolean online = uuid.version() == 4;
+		if (!online && (name == null || !name.matches("[A-Za-z0-9_]{1,16}"))) return null;
 		TierTagger m = instance;
 		boolean sub = m.list.is("SubTiers");
-		String key = (sub ? "s:" : "p:") + uuid;
+		String key = (sub ? "s:" : "p:") + (online ? uuid.toString() : "name:" + name.toLowerCase(Locale.ROOT));
 		Map<String, int[]> rankings = CACHE.get(key);
 		Long at = FETCHED.get(key);
 		if (at == null || System.currentTimeMillis() - at > REFRESH_MS) {
 			FETCHED.put(key, System.currentTimeMillis());
-			POOL.execute(() -> fetch(key, uuid, sub));
+			POOL.execute(() -> {
+				UUID real = online ? uuid : realUuid(name);
+				if (real != null) fetch(key, real, sub);
+				else CACHE.put(key, new ConcurrentHashMap<>());
+			});
 		}
 		if (rankings == null || rankings.isEmpty()) return null;
 
@@ -154,6 +161,24 @@ public class TierTagger extends Module {
 			case 2: return pos == 0 ? 'f' : '7';
 			case 3: return '6';
 			default: return '5';
+		}
+	}
+
+	/** A name's real account UUID from Mojang (for offline-mode servers), or null when there is none. */
+	private static UUID realUuid(String name) {
+		try {
+			HttpURLConnection c = (HttpURLConnection) new URL("https://api.mojang.com/users/profiles/minecraft/" + name).openConnection();
+			c.setConnectTimeout(5000);
+			c.setReadTimeout(8000);
+			c.setRequestProperty("User-Agent", "tatnat-client");
+			if (c.getResponseCode() != 200) return null;
+			try (InputStream in = c.getInputStream()) {
+				String id = new JsonParser().parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject().get("id").getAsString();
+				return new UUID(Long.parseUnsignedLong(id.substring(0, 16), 16), Long.parseUnsignedLong(id.substring(16), 16));
+			}
+		} catch (Exception e) {
+			TatnatClient.LOG.warn("[tier tagger] name lookup failed for {}: {}", name, e.toString());
+			return null;
 		}
 	}
 

@@ -62,6 +62,12 @@ final class DevTestSteps {
 			case 2:
 				mc().setScreen(new net.minecraft.client.gui.screens.advancements.AdvancementsScreen(mc().player.connection.getAdvancements()));
 				break;
+			case 4:
+				mc().options.keyPlayerList.setDown(true); // hold Tab: the player list
+				break;
+			case 5:
+				mc().options.keyPlayerList.setDown(false);
+				break;
 			default:
 				mc().setScreen(null);
 		}

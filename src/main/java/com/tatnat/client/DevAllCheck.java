@@ -75,6 +75,10 @@ public final class DevAllCheck {
 				if (en.getValue().size() > 1) log("key " + en.getKey() + " used by " + en.getValue());
 			shot("allcheck-01-world");
 		});
+		// Tab list (Tier Tagger puts tiers there; tier lookups need a moment). 1.21.11 only.
+		add(60, () -> screens(4));
+		add(20, () -> shot("allcheck-17-tab-list"));
+		add(2, () -> screens(5));
 		add(5, () -> TatnatClient.game().openScreen(new com.tatnat.client.ui.clickgui.ClickGuiScreen()));
 		add(25, () -> shot("allcheck-02-menu"));
 		add(2, () -> {
