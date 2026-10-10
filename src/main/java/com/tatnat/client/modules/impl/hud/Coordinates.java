@@ -3,14 +3,22 @@ package com.tatnat.client.modules.impl.hud;
 import com.tatnat.client.modules.HudModule;
 import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
-import com.tatnat.client.modules.settings.ModeSetting;
 import com.tatnat.client.platform.Gfx;
 import com.tatnat.client.ui.render.Icons;
 
-/** {@code X: 124 / Y: 64 / Z: -453} plus the compass direction you're facing. */
+/**
+ * Your position, one value per line, plus the way you're facing and the biome you're in:
+ * <pre>
+ * X: 124
+ * Y: 64
+ * Z: -453
+ * F: N (-Z)
+ * B: Dark Forest
+ * </pre>
+ */
 public class Coordinates extends HudModule {
-	private final ModeSetting layout = add(new ModeSetting("Layout", "One line or one value per line", "Horizontal", "Horizontal", "Vertical"));
 	private final BooleanSetting direction = add(new BooleanSetting("Direction", "Show which way you're facing (N/S/E/W)", true));
+	private final BooleanSetting biome = add(new BooleanSetting("Biome", "Show the biome you're in", true));
 	private final BooleanSetting background = add(new BooleanSetting("Background", "Dark box behind the text", true));
 	private final BooleanSetting shadow = add(new BooleanSetting("Text Shadow", "Drop shadow under the text", true));
 	private final ColorSetting labelColor = add(new ColorSetting("Label Color", "Colour of X / Y / Z", 0xFF4EB1FF, true));
@@ -20,64 +28,63 @@ public class Coordinates extends HudModule {
 	private static final String[] AXES = {"+Z", "+Z -X", "-X", "-X -Z", "-Z", "-Z +X", "+X", "+X +Z"};
 
 	public Coordinates() {
-		super("Coordinates", "Shows your X / Y / Z position and facing", false, 0.0, 0.15);
+		super("Coordinates", "Shows your X / Y / Z position, facing and biome", false, 0.0, 0.45);
 		icon = Icons.Icon.MAP;
+	}
+
+	/** "minecraft:dark_forest" -> "Dark Forest"; old versions already give a plain name. */
+	static String prettyBiome(String id) {
+		if (id == null || id.isEmpty()) return "";
+		String s = id.substring(id.indexOf(':') + 1).replace('_', ' ');
+		if (!id.contains(":") && !id.contains("_")) return s;
+		StringBuilder out = new StringBuilder();
+		for (String w : s.split(" ")) {
+			if (w.isEmpty()) continue;
+			if (out.length() > 0) out.append(' ');
+			out.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+		}
+		return out.toString();
 	}
 
 	@Override
 	protected long draw(Gfx g, boolean preview) {
 		int x = 0, y = 0, z = 0, dir = 4;
+		String biomeName = "";
 		if (game().inWorld()) {
 			x = (int) Math.floor(game().x());
 			y = (int) Math.floor(game().y());
 			z = (int) Math.floor(game().z());
 			dir = Math.floorMod(Math.round(game().yaw() / 45f), 8);
+			try {
+				biomeName = prettyBiome(game().biome());
+			} catch (RuntimeException e) {
+				biomeName = "";
+			}
 		} else if (preview) {
 			x = 124;
 			y = 64;
 			z = -453;
+			biomeName = "Dark Forest";
 		}
-		String[][] parts = {{"X: ", String.valueOf(x)}, {"Y: ", String.valueOf(y)}, {"Z: ", String.valueOf(z)}};
-		boolean vertical = layout.is("Vertical");
+		java.util.List<String[]> lines = new java.util.ArrayList<>();
+		lines.add(new String[] {"X: ", String.valueOf(x)});
+		lines.add(new String[] {"Y: ", String.valueOf(y)});
+		lines.add(new String[] {"Z: ", String.valueOf(z)});
+		if (direction.on()) lines.add(new String[] {"F: ", DIRS[dir] + " (" + AXES[dir] + ")"});
+		if (biome.on() && !biomeName.isEmpty()) lines.add(new String[] {"B: ", biomeName});
 		int pad = background.on() ? 5 : 0;
 
 		// Measure first so the background can go underneath.
-		int w, h;
-		String dirText = direction.on() ? DIRS[dir] + " (" + AXES[dir] + ")" : null;
-		if (vertical) {
-			int max = 0;
-			for (String[] p : parts) max = Math.max(max, g.mcTextWidth(p[0] + p[1], false));
-			if (dirText != null) max = Math.max(max, g.mcTextWidth("F: " + dirText, false));
-			int lines = dirText != null ? 4 : 3;
-			w = max + pad * 2;
-			h = lines * 10 - 2 + pad * 2;
-		} else {
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < 3; i++) sb.append(parts[i][0]).append(parts[i][1]).append(i < 2 ? " / " : "");
-			if (dirText != null) sb.append("  ").append(DIRS[dir]);
-			w = g.mcTextWidth(sb.toString(), false) + pad * 2;
-			h = background.on() ? 16 : 8;
-		}
+		int max = 0;
+		for (String[] p : lines) max = Math.max(max, g.mcTextWidth(p[0] + p[1], false));
+		int w = max + pad * 2, h = lines.size() * 10 - 2 + pad * 2;
 		if (background.on()) g.rect(0, 0, w, h, 0x6F000000);
 
-		int cx = pad, cy = background.on() ? (vertical ? pad : 4) : 0;
-		for (int i = 0; i < 3; i++) {
-			cx = drawPart(g, parts[i][0], cx, cy, labelColor.color(i * 0.1));
-			cx = drawPart(g, parts[i][1], cx, cy, valueColor.color(i * 0.1 + 0.05));
-			if (vertical) {
-				cx = pad;
-				cy += 10;
-			} else if (i < 2) {
-				cx = drawPart(g, " / ", cx, cy, 0xFFA0A0A0);
-			}
-		}
-		if (dirText != null) {
-			if (vertical) {
-				cx = drawPart(g, "F: ", cx, cy, labelColor.color(0.3));
-				drawPart(g, dirText, cx, cy, valueColor.color(0.35));
-			} else {
-				drawPart(g, "  " + DIRS[dir], cx, cy, labelColor.color(0.3));
-			}
+		int cy = pad;
+		for (int i = 0; i < lines.size(); i++) {
+			int cx = drawPart(g, lines.get(i)[0], pad, cy, labelColor.color(i * 0.1));
+			drawPart(g, lines.get(i)[1], cx, cy, valueColor.color(i * 0.1 + 0.05));
+			cy += 10;
 		}
 		return size(w, h);
 	}

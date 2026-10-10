@@ -400,6 +400,24 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public Object findStack(String part) {
+		if (mc.player == null) return null;
+		for (int i = 0; i < mc.player.inventory.getInvSize(); i++) {
+			ItemStack s = mc.player.inventory.getInvStack(i);
+			if (s == null) continue;
+			if ((s.getItem().getTranslationKey(s) + "|" + s.getCustomName()).toLowerCase(java.util.Locale.ROOT).contains(part)) return s;
+		}
+		return null;
+	}
+
+	@Override
+	public String heldItemKey() {
+		if (mc.player == null) return null;
+		net.minecraft.item.ItemStack s = mc.player.getMainHandStack();
+		return s == null ? null : s.getItem().getTranslationKey(s) + "|" + s.getCustomName();
+	}
+
+	@Override
 	public int perspective() {
 		return mc.options.perspective;
 	}
@@ -467,6 +485,11 @@ public final class GameImpl implements Game {
 	@Override
 	public boolean opaque(int x, int y, int z) {
 		return mc.world != null && mc.world.getBlockState(new net.minecraft.util.math.BlockPos(x, y, z)).isFullBlock();
+	}
+
+	@Override
+	public String biome() {
+		return mc.world == null ? "" : mc.world.getBiome(new net.minecraft.util.math.BlockPos(x(), y(), z())).getName();
 	}
 
 	@Override

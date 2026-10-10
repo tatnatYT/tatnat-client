@@ -5,10 +5,7 @@ import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.modules.settings.ColorSetting;
 import com.tatnat.client.platform.Gfx;
 
-/**
- * A clean jump-power bar while riding a horse (or llama, camel…), instead of the vanilla one. It
- * only shows while you're riding something that can jump.
- */
+/** No longer in the menu (removed 2026-10-10); the jump-bar mixins still ask {@link #replacesVanilla()}, which stays false. */
 public class Horses extends HudModule {
 	private static Horses instance;
 	private static final int W = 120, H = 6;

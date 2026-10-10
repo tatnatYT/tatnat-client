@@ -111,6 +111,36 @@ public final class GfxImpl implements Gfx {
 		g.pose().popPose();
 	}
 
+	private static final java.util.Map<String, ResourceLocation> IMAGES = new java.util.HashMap<>();
+
+	@Override
+	public void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
+		int argb = 0xFFFFFFFF;
+		ResourceLocation id = IMAGES.get(key);
+		if (id == null) {
+			if (IMAGES.containsKey(key)) return;
+			byte[] b = png.get();
+			if (b == null) {
+				IMAGES.put(key, null);
+				return;
+			}
+			try {
+				com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(new java.io.ByteArrayInputStream(b));
+				id = ResourceLocation.fromNamespaceAndPath(TatnatClient.ID, "image/" + IMAGES.size());
+				net.minecraft.client.Minecraft.getInstance().getTextureManager().register(id, new net.minecraft.client.renderer.texture.DynamicTexture(img));
+			} catch (Exception e) {
+				IMAGES.put(key, null);
+				return;
+			}
+			IMAGES.put(key, id);
+		}
+		g.pose().pushPose();
+		g.pose().translate(x, y, 0f);
+		g.pose().scale(size / 64f, size / 64f, 1f);
+		g.blit(RenderType::guiTextured, id, 0, 0, 0f, 0f, 64, 64, 64, 64, argb);
+		g.pose().popPose();
+	}
+
 	@Override
 	public void item(Object stack, int x, int y) {
 		ItemStack s = (ItemStack) stack;

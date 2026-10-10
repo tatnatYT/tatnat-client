@@ -5,7 +5,7 @@ import com.tatnat.client.modules.TextHudModule;
 /** Shows the address of the server you're on ("Singleplayer" in your own worlds). */
 public class ServerAddress extends TextHudModule {
 	public ServerAddress() {
-		super("Server Address", "Shows the IP of the server you are playing on", false, 0.0, 0.375);
+		super("Server Address", "Shows the IP of the server you are playing on", false, 0.0, 0.30);
 		icon = com.tatnat.client.ui.render.Icons.Icon.GLOBE;
 	}
 

@@ -179,4 +179,25 @@ public final class OverlayMixins {
 			com.mojang.blaze3d.systems.RenderSystem.enableTexture();
 		}
 	}
+	/** Death Info: where you died, on the death screen. */
+	@Mixin(net.minecraft.client.gui.screens.DeathScreen.class)
+	public static class DeathCoords {
+		@Inject(method = "render", at = @At("TAIL"), require = 0)
+		private void tatnat$deathCoords(int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+			com.tatnat.client.modules.impl.hud.DeathInfo.onDeathScreen(new com.tatnat.client.mc.GfxImpl(new com.tatnat.client.mc.Graphics()));
+		}
+	}
+	/** Hearts / Armor Bar: the vanilla icons are hidden; the mods draw their own over any texture pack. */
+	@Mixin(net.minecraft.client.gui.Gui.class)
+	public static class HideBars {
+		@Inject(method = "renderHearts", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$hideHearts(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.HudColors.hearts()) ci.cancel();
+		}
+
+		@Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true, require = 0)
+		private static void tatnat$hideArmor(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.HudColors.armor()) ci.cancel();
+		}
+	}
 }

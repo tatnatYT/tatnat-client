@@ -162,21 +162,6 @@ public final class OverlayMixins {
 			pose.translate(-side * com.tatnat.client.modules.impl.visual.ViewModel.x(), -com.tatnat.client.modules.impl.visual.ViewModel.y(), -com.tatnat.client.modules.impl.visual.ViewModel.z());
 		}
 	}
-	/** Hearts / Armor Bar: tint the icons while the game draws them. */
-	@Mixin(net.minecraft.client.gui.Gui.class)
-	public static class BarColors {
-		@Inject(method = "renderHearts", at = @At("HEAD"), require = 0)
-		private void tatnat$renderHeartsTint(CallbackInfo ci) {
-			if (!com.tatnat.client.modules.impl.visual.HudColors.hearts()) return;
-			int c = com.tatnat.client.modules.impl.visual.HudColors.heartColor();
-			com.mojang.blaze3d.systems.RenderSystem.setShaderColor(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f, 1f);
-		}
-
-		@Inject(method = "renderHearts", at = @At("RETURN"), require = 0)
-		private void tatnat$renderHeartsReset(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.HudColors.hearts()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		}
-	}
 	/** Item Physic: dropped items lie flat and stop bobbing / spinning. */
 	@Mixin(net.minecraft.client.renderer.entity.ItemEntityRenderer.class)
 	public static class ItemFlat {
@@ -286,6 +271,27 @@ public final class OverlayMixins {
 		@Inject(method = "renderWindow", at = @At("RETURN"), require = 0)
 		private void tatnat$light_renderWindow(CallbackInfo ci) {
 			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		}
+	}
+	/** Death Info: where you died, on the death screen. */
+	@Mixin(net.minecraft.client.gui.screens.DeathScreen.class)
+	public static class DeathCoords {
+		@Inject(method = "render", at = @At("TAIL"), require = 0)
+		private void tatnat$deathCoords(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+			com.tatnat.client.modules.impl.hud.DeathInfo.onDeathScreen(new com.tatnat.client.mc.GfxImpl(graphics));
+		}
+	}
+	/** Hearts / Armor Bar: the vanilla icons are hidden; the mods draw their own over any texture pack. */
+	@Mixin(net.minecraft.client.gui.Gui.class)
+	public static class HideBars {
+		@Inject(method = "renderHearts", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$hideHearts(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.HudColors.hearts()) ci.cancel();
+		}
+
+		@Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true, require = 0)
+		private static void tatnat$hideArmor(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.HudColors.armor()) ci.cancel();
 		}
 	}
 }

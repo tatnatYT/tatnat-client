@@ -60,6 +60,16 @@ public class Crosshair extends Module {
 		if (outline.on()) drawShape(g, s, cx, cy, t, len, gp, 0xC0000000, 1);
 		drawShape(g, s, cx, cy, t, len, gp, color.color(), 0);
 		RenderUtils.end(g);
+
+		// The vanilla attack indicator lives in the crosshair we replace: draw it ourselves.
+		if (game().attackIndicatorMode() == 1) {
+			float charge = game().attackStrength();
+			if (charge < 1f) {
+				int x = game().guiWidth() / 2 - 8, y = game().guiHeight() / 2 + 9;
+				g.rect(x, y, x + 16, y + 3, 0xA0000000);
+				g.rect(x + 1, y + 1, x + 1 + Math.round(14 * charge), y + 2, 0xFFFFFFFF);
+			}
+		}
 	}
 
 	private void drawShape(Gfx g, String s, int cx, int cy, int t, int len, int gp, int c, int grow) {

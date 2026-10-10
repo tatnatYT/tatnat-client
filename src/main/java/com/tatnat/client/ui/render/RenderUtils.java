@@ -203,6 +203,11 @@ public final class RenderUtils {
 	public static void roundedGradient(Gfx g, int x, int y, int w, int h, int radius, int top, int bottom) {
 		if (w <= 0 || h <= 0) return;
 		int r = com.tatnat.client.modules.Performance.roundedCorners() ? Math.max(0, Math.min(radius, Math.min(w, h) / 2)) : 0;
+		if (r * 2 >= h - 1) {
+			// Pill / nearly round: the caps would cover each other, so one fill in the mid colour.
+			roundedRect(g, x, y, w, h, radius, Colors.lerp(top, bottom, 0.5f));
+			return;
+		}
 		if (r == 0 || top == bottom) {
 			if (top == bottom) roundedRect(g, x, y, w, h, radius, top);
 			else verticalGradient(g, x, y, x + w, y + h, top, bottom);

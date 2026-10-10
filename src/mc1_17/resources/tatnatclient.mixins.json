@@ -5,6 +5,8 @@
 	"plugin": "com.tatnat.client.mixin.MixinPlugin",
 	"compatibilityLevel": "JAVA_16",
 	"client": [
+		"OverlayMixins$HideBars",
+		"OverlayMixins$DeathCoords",
 		"PostEffectAccess",
 		"OverlayMixins$Boss",
 		"OverlayMixins$Subtitles",

@@ -3,7 +3,7 @@ package com.tatnat.client.modules.impl.visual;
 import com.tatnat.client.modules.Category;
 import com.tatnat.client.modules.Module;
 
-/** Removes the distance fog so the world fades out at your render distance only (1.14 - 1.21.5). */
+/** No longer in the menu (removed 2026-10-10); the fog mixins still ask {@link #disabled()}, which stays false. */
 public class CustomFog extends Module {
 	private static CustomFog instance;
 

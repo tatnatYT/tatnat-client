@@ -20,4 +20,11 @@ public class NameMixins {
 		if (!NickHider.active() || !NickHider.INSTANCE.inTab.on()) return;
 		if (PlayerLooks.isMe(info.getProfile().id())) cir.setReturnValue(PlayerLooks.replaceName(cir.getReturnValue()));
 	}
+
+	/** Tier Tagger in the tab list. */
+	@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true)
+	private void tatnat$tierTab(PlayerInfo info, CallbackInfoReturnable<Component> cir) {
+		com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = com.tatnat.client.modules.impl.utility.TierTagger.tabTag(info.getProfile().id());
+		if (tier != null && cir.getReturnValue() != null) cir.setReturnValue(com.tatnat.client.mc.TierText.prefix(tier, cir.getReturnValue()));
+	}
 }

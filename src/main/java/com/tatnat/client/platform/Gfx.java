@@ -76,6 +76,13 @@ public interface Gfx {
 	/** The mod's logo (the tatnat head), {@code size} x {@code size}. */
 	void logo(int x, int y, int size, int argb);
 
+	/**
+	 * Draws a 64x64 PNG at size x size, top-left at (x, y). {@code key} names it; {@code png} is only
+	 * called the first time (return null when there is no image).
+	 */
+	default void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
+	}
+
 	/** A game item (opaque platform handle from {@link Game}) at 16x16, with durability bar. */
 	void item(Object stack, int x, int y);
 

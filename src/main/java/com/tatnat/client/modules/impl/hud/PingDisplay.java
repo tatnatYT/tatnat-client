@@ -10,7 +10,7 @@ public class PingDisplay extends TextHudModule {
 	private final BooleanSetting showMs = add(new BooleanSetting("Show MS", "Write ms after the number", true));
 
 	public PingDisplay() {
-		super("Ping Display", "Shows your connection latency to the server", false, 0.0, 0.30);
+		super("Ping Display", "Shows your connection latency to the server", false, 0.0, 0.225);
 		icon = com.tatnat.client.ui.render.Icons.Icon.SIGNAL;
 	}
 

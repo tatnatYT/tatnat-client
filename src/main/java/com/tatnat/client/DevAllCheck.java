@@ -19,7 +19,7 @@ import com.tatnat.client.modules.ModuleManager;
  */
 public final class DevAllCheck {
 	/** Mods that take over the camera or the whole screen; checked on their own at the end. */
-	private static final Set<String> LATER = new HashSet<>(Arrays.asList("Freecam", "Autohide HUD", "UI Scaling", "Color Saturation", "Snaplook"));
+	private static final Set<String> LATER = new HashSet<>(Arrays.asList("Freecam", "Autohide HUD", "UI Scaling", "Color Saturation"));
 
 	/** "allcheck:Name|Name" limits the run to those mods (to find which one causes a problem). */
 	private static final Set<String> ONLY = new HashSet<>();

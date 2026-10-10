@@ -496,7 +496,6 @@ public class ClickGuiScreen implements UiScreen {
 	private void drawSearch(Gfx g, int x, int y, int w, int h, double mx, double my) {
 		boolean hover = Widgets.inside(mx, my, x, y, w, h);
 		int r = h / 2;
-		if (searchFocused) RenderUtils.glow(g, x + w / 2, y + h / 2, w / 2 + Ui.px(10), 0x20E5323E, 5);
 		RenderUtils.surface(g, x, y, w, h, r, hover || searchFocused ? 0xFF22242B : 0xFF1B1D22, 0xFF16171B,
 				searchFocused ? Colors.withAlpha(Theme.ACCENT, 0xB0) : hover ? Theme.BORDER_HOVER : Theme.BORDER);
 		Icons.draw(g, Icon.SEARCH, x + Ui.px(22), y + h / 2, Ui.px(16), searchFocused ? Theme.ACCENT : Theme.TEXT_MUTED);

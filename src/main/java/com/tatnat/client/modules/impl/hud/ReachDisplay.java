@@ -45,7 +45,7 @@ public class ReachDisplay extends TextHudModule {
 	private long lastTime;
 
 	public ReachDisplay() {
-		super("Reach Display", "Shows how far away you hit from", false, 0.0, 0.45);
+		super("Reach Display", "Shows how far away you hit from", false, 0.0, 0.375);
 		icon = Icons.Icon.RULER;
 	}
 

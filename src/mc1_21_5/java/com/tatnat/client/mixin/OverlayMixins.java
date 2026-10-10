@@ -160,33 +160,6 @@ public final class OverlayMixins {
 			pose.translate(-side * com.tatnat.client.modules.impl.visual.ViewModel.x(), -com.tatnat.client.modules.impl.visual.ViewModel.y(), -com.tatnat.client.modules.impl.visual.ViewModel.z());
 		}
 	}
-	/** Hearts / Armor Bar: tint the icons while the game draws them. */
-	@Mixin(net.minecraft.client.gui.Gui.class)
-	public static class BarColors {
-		@Inject(method = "renderHearts", at = @At("HEAD"), require = 0)
-		private void tatnat$renderHeartsTint(CallbackInfo ci) {
-			if (!com.tatnat.client.modules.impl.visual.HudColors.hearts()) return;
-			int c = com.tatnat.client.modules.impl.visual.HudColors.heartColor();
-			com.mojang.blaze3d.systems.RenderSystem.setShaderColor(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f, 1f);
-		}
-
-		@Inject(method = "renderHearts", at = @At("RETURN"), require = 0)
-		private void tatnat$renderHeartsReset(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.HudColors.hearts()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		}
-
-		@Inject(method = "renderArmor", at = @At("HEAD"), require = 0)
-		private static void tatnat$renderArmorTint(CallbackInfo ci) {
-			if (!com.tatnat.client.modules.impl.visual.HudColors.armor()) return;
-			int c = com.tatnat.client.modules.impl.visual.HudColors.armorColor();
-			com.mojang.blaze3d.systems.RenderSystem.setShaderColor(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f, 1f);
-		}
-
-		@Inject(method = "renderArmor", at = @At("RETURN"), require = 0)
-		private static void tatnat$renderArmorReset(CallbackInfo ci) {
-			if (com.tatnat.client.modules.impl.visual.HudColors.armor()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		}
-	}
 	/** Dark Mode: a dark panel behind the slots, lighter label text. */
 	@Mixin(net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class)
 	public abstract static class DarkContainers {
@@ -270,6 +243,55 @@ public final class OverlayMixins {
 		@Inject(method = "renderWindow", at = @At("RETURN"), require = 0)
 		private void tatnat$light_renderWindow(CallbackInfo ci) {
 			if (com.tatnat.client.modules.impl.visual.CustomAdvancements.dark()) com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		}
+	}
+	/** Death Info: where you died, on the death screen. */
+	@Mixin(net.minecraft.client.gui.screens.DeathScreen.class)
+	public static class DeathCoords {
+		@Inject(method = "render", at = @At("TAIL"), require = 0)
+		private void tatnat$deathCoords(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+			com.tatnat.client.modules.impl.hud.DeathInfo.onDeathScreen(new com.tatnat.client.mc.GfxImpl(graphics));
+		}
+	}
+	/** Hearts / Armor Bar: the vanilla icons are hidden; the mods draw their own over any texture pack. */
+	@Mixin(net.minecraft.client.gui.Gui.class)
+	public static class HideBars {
+		@Inject(method = "renderHearts", at = @At("HEAD"), cancellable = true, require = 0)
+		private void tatnat$hideHearts(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.HudColors.hearts()) ci.cancel();
+		}
+
+		@Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true, require = 0)
+		private static void tatnat$hideArmor(CallbackInfo ci) {
+			if (com.tatnat.client.modules.impl.visual.HudColors.armor()) ci.cancel();
+		}
+	}
+	/** Item Physic (1.21.2+): dropped items lie flat and stop bobbing / spinning. */
+	@Mixin(net.minecraft.client.renderer.entity.ItemEntityRenderer.class)
+	public static class ItemFlatState {
+		@org.spongepowered.asm.mixin.injection.Redirect(method = {"render", "submit"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/item/ItemEntity;getSpin(FF)F"), require = 0)
+		private float tatnat$spin(float age, float bob) {
+			return com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? 0f : net.minecraft.world.entity.item.ItemEntity.getSpin(age, bob);
+		}
+
+		@org.spongepowered.asm.mixin.injection.Redirect(method = {"render", "submit"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;sin(F)F", ordinal = 0), require = 0)
+		private float tatnat$bobF(float v) {
+			return com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? -1f : net.minecraft.util.Mth.sin(v);
+		}
+
+		@org.spongepowered.asm.mixin.injection.Redirect(method = {"render", "submit"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;sin(D)F", ordinal = 0), require = 0)
+		private float tatnat$bobD(double v) {
+			return com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? -1f : (float) Math.sin(v);
+		}
+
+		@org.spongepowered.asm.mixin.injection.Redirect(method = {"render", "submit"}, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V", ordinal = 0), require = 0)
+		private void tatnat$flat(com.mojang.blaze3d.vertex.PoseStack pose, org.joml.Quaternionf q) {
+			pose.mulPose(com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? com.mojang.math.Axis.XP.rotationDegrees(90f) : q);
+		}
+
+		@org.spongepowered.asm.mixin.injection.Redirect(method = {"render", "submit"}, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V", ordinal = 0), require = 0)
+		private void tatnat$flatC(com.mojang.blaze3d.vertex.PoseStack pose, org.joml.Quaternionfc q) {
+			pose.mulPose(com.tatnat.client.modules.impl.visual.ItemPhysic.on() ? com.mojang.math.Axis.XP.rotationDegrees(90f) : new org.joml.Quaternionf(q));
 		}
 	}
 }

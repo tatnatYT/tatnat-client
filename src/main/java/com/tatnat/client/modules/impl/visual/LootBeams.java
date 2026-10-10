@@ -43,11 +43,13 @@ public class LootBeams extends Module {
 		for (EntityInfo it : game().entities(range.get())) {
 			if (it.kind != EntityInfo.Kind.ITEM || !wanted(it.name)) continue;
 			if (scale < 0) scale = RenderUtils.beginPixels(e.gfx);
+			// Centred on the block the item lies in, from its floor up.
+			double bx = Math.floor(it.x) + 0.5, bz = Math.floor(it.z) + 0.5, by = Math.floor(it.top - 0.25 + 0.01); // items are 0.25 tall
 			double[] prev = null;
 			int steps = 12;
 			for (int i = 0; i <= steps; i++) {
-				double y = it.top - 0.2 + height.get() * i / steps;
-				double[] p = WorldProjector.project(it.x, y, it.z);
+				double y = by + height.get() * i / steps;
+				double[] p = WorldProjector.project(bx, y, bz);
 				if (p[3] > 0.05 && prev != null && prev[3] > 0.05) {
 					float w = (float) Math.max(1, Math.min(5, 24 / Math.max(1, p[3]))) * scale / 2f;
 					int a = (int) (0xC0 * (1 - i / (double) steps)) + 0x20;

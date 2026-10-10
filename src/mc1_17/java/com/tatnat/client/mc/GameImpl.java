@@ -402,6 +402,26 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public Object findStack(String part) {
+		Minecraft m = mc();
+		if (m.player == null) return null;
+		net.minecraft.world.entity.player.Inventory inv = m.player.getInventory();
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack s = inv.getItem(i);
+			if (s.isEmpty()) continue;
+			if ((s.getItem().getDescriptionId() + "|" + s.getHoverName().getString()).toLowerCase(java.util.Locale.ROOT).contains(part)) return s;
+		}
+		return part.contains("totem") ? new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.TOTEM_OF_UNDYING) : null;
+	}
+
+	@Override
+	public String heldItemKey() {
+		if (mc().player == null) return null;
+		net.minecraft.world.item.ItemStack s = mc().player.getMainHandItem();
+		return s.isEmpty() ? null : s.getItem().getDescriptionId() + "|" + s.getHoverName().getString();
+	}
+
+	@Override
 	public int perspective() {
 		return mc().options.getCameraType().ordinal();
 	}
@@ -414,6 +434,13 @@ public final class GameImpl implements Game {
 	@Override
 	public float health() {
 		return mc().player == null ? 20 : mc().player.getHealth();
+	}
+
+	@Override
+	public float[] barStats() {
+		net.minecraft.client.player.LocalPlayer p = mc().player;
+		if (p == null || mc().gameMode == null || !mc().gameMode.canHurtPlayer()) return null;
+		return new float[] {p.getHealth(), p.getMaxHealth(), p.getAbsorptionAmount(), p.getArmorValue()};
 	}
 
 	@Override
@@ -458,6 +485,16 @@ public final class GameImpl implements Game {
 	}
 
 	@Override
+	public int attackIndicatorMode() {
+		return mc().options.attackIndicator.ordinal();
+	}
+
+	@Override
+	public float attackStrength() {
+		return mc().player == null ? 1f : mc().player.getAttackStrengthScale(0f);
+	}
+
+	@Override
 	public int skyDarkness() {
 		return mc().level == null ? -1 : mc().level.getSkyDarken();
 	}
@@ -482,6 +519,14 @@ public final class GameImpl implements Game {
 		if (m.level == null) return false;
 		net.minecraft.core.BlockPos p = new net.minecraft.core.BlockPos(x, y, z);
 		return !m.level.getBlockState(p).getCollisionShape(m.level, p).isEmpty();
+	}
+
+	@Override
+	public String biome() {
+		Minecraft m = mc();
+		if (m.level == null) return "";
+		Object k = m.level.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getKey(m.level.getBiome(new net.minecraft.core.BlockPos((int) Math.floor(x()), (int) Math.floor(y()), (int) Math.floor(z()))));
+		return k == null ? "" : k.toString();
 	}
 
 	@Override

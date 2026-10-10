@@ -246,6 +246,49 @@ public final class GfxImpl implements Gfx {
 		end();
 	}
 
+	private static final java.util.Map<String, Identifier> IMAGES = new java.util.HashMap<>();
+
+	@Override
+	public void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
+		int argb = 0xFFFFFFFF, w = size, h = size;
+		Identifier id = IMAGES.get(key);
+		if (id == null) {
+			if (IMAGES.containsKey(key)) return;
+			BufferedImage img;
+			try {
+				byte[] b = png.get();
+				img = b == null ? null : javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(b));
+			} catch (Exception e) {
+				img = null;
+			}
+			if (img == null) {
+				IMAGES.put(key, null);
+				return;
+			}
+			id = new Identifier(TatnatClient.ID, "image/" + IMAGES.size());
+			mc.getTextureManager().loadTexture(id, new NativeImageBackedTexture(img));
+			IMAGES.put(key, id);
+		}
+		begin();
+		GlStateManager.enableTexture();
+		GlStateManager.enableBlend();
+		GlStateManager.disableAlphaTest();
+		GlStateManager.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+		GlStateManager.color(((argb >> 16) & 255) / 255f, ((argb >> 8) & 255) / 255f, (argb & 255) / 255f, ((argb >>> 24) & 255) / 255f);
+		mc.getTextureManager().bindTexture(id);
+		Tessellator t = Tessellator.getInstance();
+		BufferBuilder b = t.getBuffer();
+		b.begin(GL11.GL_QUADS, VertexFormats.POSITION_TEXTURE);
+		b.vertex(x, y + h, 0).texture(0, 1).next();
+		b.vertex(x + w, y + h, 0).texture(1, 1).next();
+		b.vertex(x + w, y, 0).texture(1, 0).next();
+		b.vertex(x, y, 0).texture(0, 0).next();
+		t.draw();
+		GlStateManager.color(1f, 1f, 1f, 1f);
+		GlStateManager.enableAlphaTest();
+		end();
+	}
+
 	@Override
 	public void item(Object stack, int x, int y) {
 		ItemStack s = (ItemStack) stack;

@@ -8,7 +8,7 @@ public class MemoryUsage extends TextHudModule {
 	private final BooleanSetting percentage = add(new BooleanSetting("Show Percentage", "Show a percentage instead of megabytes", false));
 
 	public MemoryUsage() {
-		super("Memory Usage", "Shows how much RAM the game is using", false, 0.0, 0.225);
+		super("Memory Usage", "Shows how much RAM the game is using", false, 0.0, 0.15);
 		icon = com.tatnat.client.ui.render.Icons.Icon.RAM;
 	}
 

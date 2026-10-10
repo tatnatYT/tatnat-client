@@ -182,6 +182,16 @@ public interface Game {
 	default void setGuiScale(int scale) {
 	}
 
+	/** The game's attack indicator setting: 0 = off, 1 = under the crosshair, 2 = by the hotbar (-1 = none). */
+	default int attackIndicatorMode() {
+		return -1;
+	}
+
+	/** Attack cooldown, 0 (just swung) to 1 (fully charged). */
+	default float attackStrength() {
+		return 1f;
+	}
+
 	/** Attack indicator: 0 = off, 1 = under the crosshair, 2 = by the hotbar (1.9+). */
 	default void setAttackIndicator(int mode) {
 	}
@@ -199,6 +209,11 @@ public interface Game {
 	/** True when a mob could stand here: open space with a solid block underneath. */
 	default boolean spawnSurface(int x, int y, int z) {
 		return false;
+	}
+
+	/** The biome at your feet ("minecraft:dark_forest", or a plain name on old versions), or "". */
+	default String biome() {
+		return "";
 	}
 
 	/** True when the block at a position hides what's behind it (Light Level Overlay's line of sight). */
@@ -233,6 +248,11 @@ public interface Game {
 	default void setPerspective(int perspective) {
 	}
 
+	/** {health, max health, absorption, armor} while you can take damage (survival / adventure), else null. */
+	default float[] barStats() {
+		return null;
+	}
+
 	/** The player's health (20 = full), for Death Info and Hit Indicator. */
 	default float health() {
 		return 20;
@@ -246,6 +266,16 @@ public interface Game {
 	/** Item counts in your inventory, keyed "translation key|display name" (for Totem / Item Counter). */
 	default java.util.Map<String, Integer> inventoryCounts() {
 		return java.util.Collections.emptyMap();
+	}
+
+	/** First inventory stack whose inventoryCounts() key contains {@code part} (lower case), for drawing its icon; null if none. */
+	default Object findStack(String part) {
+		return null;
+	}
+
+	/** The inventoryCounts() key of the item in your main hand, or null when it's empty. */
+	default String heldItemKey() {
+		return null;
 	}
 
 	default java.util.List<EntityInfo> entities(double range) {
