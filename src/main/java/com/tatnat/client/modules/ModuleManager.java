@@ -43,7 +43,6 @@ import com.tatnat.client.modules.impl.hud.ItemCounter;
 import com.tatnat.client.modules.impl.hud.TotemCounter;
 import com.tatnat.client.modules.impl.hud.TotemPops;
 import com.tatnat.client.modules.impl.visual.ItemDespawn;
-import com.tatnat.client.modules.impl.visual.LootBeams;
 import com.tatnat.client.modules.impl.visual.TntTimer;
 import com.tatnat.client.modules.impl.hud.Playtime;
 import com.tatnat.client.modules.impl.hud.SpeedMeter;
@@ -148,7 +147,6 @@ public final class ModuleManager {
 		add(new ChunkAnimator());
 		add(new TntTimer());
 		add(new ItemDespawn());
-		add(new LootBeams());
 		add(new HitIndicator());
 		add(new AutoPerspective());
 		add(new AutohideHud());

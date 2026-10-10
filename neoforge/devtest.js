@@ -46,6 +46,13 @@ for (;;) {
 }
 console.log('server up for neoforge ' + version);
 
+// Never pause when the window loses focus (screenshots would show the pause menu).
+{
+  const o = fs.existsSync(opts) ? fs.readFileSync(opts, 'utf8') : '';
+  const lines = o.split(/\r?\n/).filter(l => l && !l.startsWith('pauseOnLostFocus:'));
+  lines.push('pauseOnLostFocus:false');
+  fs.writeFileSync(opts, lines.join('\n') + '\n');
+}
 const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props, `-Pdevtest=${mode}`, `-Pquickjoin=127.0.0.1:${PORT}`],
   { cwd: __dirname, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 900000 });
 const out = (client.stdout || '') + (client.stderr || '');

@@ -163,7 +163,7 @@ public final class DevAllCheck {
 			cmd("summon item ~-1 ~ ~2 {PickupDelay:32767,Item:{id:\"minecraft:diamond\",Count:5b}}");
 		});
 		add(2, () -> cmd("effect give @s absorption 60 1"));
-		add(40, () -> shot("allcheck-14-survival-hud"));
+		add(230, () -> shot("allcheck-14-survival-hud")); // after the chat has faded
 		add(2, () -> cmd("tp @s ~ ~2 ~ 0 90"));
 		add(30, () -> shot("allcheck-16-items-from-above"));
 		// Death screen: Death Info writes where you died on it.

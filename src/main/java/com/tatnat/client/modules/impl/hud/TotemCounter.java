@@ -26,6 +26,8 @@ public class TotemCounter extends HudModule {
 	/** The icon, then the count beside it (not on it), top-left at (x, y). Returns the width. */
 	private static int drawTotem(Gfx g, int x, int y, int count) {
 		Object stack = com.tatnat.client.TatnatClient.game().findStack("totem");
+		// Versions without totems (before 1.11) have nothing to show.
+		if (stack == null && count == 0) return 0;
 		if (stack != null) g.item(stack, x, y);
 		String n = String.valueOf(count);
 		g.mcText(n, x + 18, y + 4, count == 0 ? 0xFFFF5555 : 0xFF55FF55, true, false);
@@ -54,6 +56,6 @@ public class TotemCounter extends HudModule {
 		int n = totems(preview);
 		if (!preview && n == 0 && hideWhenNone.on()) return size(0, 0);
 		int w = drawTotem(g, 0, 0, n);
-		return size(w, 16);
+		return w == 0 ? size(0, 0) : size(w, 16);
 	}
 }
