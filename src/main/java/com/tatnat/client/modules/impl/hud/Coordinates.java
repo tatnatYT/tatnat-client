@@ -28,7 +28,7 @@ public class Coordinates extends HudModule {
 	private static final String[] AXES = {"+Z", "+Z -X", "-X", "-X -Z", "-Z", "-Z +X", "+X", "+X +Z"};
 
 	public Coordinates() {
-		super("Coordinates", "Shows your X / Y / Z position, facing and biome", false, 0.0, 0.45);
+		super("Coordinates", "Shows your X / Y / Z position, facing and biome", false, 0.38, 0.40);
 		icon = Icons.Icon.MAP;
 	}
 

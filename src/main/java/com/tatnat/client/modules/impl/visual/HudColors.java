@@ -66,17 +66,26 @@ public final class HudColors {
 		int light = blend(fill, 0xFFFFFFFF, 0.45f), empty = 0xFF2B1E22;
 		for (int row = 0; row < art.length; row++) {
 			String line = art[row];
-			for (int col = 0; col < line.length(); col++) {
-				char c = line.charAt(col);
-				if (c == '.') continue;
-				int color;
-				if (c == '#') {
-					color = 0xFF000000;
-				} else {
-					boolean filled = part == 2 || part == 1 && col <= 4;
-					color = !filled ? empty : c == 'h' ? light : fill;
+			int runStart = -1, runColor = 0;
+			for (int col = 0; col <= line.length(); col++) {
+				int color = 0;
+				if (col < line.length()) {
+					char c = line.charAt(col);
+					if (c == '#') {
+						color = 0xFF000000;
+					} else if (c != '.') {
+						boolean filled = part == 2 || part == 1 && col <= 4;
+						color = !filled ? empty : c == 'h' ? light : fill;
+					}
 				}
-				g.rect(x + col, y + row, x + col + 1, y + row + 1, color);
+				if (runStart >= 0 && color != runColor) {
+					g.rect(x + runStart, y + row, x + col, y + row + 1, runColor);
+					runStart = -1;
+				}
+				if (runStart < 0 && color != 0) {
+					runStart = col;
+					runColor = color;
+				}
 			}
 		}
 	}
@@ -108,6 +117,7 @@ public final class HudColors {
 		public void onRender(Events.Render2D e) {
 			float[] s = game().barStats();
 			if (s == null || game().hudHidden()) return;
+			com.tatnat.client.ui.render.RectBatch batch = com.tatnat.client.ui.render.RectBatch.of(e.gfx);
 			int left = game().guiWidth() / 2 - 91, base = game().guiHeight() - 39;
 			int rowH = heartRows(s)[1];
 			int healthHearts = (int) Math.ceil(s[1] / 2f), absorbHearts = (int) Math.ceil(s[2] / 2f);
@@ -119,12 +129,13 @@ public final class HudColors {
 				if (health <= 4) y += (int) ((System.currentTimeMillis() / 50 + i * 7) % 2);
 				if (i < healthHearts) {
 					int v = health - i * 2;
-					drawIcon(e.gfx, HEART, x, y, v >= 2 ? 2 : v == 1 ? 1 : 0, fill);
+					drawIcon(batch, HEART, x, y, v >= 2 ? 2 : v == 1 ? 1 : 0, fill);
 				} else {
 					int v = absorb - (i - healthHearts) * 2;
-					drawIcon(e.gfx, HEART, x, y, v >= 2 ? 2 : 1, 0xFFFFD23C);
+					drawIcon(batch, HEART, x, y, v >= 2 ? 2 : 1, 0xFFFFD23C);
 				}
 			}
+			batch.flush();
 		}
 	}
 
@@ -142,13 +153,15 @@ public final class HudColors {
 		public void onRender(Events.Render2D e) {
 			float[] s = TatnatClient.game().barStats();
 			if (s == null || game().hudHidden() || s[3] <= 0) return;
+			com.tatnat.client.ui.render.RectBatch batch = com.tatnat.client.ui.render.RectBatch.of(e.gfx);
 			int[] rows = heartRows(s);
 			int left = game().guiWidth() / 2 - 91, y = game().guiHeight() - 39 - (rows[0] - 1) * rows[1] - 10;
 			int armorValue = (int) s[3];
 			for (int i = 0; i < 10; i++) {
 				int v = armorValue - i * 2;
-				drawIcon(e.gfx, CHEST, left + i * 8, y, v >= 2 ? 2 : v == 1 ? 1 : 0, color.color(i * 0.05));
+				drawIcon(batch, CHEST, left + i * 8, y, v >= 2 ? 2 : v == 1 ? 1 : 0, color.color(i * 0.05));
 			}
+			batch.flush();
 		}
 	}
 }

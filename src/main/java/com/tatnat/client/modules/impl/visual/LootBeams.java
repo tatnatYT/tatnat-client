@@ -17,6 +17,9 @@ import com.tatnat.client.util.WorldProjector;
 
 /** A beam of light shooting up from valuable dropped items, so you can't miss them. */
 public class LootBeams extends Module {
+	/** Beam parts closer to the camera than this (blocks) aren't drawn. */
+	private static final double NEAR = 0.5;
+
 	private final TextSetting filter = add(new TextSetting("Item Filter", "Item names that get a beam, separated by commas (empty = every item)",
 			"diamond, netherite, totem, enchanted, elytra, ancient debris, golden apple", 256));
 	private final SliderSetting height = add(new SliderSetting("Beam Height", "How tall the beam is", 12, 2, 64, 1, " blocks"));
@@ -40,25 +43,37 @@ public class LootBeams extends Module {
 	public void onRender(Events.Render2D e) {
 		if (!game().inWorld() || game().hudHidden()) return;
 		int scale = -1;
+		com.tatnat.client.ui.render.RectBatch g = com.tatnat.client.ui.render.RectBatch.of(e.gfx);
 		for (EntityInfo it : game().entities(range.get())) {
 			if (it.kind != EntityInfo.Kind.ITEM || !wanted(it.name)) continue;
-			if (scale < 0) scale = RenderUtils.beginPixels(e.gfx);
+			if (scale < 0) scale = RenderUtils.beginPixels(g);
 			// Centred on the block the item lies in, from its floor up.
 			double bx = Math.floor(it.x) + 0.5, bz = Math.floor(it.z) + 0.5, by = Math.floor(it.top - 0.25 + 0.01); // items are 0.25 tall
-			double[] prev = null;
 			int steps = 12;
-			for (int i = 0; i <= steps; i++) {
+			double prevY = by;
+			double[] prev = WorldProjector.project(bx, by, bz);
+			for (int i = 1; i <= steps; i++) {
 				double y = by + height.get() * i / steps;
 				double[] p = WorldProjector.project(bx, y, bz);
-				if (p[3] > 0.05 && prev != null && prev[3] > 0.05) {
-					float w = (float) Math.max(1, Math.min(5, 24 / Math.max(1, p[3]))) * scale / 2f;
-					int a = (int) (0xC0 * (1 - i / (double) steps)) + 0x20;
-					Icons.thickLine(e.gfx, (float) prev[0] * scale, (float) prev[1] * scale, (float) p[0] * scale, (float) p[1] * scale, w,
-							Colors.withAlpha(color.color(i / (double) steps), a));
+				double[] from = prev, to = p;
+				// Clip the segment at a near plane: points right in front of the camera project
+				// thousands of pixels away (stray lines across the screen, and very slow to draw).
+				if (from[3] < NEAR && to[3] < NEAR) {
+					prev = p;
+					prevY = y;
+					continue;
 				}
+				if (from[3] < NEAR) from = WorldProjector.project(bx, prevY + (y - prevY) * (NEAR - from[3]) / (to[3] - from[3]), bz);
+				else if (to[3] < NEAR) to = WorldProjector.project(bx, prevY + (y - prevY) * (NEAR - from[3]) / (to[3] - from[3]), bz);
+				float w = (float) Math.max(1, Math.min(5, 24 / Math.max(1, to[3]))) * scale / 2f;
+				int alpha = (int) (0xC0 * (1 - i / (double) steps)) + 0x20;
+				Icons.thickLine(g, (float) from[0] * scale, (float) from[1] * scale, (float) to[0] * scale, (float) to[1] * scale, w,
+						Colors.withAlpha(color.color(i / (double) steps), alpha));
 				prev = p;
+				prevY = y;
 			}
 		}
-		if (scale >= 0) RenderUtils.end(e.gfx);
+		g.flush();
+		if (scale >= 0) RenderUtils.end(g);
 	}
 }

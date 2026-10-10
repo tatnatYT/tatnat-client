@@ -7,11 +7,11 @@ import com.tatnat.client.modules.settings.BooleanSetting;
 import com.tatnat.client.platform.Gfx;
 
 /**
- * Totem Counter, like uku's: a totem icon with your count on it in big green numbers, sitting
- * between your hearts and your hunger bar (or anywhere you drag it). Red when you have none.
+ * Totem Counter: a totem icon with your count next to it in green, centred over the hotbar just
+ * above your armor (or anywhere you drag it). Red when you have none.
  */
 public class TotemCounter extends HudModule {
-	private final BooleanSetting nextToHearts = add(new BooleanSetting("Next to Hearts", "Sit between the hearts and hunger bar (off: place it in the HUD editor)", true));
+	private final BooleanSetting nextToHearts = add(new BooleanSetting("Next to Hearts", "Sit over the hotbar above your armor (off: place it in the HUD editor)", true));
 	private final BooleanSetting hideWhenNone = add(new BooleanSetting("Hide When None", "Only show it while you carry totems", false));
 
 	public TotemCounter() {
@@ -23,18 +23,13 @@ public class TotemCounter extends HudModule {
 		return preview ? 12 : ItemCounter.count("totem_of_undying, totem of undying");
 	}
 
-	/** The icon with the count over its bottom-right, top-left at (x, y); 18 x 18. */
-	private static void drawTotem(Gfx g, int x, int y, int count) {
+	/** The icon, then the count beside it (not on it), top-left at (x, y). Returns the width. */
+	private static int drawTotem(Gfx g, int x, int y, int count) {
 		Object stack = com.tatnat.client.TatnatClient.game().findStack("totem");
-		if (stack != null) g.item(stack, x + 1, y);
+		if (stack != null) g.item(stack, x, y);
 		String n = String.valueOf(count);
-		int w = g.mcTextWidth(n, true);
-		// Big, bold and green like uku's; red at zero.
-		g.push();
-		g.translate(x + 9 - w * 0.65f, y + 8);
-		g.scale(1.3f, 1.3f);
-		g.mcText(n, 0, 0, count == 0 ? 0xFFFF5555 : 0xFF55FF55, true, true);
-		g.pop();
+		g.mcText(n, x + 18, y + 4, count == 0 ? 0xFFFF5555 : 0xFF55FF55, true, false);
+		return 18 + g.mcTextWidth(n, false);
 	}
 
 	@Subscribe
@@ -42,8 +37,15 @@ public class TotemCounter extends HudModule {
 		if (!nextToHearts.on() || !game().inWorld() || game().hudHidden()) return;
 		int n = totems(false);
 		if (n == 0 && hideWhenNone.on()) return;
-		// The gap between the hearts (left of centre) and the hunger bar, over the hotbar.
-		drawTotem(e.gfx, game().guiWidth() / 2 - 9, game().guiHeight() - 52, n);
+		// Centred over the hotbar, just above the armor row (higher when there are more heart rows).
+		int lift = 0;
+		float[] st = game().barStats();
+		if (st != null) {
+			int rows = Math.max(1, (int) Math.ceil((st[1] + st[2]) / 2f / 10f));
+			lift = (rows - 1) * Math.max(10 - (rows - 2), 3);
+		}
+		int w = 18 + e.gfx.mcTextWidth(String.valueOf(n), false);
+		drawTotem(e.gfx, game().guiWidth() / 2 - w / 2, game().guiHeight() - 67 - lift, n);
 	}
 
 	@Override
@@ -51,7 +53,7 @@ public class TotemCounter extends HudModule {
 		if (!preview && nextToHearts.on()) return size(0, 0);
 		int n = totems(preview);
 		if (!preview && n == 0 && hideWhenNone.on()) return size(0, 0);
-		drawTotem(g, 0, 0, n);
-		return size(20, 22);
+		int w = drawTotem(g, 0, 0, n);
+		return size(w, 16);
 	}
 }

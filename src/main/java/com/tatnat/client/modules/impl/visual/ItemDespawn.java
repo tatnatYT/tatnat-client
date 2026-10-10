@@ -15,6 +15,7 @@ import com.tatnat.client.platform.EntityInfo;
 public class ItemDespawn extends Module {
 	private static final int LIFETIME = 6000; // ticks
 
+	private final BooleanSetting lookOnly = add(new BooleanSetting("Only When Looking", "Only show the timer of the item under your crosshair", true));
 	private final BooleanSetting showName = add(new BooleanSetting("Show Item Name", "Add the item's name and count", false));
 	private final SliderSetting range = add(new SliderSetting("Range", "Only items this close", 16, 4, 64, 1, " blocks"));
 	private final SliderSetting scale = add(new SliderSetting("Scale", "Size of the timer", 0.8, 0.5, 2.0, 0.1, "x"));
@@ -27,8 +28,25 @@ public class ItemDespawn extends Module {
 	@Subscribe
 	public void onRender(Events.Render2D e) {
 		if (!game().inWorld() || game().hudHidden()) return;
-		for (EntityInfo it : game().entities(range.get())) {
-			if (it.kind != EntityInfo.Kind.ITEM) continue;
+		// With Only When Looking: just the item closest to the crosshair (within a small circle).
+		java.util.List<EntityInfo> all = game().entities(range.get());
+		EntityInfo target = null;
+		if (lookOnly.on()) {
+			double cx = game().guiWidth() / 2.0, cy = game().guiHeight() / 2.0, best = 24 * 24;
+			for (EntityInfo it : all) {
+				if (it.kind != EntityInfo.Kind.ITEM) continue;
+				double[] p = WorldLabels.onScreen(it.x, it.top - 0.12, it.z);
+				if (p == null) continue;
+				double d = (p[0] - cx) * (p[0] - cx) + (p[1] - cy) * (p[1] - cy);
+				if (d < best) {
+					best = d;
+					target = it;
+				}
+			}
+			if (target == null) return;
+		}
+		for (EntityInfo it : all) {
+			if (it.kind != EntityInfo.Kind.ITEM || target != null && it != target) continue;
 			double[] p = WorldLabels.onScreen(it.x, it.top + 0.35, it.z);
 			if (p == null) continue;
 			double left = (LIFETIME - it.ticks) / 20.0;

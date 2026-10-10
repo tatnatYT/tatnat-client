@@ -148,6 +148,31 @@ public final class DevAllCheck {
 		add(20, () -> shot("allcheck-13-blur-after"));
 		add(2, () -> later("Freecam", true));
 		add(10, () -> later("Freecam", false));
+		// Survival HUD: hearts, armor, totems, held item; dropped items for Item Physic / Loot Beams.
+		add(2, () -> {
+			later("Motion Blur", false);
+			cmd("gamemode survival");
+			cmd("tp @s ~ ~ ~ 0 55");
+			cmd("give @s totem_of_undying 12");
+			cmd("give @s ender_pearl 16");
+			cmd("item replace entity @s armor.chest with diamond_chestplate");
+			cmd("item replace entity @s armor.head with iron_helmet");
+			cmd("summon item ~1 ~ ~2 {PickupDelay:32767,Item:{id:\"minecraft:diamond_sword\",count:1}}");
+			cmd("summon item ~-1 ~ ~2 {PickupDelay:32767,Item:{id:\"minecraft:diamond\",count:5}}");
+			cmd("summon item ~1 ~ ~2 {PickupDelay:32767,Item:{id:\"minecraft:diamond_sword\",Count:1b}}");
+			cmd("summon item ~-1 ~ ~2 {PickupDelay:32767,Item:{id:\"minecraft:diamond\",Count:5b}}");
+		});
+		add(2, () -> cmd("effect give @s absorption 60 1"));
+		add(40, () -> shot("allcheck-14-survival-hud"));
+		add(2, () -> cmd("tp @s ~ ~2 ~ 0 90"));
+		add(30, () -> shot("allcheck-16-items-from-above"));
+		// Death screen: Death Info writes where you died on it.
+		add(2, () -> {
+			cmd("clear @s totem_of_undying");
+			cmd("item replace entity @s weapon.offhand with air");
+		});
+		add(5, () -> cmd("kill @s"));
+		add(30, () -> shot("allcheck-15-death-screen"));
 		add(5, () -> {
 			for (Module m : ModuleManager.get().all()) m.setEnabled(false);
 			log("done");
