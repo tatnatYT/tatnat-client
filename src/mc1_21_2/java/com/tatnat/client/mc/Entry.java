@@ -10,7 +10,7 @@ import net.fabricmc.api.ClientModInitializer;
 
 /** Fabric entry point for 1.21.11: hands the shared core this version's implementations. */
 public final class Entry implements ClientModInitializer {
-	private static final Logger LOGGER = LoggerFactory.getLogger("tatnat client");
+	private static final Logger LOGGER = LoggerFactory.getLogger("Eclipse Client");
 
 	private static final Log LOG = new Log() {
 		@Override

@@ -8,7 +8,7 @@ import com.tatnat.client.modules.Module;
 import com.tatnat.client.modules.settings.BooleanSetting;
 
 /**
- * Discord: the tatnat launcher already shows "Playing Minecraft" on your Discord profile; this adds
+ * Discord: the Eclipse Client launcher already shows "Playing Minecraft" on your Discord profile; this adds
  * the server you're on ("Playing on mc.hypixel.net"), or Singleplayer.
  */
 public class DiscordStatus extends Module {

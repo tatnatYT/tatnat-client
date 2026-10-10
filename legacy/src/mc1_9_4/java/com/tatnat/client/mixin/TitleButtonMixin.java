@@ -12,14 +12,14 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 
-/** A "tatnat client" button in the title screen's top-left corner (Settings > Title Screen Button). */
+/** A "Eclipse Client" button in the title screen's top-left corner (Settings > Title Screen Button). */
 @Mixin(TitleScreen.class)
 public abstract class TitleButtonMixin extends Screen {
 	private static final int TATNAT_BUTTON = 7301;
 
 	@Inject(method = "init", at = @At("TAIL"))
 	private void tatnat$button(CallbackInfo ci) {
-		if (ClientOptions.titleButton()) buttons.add(new ButtonWidget(TATNAT_BUTTON, 4, 4, 98, 20, "tatnat client"));
+		if (ClientOptions.titleButton()) buttons.add(new ButtonWidget(TATNAT_BUTTON, 4, 4, 98, 20, "Eclipse Client"));
 	}
 
 	@Inject(method = "buttonClicked", at = @At("HEAD"), cancellable = true)

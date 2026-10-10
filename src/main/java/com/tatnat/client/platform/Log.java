@@ -12,17 +12,17 @@ public interface Log {
 	Log STDOUT = new Log() {
 		@Override
 		public void info(String msg, Object... args) {
-			System.out.println("[tatnat client] " + format(msg, args));
+			System.out.println("[Eclipse Client] " + format(msg, args));
 		}
 
 		@Override
 		public void warn(String msg, Object... args) {
-			System.out.println("[tatnat client] WARN " + format(msg, args));
+			System.out.println("[Eclipse Client] WARN " + format(msg, args));
 		}
 
 		@Override
 		public void error(String msg, Throwable t) {
-			System.out.println("[tatnat client] ERROR " + msg);
+			System.out.println("[Eclipse Client] ERROR " + msg);
 			if (t != null) t.printStackTrace();
 		}
 	};

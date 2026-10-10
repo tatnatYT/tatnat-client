@@ -10,9 +10,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 
 /** Forge (1.8.9 - 1.12.2) entry point: hands the shared core this version's implementations (client only). */
-@Mod(modid = TatnatClient.ID, name = "tatnat client", version = "1.0.0", clientSideOnly = true)
+@Mod(modid = TatnatClient.ID, name = "Eclipse Client", version = "1.0.0", clientSideOnly = true)
 public final class ForgeEntry {
-	private static final Logger LOGGER = LogManager.getLogger("tatnat client");
+	private static final Logger LOGGER = LogManager.getLogger("Eclipse Client");
 
 	private static final Log LOG = new Log() {
 		@Override

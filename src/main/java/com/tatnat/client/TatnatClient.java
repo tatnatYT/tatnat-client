@@ -59,7 +59,7 @@ public final class TatnatClient {
 		ModuleManager.get();
 		CONFIG.load();
 		Runtime.getRuntime().addShutdownHook(new Thread(CONFIG::save, "tatnat-config-save"));
-		LOG.info("tatnat client {} loaded with {} mods on Minecraft {} (Java {})", VERSION, ModuleManager.get().all().size(), g.minecraftVersion(),
+		LOG.info("Eclipse Client {} loaded with {} mods on Minecraft {} (Java {})", VERSION, ModuleManager.get().all().size(), g.minecraftVersion(),
 				System.getProperty("java.version"));
 	}
 

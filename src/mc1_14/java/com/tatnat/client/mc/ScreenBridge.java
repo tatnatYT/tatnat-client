@@ -12,7 +12,7 @@ public final class ScreenBridge extends Screen {
 	final UiScreen ui;
 
 	public ScreenBridge(UiScreen ui) {
-		super(new TextComponent("tatnat client"));
+		super(new TextComponent("Eclipse Client"));
 		this.ui = ui;
 	}
 

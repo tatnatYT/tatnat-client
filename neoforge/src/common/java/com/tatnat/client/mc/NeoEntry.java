@@ -12,7 +12,7 @@ import net.neoforged.fml.common.Mod;
 /** NeoForge entry point: hands the shared core this version's implementations (client only). */
 @Mod(value = TatnatClient.ID, dist = Dist.CLIENT)
 public final class NeoEntry {
-	private static final Logger LOGGER = LoggerFactory.getLogger("tatnat client");
+	private static final Logger LOGGER = LoggerFactory.getLogger("Eclipse Client");
 
 	private static final Log LOG = new Log() {
 		@Override

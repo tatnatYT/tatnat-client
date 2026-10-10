@@ -21,7 +21,7 @@ import java.util.UUID;
 import com.tatnat.client.TatnatClient;
 
 /**
- * In-game account switcher. The tatnat launcher passes {@code -Dtatnat.accounts=http://127.0.0.1:port/secret}
+ * In-game account switcher. The Eclipse Client launcher passes {@code -Dtatnat.accounts=http://127.0.0.1:port/secret}
  * (see the launcher's core/accountbridge.js); we ask it for the account list and, on a switch, for a
  * fresh session, then swap the game's session object.
  * <p>
@@ -59,7 +59,7 @@ public final class AccountSwitcher {
 	private AccountSwitcher() {
 	}
 
-	/** True when the game was started by the tatnat launcher (so there is someone to ask). */
+	/** True when the game was started by the Eclipse Client launcher (so there is someone to ask). */
 	public static boolean available() {
 		return BRIDGE != null && BRIDGE.startsWith("http://127.0.0.1:");
 	}
@@ -106,7 +106,7 @@ public final class AccountSwitcher {
 				}
 				accounts = list;
 			} catch (Exception e) {
-				setStatus("Could not reach the tatnat launcher (is it still open?)", true);
+				setStatus("Could not reach the Eclipse Client launcher (is it still open?)", true);
 			} finally {
 				loading = false;
 			}

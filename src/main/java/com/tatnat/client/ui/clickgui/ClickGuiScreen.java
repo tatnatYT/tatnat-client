@@ -281,7 +281,7 @@ public class ClickGuiScreen implements UiScreen {
 		RenderUtils.roundedRect(g, lx - Ui.px(3), ly - Ui.px(3), logo + Ui.px(6), logo + Ui.px(6), Ui.px(8), 0x30FFFFFF);
 		g.logo(lx, ly, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = lx + logo + Ui.px(14);
-		UIFont.HEADER.draw(g, "tatnat", tx, ly - Ui.px(2), Theme.TEXT);
+		UIFont.HEADER.draw(g, "Eclipse", tx, ly - Ui.px(2), Theme.TEXT);
 		UIFont.TINY.draw(g, "C L I E N T", tx + Ui.px(1), ly + Ui.px(28), Theme.ACCENT);
 
 		UIFont.TINY.draw(g, "MENU", x + Ui.px(28), y + Ui.px(118), 0xFF6C6E76);
@@ -754,7 +754,7 @@ public class ClickGuiScreen implements UiScreen {
 		y += ch + Ui.px(18);
 
 		if (!AccountSwitcher.available()) {
-			UIFont.BODY.draw(g, "Start the game from the tatnat launcher to switch accounts here.", x, y, Theme.TEXT_MUTED);
+			UIFont.BODY.draw(g, "Start the game from the Eclipse Client launcher to switch accounts here.", x, y, Theme.TEXT_MUTED);
 			UIFont.SMALL.draw(g, "Accounts you add in the launcher show up in this list.", x, y + Ui.px(28), Theme.TEXT_MUTED);
 			return;
 		}
@@ -809,7 +809,7 @@ public class ClickGuiScreen implements UiScreen {
 		RenderUtils.glow(g, x + Ui.px(28) + logo / 2, y + ch / 2, logo, 0x45E5323E, 7);
 		g.logo(x + Ui.px(28), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = x + Ui.px(28) + logo + Ui.px(26);
-		UIFont.HUGE.draw(g, "tatnat client", tx, y + Ui.px(30), Theme.TEXT);
+		UIFont.HUGE.draw(g, "Eclipse Client", tx, y + Ui.px(30), Theme.TEXT);
 		UIFont.BODY.draw(g, "Version " + TatnatClient.VERSION + "   ·   made by tatnat", tx, y + Ui.px(82), Theme.TEXT_MUTED);
 		int yw = Ui.px(240), yh = Ui.px(42), yx = x + w - yw - Ui.px(24), yy = y + (ch - yh) / 2;
 		boolean yHover = Widgets.inside(mx, my, yx, yy, yw, yh);

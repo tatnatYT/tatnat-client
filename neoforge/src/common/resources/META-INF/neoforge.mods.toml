@@ -5,9 +5,9 @@ license = "All-Rights-Reserved"
 [[mods]]
 modId = "tatnatclient"
 version = "${version}"
-displayName = "tatnat client"
+displayName = "Eclipse Client"
 authors = "tatnat"
-description = "The in-game side of the tatnat launcher: a Right Shift mod menu, a drag-and-drop HUD editor and PvP / quality-of-life mods."
+description = "The in-game side of the Eclipse Client launcher: a Right Shift mod menu, a drag-and-drop HUD editor and PvP / quality-of-life mods."
 logoFile = "assets/tatnatclient/icon.png"
 displayURL = "https://www.youtube.com/@tatnatmc"
 

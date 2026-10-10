@@ -19,7 +19,7 @@ import com.tatnat.client.modules.settings.ActionSetting;
 import com.tatnat.client.modules.settings.SliderSetting;
 
 /**
- * Keeps copies of your tatnat client settings (mods, HUD layout, waypoints) in
+ * Keeps copies of your Eclipse Client settings (mods, HUD layout, waypoints) in
  * {@code config/tatnat-backups}, every few minutes and whenever you ask, so a bad change can be undone
  * by copying a backup back over {@code config/tatnat-client.json}.
  */
@@ -31,7 +31,7 @@ public class Backups extends Module {
 	private String lastResult = "";
 
 	public Backups() {
-		super("Backups", "Automatic backups of your tatnat client settings", Category.UTILITY, false);
+		super("Backups", "Automatic backups of your Eclipse Client settings", Category.UTILITY, false);
 		icon = com.tatnat.client.ui.render.Icons.Icon.SAVE;
 		add(new ActionSetting("Back up now", "Make a backup right away", () -> lastResult.isEmpty() ? "Back up" : lastResult, this::backup));
 		add(new ActionSetting("Open folder", "Show the backups", () -> "Open", () -> TatnatClient.game().openPath(dir())));

@@ -13,7 +13,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 
-/** A "tatnat client" button in the title screen's top-left corner (Settings > Title Screen Button). */
+/** A "Eclipse Client" button in the title screen's top-left corner (Settings > Title Screen Button). */
 @Mixin(TitleScreen.class)
 public abstract class TitleButtonMixin extends Screen {
 	protected TitleButtonMixin(Component title) {
@@ -23,6 +23,6 @@ public abstract class TitleButtonMixin extends Screen {
 	@Inject(method = "init", at = @At("TAIL"))
 	private void tatnat$button(CallbackInfo ci) {
 		if (!ClientOptions.titleButton()) return;
-		addButton(new Button(4, 4, 98, 20, "tatnat client", b -> GameImpl.openModMenu()));
+		addButton(new Button(4, 4, 98, 20, "Eclipse Client", b -> GameImpl.openModMenu()));
 	}
 }

@@ -100,7 +100,7 @@ public final class PlayerMixins {
 		private void tatnat$nameTag(Entity entity, String name, double x, double y, double z, int maxDistance, CallbackInfo ci) {
 			if (tatnat$inside || name == null) return;
 			String nick = NickHider.active() && entity == MinecraftClient.getInstance().player ? PlayerLooks.replaceName(name) : name;
-			com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = entity instanceof net.minecraft.entity.player.PlayerEntity ? com.tatnat.client.modules.impl.utility.TierTagger.nameTag(entity.getUuid()) : null;
+			com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = entity instanceof net.minecraft.entity.player.PlayerEntity ? com.tatnat.client.modules.impl.utility.TierTagger.nameTag(entity.getUuid(), name.replaceAll("\u00a7.", "")) : null;
 			if (tier != null) nick = tier.legacy() + nick;
 			if (nick.equals(name)) return;
 			ci.cancel();

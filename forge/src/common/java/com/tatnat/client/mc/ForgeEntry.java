@@ -13,7 +13,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 /** Forge entry point: hands the shared core this version's implementations (client only). */
 @Mod(TatnatClient.ID)
 public final class ForgeEntry {
-	private static final Logger LOGGER = LoggerFactory.getLogger("tatnat client");
+	private static final Logger LOGGER = LoggerFactory.getLogger("Eclipse Client");
 
 	private static final Log LOG = new Log() {
 		@Override
