@@ -8,6 +8,6 @@ public final class TierText {
 	}
 
 	public static net.minecraft.network.chat.Component prefix(TierTagger.Tag t, net.minecraft.network.chat.Component name) {
-		return new net.minecraft.network.chat.TextComponent(t.legacy()).append(name);
+		return new net.minecraft.network.chat.TextComponent(t.legacyIcon() + t.legacy()).append(name);
 	}
 }

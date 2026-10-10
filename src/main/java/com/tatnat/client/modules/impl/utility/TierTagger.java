@@ -36,18 +36,29 @@ public class TierTagger extends Module {
 			"Diamond SMP", "Trident", "Bed", "Minecart", "Creeper", "Bow", "Debuff", "Speed", "Manhunt", "OG Vanilla", "Diamond Crystal"));
 	private final BooleanSetting fallback = add(new BooleanSetting("Fall Back to Highest", "No tier in that gamemode: show their best one instead", true));
 	private final BooleanSetting tab = add(new BooleanSetting("Show in Tab List", "Also put the tier in front of names in the tab list", true));
+	private final BooleanSetting icons = add(new BooleanSetting("Show Gamemode Icon", "The gamemode's icon in front of the tier (1.14+)", true));
 	private final BooleanSetting showMode = add(new BooleanSetting("Show Gamemode", "Add the gamemode after the tier, e.g. HT3 Sword", false));
 
-	/** A tier to draw: its text ("HT3", "RLT2"), its colour and the closest § colour code for old versions. */
+	/**
+	 * A tier to draw: its text ("HT3", "RLT2"), its colour, the closest § colour code for old
+	 * versions, and the gamemode's icon (a character of the client's font, or "").
+	 */
 	public static final class Tag {
 		public final String text;
 		public final int rgb;
 		public final char code;
+		public final String icon;
 
-		Tag(String text, int rgb, char code) {
+		Tag(String text, int rgb, char code, String icon) {
 			this.text = text;
 			this.rgb = rgb;
 			this.code = code;
+			this.icon = icon;
+		}
+
+		/** "§f<icon> " (white, so the icon keeps its colours), or "" without an icon. */
+		public String legacyIcon() {
+			return icon.isEmpty() ? "" : "§f" + icon + " ";
 		}
 
 		/** "§6HT3 §7| " for versions that only have § colours. */
@@ -135,7 +146,18 @@ public class TierTagger extends Module {
 		int tier = retired && r[3] > 0 ? r[3] : r[0], pos = retired && r[3] > 0 ? r[4] : r[1];
 		String text = (retired ? "R" : "") + (pos == 0 ? "H" : "L") + "T" + tier;
 		if (m.showMode.on()) text += " " + modeTitle(chosen);
-		return retired ? new Tag(text, 0xA2D6FF, 'b') : new Tag(text, color(tier, pos), code(tier, pos));
+		String icon = m.icons.on() ? icon(sub, chosen) : "";
+		return retired ? new Tag(text, 0xA2D6FF, 'b', icon) : new Tag(text, color(tier, pos), code(tier, pos), icon);
+	}
+
+	/** Font characters for the gamemode icons (assets/minecraft/font/default.json). */
+	private static final String[] PVP_ICONS = {"sword", "crystal", "axe", "pot", "neth_pot", "smp", "uhc", "mace", "elytra"};
+	private static final String[] SUB_ICONS = {"bed", "bow", "creeper", "debuff", "dia_crystal", "dia_smp", "elytra", "manhunt", "minecart", "og_vanilla", "speed", "trident"};
+
+	private static String icon(boolean sub, String mode) {
+		String[] ids = sub ? SUB_ICONS : PVP_ICONS;
+		int i = java.util.Arrays.asList(ids).indexOf(mode);
+		return i < 0 ? "" : String.valueOf((char) ((sub ? 0xE721 : 0xE701) + i));
 	}
 
 	private static String modeTitle(String id) {
