@@ -15,7 +15,7 @@ public class BetterTooltips extends Module {
 	public static BetterTooltips INSTANCE;
 
 	public final ColorSetting background = add(new ColorSetting("Background Color", "Tooltip background", 0xF0141416, false));
-	public final ColorSetting border = add(new ColorSetting("Border Color", "Tooltip border (Chroma works too)", 0xFFE5323E, true));
+	public final ColorSetting border = add(new ColorSetting("Border Color", "Tooltip border (Chroma works too)", 0xFF8A63E8, true));
 	public final BooleanSetting durability = add(new BooleanSetting("Show Durability", "Durability left on tools and armour", true));
 	public final BooleanSetting itemId = add(new BooleanSetting("Show Item ID", "The item's id, like minecraft:diamond_sword", true));
 	public final BooleanSetting components = add(new BooleanSetting("Show Data Count", "How much item data (NBT) the item has", false));

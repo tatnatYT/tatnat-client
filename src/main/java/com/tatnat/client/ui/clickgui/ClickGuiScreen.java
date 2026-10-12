@@ -242,8 +242,8 @@ public class ClickGuiScreen implements UiScreen {
 		int wr = Ui.px(Theme.RADIUS_WINDOW);
 		RenderUtils.shadow(g, wx, wy, ww, wh, wr, 14, 0.6f);
 		RenderUtils.roundedGradient(g, wx, wy, ww, wh, wr, Theme.WINDOW_TOP, Theme.WINDOW_BOTTOM);
-		// A faint red light in the top-left corner, behind the brand.
-		RenderUtils.glow(g, wx + Ui.px(120), wy + Ui.px(60), Ui.px(220), 0x18E5323E, 8);
+		// A faint purple light in the top-left corner, behind the brand.
+		RenderUtils.glow(g, wx + Ui.px(120), wy + Ui.px(60), Ui.px(220), 0x188A63E8, 8);
 		RenderUtils.roundedOutline(g, wx, wy, ww, wh, wr, 1, Theme.BORDER);
 		RenderUtils.rect(g, wx + wr, wy + 1, wx + ww - wr, wy + 2, 0x14FFFFFF);
 
@@ -277,7 +277,7 @@ public class ClickGuiScreen implements UiScreen {
 		// Brand: the player's head (a multiple of 8 so the pixels stay square) and the wordmark.
 		int logo = Math.max(24, Ui.px(44) / 8 * 8);
 		int lx = x + Ui.px(24), ly = y + Ui.px(30);
-		RenderUtils.glow(g, lx + logo / 2, ly + logo / 2, logo, 0x30E5323E, 6);
+		RenderUtils.glow(g, lx + logo / 2, ly + logo / 2, logo, 0x308A63E8, 6);
 		RenderUtils.roundedRect(g, lx - Ui.px(3), ly - Ui.px(3), logo + Ui.px(6), logo + Ui.px(6), Ui.px(8), 0x30FFFFFF);
 		g.logo(lx, ly, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = lx + logo + Ui.px(14);
@@ -583,12 +583,12 @@ public class ClickGuiScreen implements UiScreen {
 		int r = Ui.px(Theme.RADIUS_CARD);
 
 		if (hv > 0.01f) RenderUtils.shadow(g, x, y, w, h, r, 6, 0.35f * hv);
-		int border = Colors.lerp(Colors.lerp(Theme.BORDER, Theme.BORDER_HOVER, hv), 0x80E5323E, on * 0.75f);
-		// Enabled: the card is lit red from the top, with a glow behind the icon.
+		int border = Colors.lerp(Colors.lerp(Theme.BORDER, Theme.BORDER_HOVER, hv), 0x808A63E8, on * 0.75f);
+		// Enabled: the card is lit purple from the top, with a glow behind the icon.
 		RenderUtils.surface(g, x, y, w, h, r, Colors.lerp(Colors.lerp(Theme.CARD_TOP, Theme.CARD_HOVER_TOP, hv), Theme.CARD_ON_TOP, on * 0.9f),
 				Colors.lerp(Colors.lerp(Theme.CARD_BOTTOM, Theme.CARD_HOVER_BOTTOM, hv), Theme.CARD_ON_BOTTOM, on * 0.6f), border);
 		int iconY = y + Ui.px(74);
-		if (on > 0.01f) RenderUtils.glow(g, x + w / 2, iconY, Ui.px(58), Colors.fade(0x50E5323E, on), 8);
+		if (on > 0.01f) RenderUtils.glow(g, x + w / 2, iconY, Ui.px(58), Colors.fade(0x508A63E8, on), 8);
 		int iconCol = Colors.lerp(Theme.ICON_OFF, Theme.ICON, on);
 		if (!m.available()) iconCol = 0xFF3A3C42;
 		Icons.draw(g, m.icon(), x + w / 2, iconY, Ui.px(62), iconCol);
@@ -623,7 +623,7 @@ public class ClickGuiScreen implements UiScreen {
 		}
 		int dot = Math.max(2, Ui.px(4));
 		RenderUtils.circle(g, x + Ui.px(18) + dot, sy + UIFont.SMALL.size() / 2, dot, m.isEnabled() ? Theme.ACCENT : 0xFF55575F);
-		UIFont.SMALL.draw(g, m.isEnabled() ? "Enabled" : "Disabled", x + Ui.px(18) + dot * 2 + Ui.px(8), sy, m.isEnabled() ? 0xFFF07B83 : 0xFF7A7C84);
+		UIFont.SMALL.draw(g, m.isEnabled() ? "Enabled" : "Disabled", x + Ui.px(18) + dot * 2 + Ui.px(8), sy, m.isEnabled() ? 0xFFB49CFF : 0xFF7A7C84);
 
 		int tx = x + w - Ui.px(18) - tw, ty = mid - Widgets.toggleH() / 2;
 		Widgets.toggle(g, tx, ty, ta, hover && Widgets.inside(mx, my, tx - Ui.px(6), ty - Ui.px(8), tw + Ui.px(12), Widgets.toggleH() + Ui.px(16)));
@@ -644,13 +644,13 @@ public class ClickGuiScreen implements UiScreen {
 		ta.animateTo(m.isEnabled() ? 1f : 0f);
 		float on = ta.get();
 		int r = Ui.px(Theme.RADIUS_CARD);
-		int border = Colors.lerp(Colors.lerp(Theme.BORDER, Theme.BORDER_HOVER, hv), 0x80E5323E, on * 0.6f);
+		int border = Colors.lerp(Colors.lerp(Theme.BORDER, Theme.BORDER_HOVER, hv), 0x808A63E8, on * 0.6f);
 		RenderUtils.surface(g, x, y, w, h, r, Colors.lerp(Colors.lerp(Theme.CARD_TOP, Theme.CARD_HOVER_TOP, hv), Theme.CARD_ON_TOP, on * 0.6f),
 				Colors.lerp(Colors.lerp(Theme.CARD_BOTTOM, Theme.CARD_HOVER_BOTTOM, hv), Theme.CARD_ON_BOTTOM, on * 0.4f), border);
 
 		// Icon tile.
 		int tile = Ui.px(48), tlx = x + Ui.px(14), tly = y + (h - tile) / 2;
-		if (on > 0.01f) RenderUtils.glow(g, tlx + tile / 2, tly + tile / 2, Ui.px(34), Colors.fade(0x40E5323E, on), 6);
+		if (on > 0.01f) RenderUtils.glow(g, tlx + tile / 2, tly + tile / 2, Ui.px(34), Colors.fade(0x408A63E8, on), 6);
 		RenderUtils.roundedRect(g, tlx, tly, tile, tile, Ui.px(Theme.RADIUS_LARGE), Colors.lerp(0x10FFFFFF, Theme.ACCENT_SOFT, on));
 		Icons.draw(g, m.icon(), tlx + tile / 2, tly + tile / 2, Ui.px(28), m.available() ? Colors.lerp(Theme.ICON_OFF, Theme.ICON, on) : 0xFF3A3C42);
 
@@ -738,9 +738,9 @@ public class ClickGuiScreen implements UiScreen {
 
 		// Who you are now.
 		int ch = Ui.px(104);
-		RenderUtils.surface(g, x, y, w, ch, Ui.px(Theme.RADIUS_CARD), Theme.CARD_ON_TOP, Theme.CARD_BOTTOM, 0x50E5323E);
+		RenderUtils.surface(g, x, y, w, ch, Ui.px(Theme.RADIUS_CARD), Theme.CARD_ON_TOP, Theme.CARD_BOTTOM, 0x508A63E8);
 		int logo = Math.max(32, Ui.px(56) / 8 * 8);
-		RenderUtils.glow(g, x + Ui.px(24) + logo / 2, y + ch / 2, logo, 0x40E5323E, 6);
+		RenderUtils.glow(g, x + Ui.px(24) + logo / 2, y + ch / 2, logo, 0x408A63E8, 6);
 		g.logo(x + Ui.px(24), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = x + Ui.px(24) + logo + Ui.px(22);
 		UIFont.TINY.draw(g, "PLAYING AS", tx, y + Ui.px(26), Theme.ACCENT);
@@ -783,7 +783,7 @@ public class ClickGuiScreen implements UiScreen {
 					x + Ui.px(68), y + rh / 2 + Ui.px(5), Theme.TEXT_MUTED);
 			int bw = Ui.px(130), bh = Ui.px(38), bx = x + w - bw - Ui.px(14), by = y + (rh - bh) / 2;
 			if (isCurrent) {
-				chip(g, "IN USE", x + w - Ui.px(24) - UIFont.TINY.width("IN USE") - Ui.px(14), y + (rh - Ui.px(20)) / 2, Theme.ACCENT_SOFT, 0xFFF07B83);
+				chip(g, "IN USE", x + w - Ui.px(24) - UIFont.TINY.width("IN USE") - Ui.px(14), y + (rh - Ui.px(20)) / 2, Theme.ACCENT_SOFT, 0xFFB49CFF);
 			} else {
 				boolean bHover = Widgets.inside(mx, my, bx, by, bw, bh);
 				boolean busy = AccountSwitcher.switching();
@@ -804,16 +804,16 @@ public class ClickGuiScreen implements UiScreen {
 
 		// About card.
 		int ch = Ui.px(140);
-		RenderUtils.surface(g, x, y, w, ch, Ui.px(Theme.RADIUS_CARD), Theme.CARD_ON_TOP, Theme.CARD_BOTTOM, 0x50E5323E);
+		RenderUtils.surface(g, x, y, w, ch, Ui.px(Theme.RADIUS_CARD), Theme.CARD_ON_TOP, Theme.CARD_BOTTOM, 0x508A63E8);
 		int logo = Math.max(32, Ui.px(88) / 8 * 8);
-		RenderUtils.glow(g, x + Ui.px(28) + logo / 2, y + ch / 2, logo, 0x45E5323E, 7);
+		RenderUtils.glow(g, x + Ui.px(28) + logo / 2, y + ch / 2, logo, 0x458A63E8, 7);
 		g.logo(x + Ui.px(28), y + (ch - logo) / 2, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = x + Ui.px(28) + logo + Ui.px(26);
 		UIFont.HUGE.draw(g, "Eclipse Client", tx, y + Ui.px(30), Theme.TEXT);
 		UIFont.BODY.draw(g, "Version " + TatnatClient.VERSION + "   ·   made by tatnat", tx, y + Ui.px(82), Theme.TEXT_MUTED);
 		int yw = Ui.px(240), yh = Ui.px(42), yx = x + w - yw - Ui.px(24), yy = y + (ch - yh) / 2;
 		boolean yHover = Widgets.inside(mx, my, yx, yy, yw, yh);
-		if (yHover) RenderUtils.glow(g, yx + yw / 2, yy + yh / 2, yw / 2 + Ui.px(10), 0x30E5323E, 6);
+		if (yHover) RenderUtils.glow(g, yx + yw / 2, yy + yh / 2, yw / 2 + Ui.px(10), 0x308A63E8, 6);
 		RenderUtils.surface(g, yx, yy, yw, yh, yh / 2, yHover ? Colors.shade(Theme.ACCENT_LIGHT, 1.1f) : Theme.ACCENT_LIGHT, Theme.ACCENT, 0x40FFFFFF);
 		Icons.draw(g, Icon.YOUTUBE, yx + Ui.px(30), yy + yh / 2, Ui.px(24), 0xFFFFFFFF);
 		UIFont.BODY.drawMid(g, "Subscribe: @tatnatmc", yx + Ui.px(52), yy + yh / 2, 0xFFFFFFFF);

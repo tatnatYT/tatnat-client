@@ -24,7 +24,7 @@ public final class Widgets {
 	}
 
 	/**
-	 * Feather-style switch: red track with a white knob when on, dark track with a grey knob when
+	 * Feather-style switch: purple track with a white knob when on, dark track with a grey knob when
 	 * off. {@code anim} runs 0 (off) .. 1 (on) over 150ms; knob, track and knob colour all glide.
 	 */
 	public static void toggle(Gfx g, int x, int y, Animation anim, boolean hovered) {

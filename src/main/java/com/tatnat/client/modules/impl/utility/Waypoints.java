@@ -49,7 +49,7 @@ public class Waypoints extends Module {
 	private final List<Waypoint> waypoints = new ArrayList<>();
 
 	private final TextSetting newName = add(new TextSetting("Name", "Name for the next waypoint you add", "Home", 32));
-	private final ColorSetting color = add(new ColorSetting("Color", "Colour for new waypoints", 0xFFE5323E, true));
+	private final ColorSetting color = add(new ColorSetting("Color", "Colour for new waypoints", 0xFF8A63E8, true));
 	private final KeybindSetting addKey = add(new KeybindSetting("Quick Add Key", "Press in game to drop a waypoint where you stand", KeyCodes.B));
 	private final ActionSetting addHere = add(new ActionSetting("Add Waypoint Here", "Drop a waypoint at your position", () -> "Add", this::addHere));
 	private final ActionSetting removeNearest = add(new ActionSetting("Remove Nearest", "Delete the closest waypoint in this world", () -> "Remove", this::removeNearest));

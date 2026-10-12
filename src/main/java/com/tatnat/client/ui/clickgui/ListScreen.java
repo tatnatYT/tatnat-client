@@ -106,7 +106,7 @@ public abstract class ListScreen implements UiScreen {
 		int wr = Ui.px(Theme.RADIUS_WINDOW);
 		RenderUtils.shadow(g, px, py, pw, ph, wr, 14, 0.6f);
 		RenderUtils.roundedGradient(g, px, py, pw, ph, wr, Theme.WINDOW_TOP, Theme.WINDOW_BOTTOM);
-		RenderUtils.glow(g, px + Ui.px(100), py + Ui.px(50), Ui.px(200), 0x18E5323E, 8);
+		RenderUtils.glow(g, px + Ui.px(100), py + Ui.px(50), Ui.px(200), 0x188A63E8, 8);
 		RenderUtils.roundedOutline(g, px, py, pw, ph, wr, 1, Theme.BORDER);
 		RenderUtils.rect(g, px + wr, py + 1, px + pw - wr, py + 2, 0x14FFFFFF);
 
@@ -139,7 +139,7 @@ public abstract class ListScreen implements UiScreen {
 			if (y + rh >= top && y <= bottom) {
 				boolean rowHover = Widgets.inside(mx, my, x, y, w, rh) && my >= top && my <= bottom;
 				RenderUtils.surface(g, x, y, w, rh, Ui.px(Theme.RADIUS_CARD), r.highlight ? Theme.CARD_ON_TOP : rowHover ? Theme.CARD_HOVER_TOP : Theme.CARD_TOP,
-						rowHover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, r.highlight ? 0x70E5323E : rowHover ? Theme.BORDER_HOVER : Theme.BORDER);
+						rowHover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, r.highlight ? 0x708A63E8 : rowHover ? Theme.BORDER_HOVER : Theme.BORDER);
 				if (r.highlight) RenderUtils.roundedRect(g, x + Ui.px(6), y + Ui.px(14), Math.max(2, Ui.px(4)), rh - Ui.px(28), Math.max(1, Ui.px(2)), Theme.ACCENT);
 				UIFont.TITLE.draw(g, r.label, x + Ui.px(16), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
 				UIFont.SMALL.draw(g, r.sub, x + Ui.px(16), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);

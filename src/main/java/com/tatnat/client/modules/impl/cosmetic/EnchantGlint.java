@@ -16,7 +16,7 @@ import com.tatnat.client.ui.render.Icons;
 public class EnchantGlint extends Module {
 	public static EnchantGlint INSTANCE;
 
-	private final ColorSetting color = add(new ColorSetting("Color", "Glint colour (Chroma cycles the rainbow)", 0xFFE5323E, true));
+	private final ColorSetting color = add(new ColorSetting("Color", "Glint colour (Chroma cycles the rainbow)", 0xFF8A63E8, true));
 	public final SliderSetting speed = add(new SliderSetting("Speed", "How fast the shimmer moves", 1.0, 0.1, 5, 0.1, "x"));
 
 	private int appliedColor;

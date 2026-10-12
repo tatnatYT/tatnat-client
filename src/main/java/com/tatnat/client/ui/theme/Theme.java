@@ -2,7 +2,7 @@ package com.tatnat.client.ui.theme;
 
 /**
  * The menu palette, matched to Feather's mod menu: near-black translucent panels, dark grey
- * cards and a red accent. Every colour in the menus comes from here so the look can be retuned
+ * cards and a purple accent (the Eclipse logo). Every colour in the menus comes from here so the look can be retuned
  * in one place. Values are ARGB.
  */
 public final class Theme {
@@ -15,8 +15,8 @@ public final class Theme {
 	public static final int PANEL = 0xFF202023;
 	/** Hovered card / row. */
 	public static final int HOVER = 0xFF2A2A2E;
-	/** Accent red (tab, active toggles, selections). */
-	public static final int ACCENT = 0xFFE5323E;
+	/** Accent purple (tab, active toggles, selections). */
+	public static final int ACCENT = 0xFF8A63E8;
 	/** Text on top of the accent. */
 	public static final int ON_ACCENT = 0xFFFFFFFF;
 	/** Primary text. */
@@ -37,9 +37,9 @@ public final class Theme {
 	/** Knob of an off toggle. */
 	public static final int KNOB_OFF = 0xFF6B6B70;
 	/** Large mod icons on cards. */
-	public static final int ICON = 0xFFE5323E; // mod icons: the accent red
-	/** Mod icons while the mod is off: a dark red. */
-	public static final int ICON_OFF = 0xFF6A2328;
+	public static final int ICON = 0xFF8A63E8; // mod icons: the accent purple
+	/** Mod icons while the mod is off: a dark purple. */
+	public static final int ICON_OFF = 0xFF3D2B6E;
 
 	/** The menu window: a deep charcoal gradient, barely see-through. */
 	public static final int WINDOW_TOP = 0xF61A1C22;
@@ -54,15 +54,15 @@ public final class Theme {
 	public static final int CARD_BOTTOM = 0xFF17181D;
 	public static final int CARD_HOVER_TOP = 0xFF272A32;
 	public static final int CARD_HOVER_BOTTOM = 0xFF1C1E24;
-	/** Enabled cards: lit red from the top. */
-	public static final int CARD_ON_TOP = 0xFF3A1C22;
-	public static final int CARD_ON_BOTTOM = 0xFF1C1619;
+	/** Enabled cards: lit purple from the top. */
+	public static final int CARD_ON_TOP = 0xFF2E2140;
+	public static final int CARD_ON_BOTTOM = 0xFF1A1722;
 	/** The accent at low strength: active nav item, selected pills, the wash on enabled cards. */
-	public static final int ACCENT_SOFT = 0x2EE5323E;
+	public static final int ACCENT_SOFT = 0x2E8A63E8;
 	/** Glow behind enabled icons and switches. */
-	public static final int ACCENT_GLOW = 0x55E5323E;
+	public static final int ACCENT_GLOW = 0x558A63E8;
 	/** Lighter accent for the top of gradients. */
-	public static final int ACCENT_LIGHT = 0xFFF0505A;
+	public static final int ACCENT_LIGHT = 0xFF9873F0;
 
 	/** Corner radii in design pixels. */
 	public static final int RADIUS_SMALL = 4;

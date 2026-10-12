@@ -17,7 +17,7 @@ public class ScrollableTooltips extends Module {
 
 	public final SliderSetting speed = add(new SliderSetting("Scroll Speed", "How far one wheel step moves", 12, 4, 40, 1, "px"));
 	public final SliderSetting barWidth = add(new SliderSetting("Scrollbar Width", "Width of the scrollbar", 2, 1, 6, 1, "px"));
-	public final ColorSetting barColor = add(new ColorSetting("Scrollbar Color", "Colour of the scrollbar", 0xFFE5323E, true));
+	public final ColorSetting barColor = add(new ColorSetting("Scrollbar Color", "Colour of the scrollbar", 0xFF8A63E8, true));
 
 	/** Current scroll offset in GUI units (negative = scrolled down). */
 	public float offset;
