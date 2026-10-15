@@ -11,7 +11,9 @@ public interface UiScreen {
 		/** World fully visible (Feather style). */
 		CLEAR,
 		/** World slightly darkened. */
-		DIM
+		DIM,
+		/** Nothing behind: the screen paints its own full-screen background (the Eclipse main menu). */
+		NONE
 	}
 
 	Backdrop backdrop();

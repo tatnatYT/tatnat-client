@@ -57,6 +57,8 @@ loom {
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
 			// Extra mods for the client only (e.g. Sodium for compatibility checks): -Pextramods=<folder>
 			if (project.hasProperty('extramods')) vmArg "-Dfabric.addMods=${project.property('extramods')}"
+			// Main menu backgrounds (the launcher passes its own folder): run/backgrounds in dev.
+			vmArg "-Dtatnat.backgrounds=${rootProject.file('run/backgrounds').absolutePath}"
 			// The launcher's account bridge (or a stand-in) for the in-game account switcher.
 			if (project.hasProperty('accounts')) vmArg "-Dtatnat.accounts=${project.property('accounts')}"
 			if (project.hasProperty('accountcheck')) vmArg "-Dtatnat.accountcheck=${project.property('accountcheck')}"

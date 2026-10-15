@@ -60,7 +60,7 @@ public final class DevTest {
 				// --server joins while resources are still loading on 1.18 (models missing -> crash);
 				// join from the title screen once the loading overlay is gone instead.
 				String join = System.getProperty("tatnat.join");
-				if (join != null && !joining && mc.getOverlay() == null && mc.screen instanceof net.minecraft.client.gui.screens.TitleScreen) {
+				if (join != null && !joining && mc.getOverlay() == null && (mc.screen instanceof net.minecraft.client.gui.screens.TitleScreen || mc.screen instanceof ScreenBridge && ((ScreenBridge) mc.screen).ui instanceof com.tatnat.client.ui.menu.MainMenu)) {
 					joining = true;
 					net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.screen, mc,
 							net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(join), null);

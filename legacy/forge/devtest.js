@@ -67,7 +67,7 @@ function stopAll() {
   fs.copyFileSync(path.join(ROOT, 'dist', `tatnat-client-forge-mc${MC}-1.0.0.jar`), path.join(gameDir, 'mods', 'tatnat-client.jar'));
   fs.writeFileSync(path.join(gameDir, 'options.txt'), 'tutorialStep:none\n');
 
-  process.env.JAVA_TOOL_OPTIONS = `-Dtatnat.devtest=${mode} -Dtatnat.join=127.0.0.1:25600`;
+  process.env.JAVA_TOOL_OPTIONS = `-Dtatnat.devtest=${mode} -Dtatnat.join=127.0.0.1:25600 -Dtatnat.backgrounds=${path.join(__dirname, "..", "..", "run", "backgrounds")}`;
   let out = '';
   const child = await launch({ root, gameDir, versionId: id, account: { type: 'offline', name: 'tatnat' }, memoryMb: 3072,
     onProgress: () => {}, onLog: t => { out += t; } });

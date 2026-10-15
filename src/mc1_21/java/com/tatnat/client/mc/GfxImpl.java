@@ -126,10 +126,16 @@ public final class GfxImpl implements Gfx {
 	}
 
 	private static final java.util.Map<String, ResourceLocation> IMAGES = new java.util.HashMap<>();
+	/** Pixel size of each loaded picture. */
+	private static final java.util.Map<String, int[]> DIMS = new java.util.HashMap<>();
 
 	@Override
 	public void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
-		int argb = 0xFFFFFFFF;
+		picture(key, png, x, y, size, size, 0xFFFFFFFF);
+	}
+
+	@Override
+	public void picture(String key, java.util.function.Supplier<byte[]> png, int x, int y, int w, int h, int argb) {
 		ResourceLocation id = IMAGES.get(key);
 		if (id == null) {
 			if (IMAGES.containsKey(key)) return;
@@ -140,6 +146,7 @@ public final class GfxImpl implements Gfx {
 			}
 			try {
 				com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(new java.io.ByteArrayInputStream(b));
+				DIMS.put(key, new int[] {img.getWidth(), img.getHeight()});
 				id = ResourceLocation.fromNamespaceAndPath(TatnatClient.ID, "image/" + IMAGES.size());
 				net.minecraft.client.Minecraft.getInstance().getTextureManager().register(id, new net.minecraft.client.renderer.texture.DynamicTexture(img));
 			} catch (Exception e) {
@@ -148,11 +155,13 @@ public final class GfxImpl implements Gfx {
 			}
 			IMAGES.put(key, id);
 		}
+		int[] dims = DIMS.get(key);
+		int tw = dims == null ? 64 : dims[0], th = dims == null ? 64 : dims[1];
 		g.pose().pushPose();
 		g.pose().translate(x, y, 0f);
-		g.pose().scale(size / 64f, size / 64f, 1f);
+		g.pose().scale(w / (float) tw, h / (float) th, 1f);
 		g.setColor(((argb >> 16) & 255) / 255f, ((argb >> 8) & 255) / 255f, (argb & 255) / 255f, ((argb >>> 24) & 255) / 255f);
-		g.blit(id, 0, 0, 0f, 0f, 64, 64, 64, 64);
+		g.blit(id, 0, 0, 0f, 0f, tw, th, tw, th);
 		g.setColor(1f, 1f, 1f, 1f);
 		g.pose().popPose();
 	}

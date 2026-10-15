@@ -35,7 +35,9 @@ public final class ScreenBridge extends Screen {
 
 	@Override
 	public void render(int mouseX, int mouseY, float partialTick) {
-		if (client.world == null) {
+		if (ui.backdrop() == UiScreen.Backdrop.NONE) {
+			// The screen paints its own full-screen background.
+		} else if (client.world == null) {
 			renderDirtBackground(0);
 		} else if (ui.backdrop() == UiScreen.Backdrop.DIM) {
 			fill(0, 0, width, height, 0x3C000000);

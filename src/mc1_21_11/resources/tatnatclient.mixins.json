@@ -28,6 +28,7 @@
 		"ChatComponentMixin",
 		"DebugRendererMixin",
 		"EntityRenderMixins$HideBody",
+		"MainMenuMixin",
 		"EntityRenderMixins$CullBlockEntities",
 		"EntityRenderMixins$NameTag",
 		"GameplayHooksMixin",

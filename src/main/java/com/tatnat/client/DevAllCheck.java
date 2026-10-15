@@ -38,7 +38,7 @@ public final class DevAllCheck {
 
 	public static void init() {
 		String p = System.getProperty("tatnat.devtest", "");
-		if (p.startsWith("allcheck") && !p.equals("allcheck-cull")) TatnatClient.EVENTS.register(new DevAllCheck());
+		if (p.startsWith("allcheck") && !p.equals("allcheck-cull") && !p.equals("allcheck-menu")) TatnatClient.EVENTS.register(new DevAllCheck());
 	}
 
 	private DevAllCheck() {

@@ -50,6 +50,7 @@ public class ClickGuiScreen implements UiScreen {
 	private final Animation open = new Animation(200, 0f);
 	private final Animation view = new Animation(220, 0f);
 	private final Animation titleButtonAnim = new Animation(150, ClientOptions.titleButton() ? 1f : 0f);
+	private final Animation customMenuAnim = new Animation(150, ClientOptions.customMenu() ? 1f : 0f);
 	private final Map<Module, Animation> toggles = new HashMap<>();
 	private final Map<Module, Animation> hovers = new HashMap<>();
 
@@ -93,6 +94,14 @@ public class ClickGuiScreen implements UiScreen {
 
 	public ClickGuiScreen() {
 		open.animateTo(1f);
+	}
+
+	/** The menu opened straight on the Accounts page (main menu's account button). */
+	public static ClickGuiScreen accounts() {
+		ClickGuiScreen s = new ClickGuiScreen();
+		s.page = Page.ACCOUNTS;
+		AccountSwitcher.refresh();
+		return s;
 	}
 
 	// ---------------------------------------------------------------- state
@@ -872,19 +881,23 @@ public class ClickGuiScreen implements UiScreen {
 			UIFont.SMALL.drawRight(g, rows[i][1], x + w - Ui.px(20), y + rh / 2 - UIFont.SMALL.size() / 2, Theme.TEXT_MUTED);
 			y += rh + Ui.px(8);
 		}
-		// Client options with a switch.
-		{
-			ClientOptions opt = ClientOptions.INSTANCE;
+		// Client options with a switch (the title screen button only matters with the vanilla title screen).
+		ClientOptions opt = ClientOptions.INSTANCE;
+		com.tatnat.client.modules.settings.BooleanSetting[] switches = opt.customMenu.on()
+				? new com.tatnat.client.modules.settings.BooleanSetting[] {opt.customMenu}
+				: new com.tatnat.client.modules.settings.BooleanSetting[] {opt.customMenu, opt.titleButton};
+		for (com.tatnat.client.modules.settings.BooleanSetting sw0 : switches) {
 			boolean hover = Widgets.inside(mx, my, x, y, w, rh);
 			card(g, x, y, w, rh, hover);
-			Icons.draw(g, Icon.MONITOR, x + Ui.px(30), y + rh / 2, Ui.px(20), Theme.ACCENT);
-			UIFont.TITLE.draw(g, opt.titleButton.name, x + Ui.px(56), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
-			UIFont.SMALL.draw(g, opt.titleButton.description, x + Ui.px(56), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
+			Icons.draw(g, sw0 == opt.customMenu ? Icon.MOON : Icon.MONITOR, x + Ui.px(30), y + rh / 2, Ui.px(20), Theme.ACCENT);
+			UIFont.TITLE.draw(g, sw0.name, x + Ui.px(56), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			UIFont.SMALL.draw(g, sw0.description, x + Ui.px(56), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
 			int sw = Widgets.toggleW(), sx = x + w - Ui.px(20) - sw, sy = y + (rh - Widgets.toggleH()) / 2;
-			titleButtonAnim.animateTo(opt.titleButton.on() ? 1f : 0f);
-			Widgets.toggle(g, sx, sy, titleButtonAnim, hover);
+			Animation anim = sw0 == opt.customMenu ? customMenuAnim : titleButtonAnim;
+			anim.animateTo(sw0.on() ? 1f : 0f);
+			Widgets.toggle(g, sx, sy, anim, hover);
 			hit(x, y, w, rh, false, () -> {
-				opt.titleButton.set(!opt.titleButton.on());
+				sw0.set(!sw0.on());
 				TatnatClient.CONFIG.markDirty();
 			}, null);
 			y += rh + Ui.px(8);

@@ -27,6 +27,7 @@
 		"GuiGraphicsAccess",
 		"ChatComponentMixin",
 		"EntityRenderMixins$HideBody",
+		"MainMenuMixin",
 		"EntityRenderMixins$CullBlockEntities",
 		"EntityRenderMixins$NameTag",
 		"GameRendererMixin",

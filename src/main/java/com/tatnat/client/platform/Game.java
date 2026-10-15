@@ -229,6 +229,14 @@ public interface Game {
 		return opaque(x, y, z);
 	}
 
+	/**
+	 * Main menu buttons: "singleplayer", "multiplayer", "options", "mods" (the loader's or Mod
+	 * Menu's mod list) or "quit". False when this version can't do it.
+	 */
+	default boolean titleAction(String action) {
+		return false;
+	}
+
 	/** True while the "Disconnected" screen is open (also remembers the server while connected). */
 	default boolean disconnectedScreen() {
 		return false;

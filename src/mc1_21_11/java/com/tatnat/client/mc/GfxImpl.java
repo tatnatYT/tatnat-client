@@ -128,10 +128,16 @@ public final class GfxImpl implements Gfx {
 	}
 
 	private static final java.util.Map<String, Identifier> IMAGES = new java.util.HashMap<>();
+	/** Pixel size of each loaded picture. */
+	private static final java.util.Map<String, int[]> DIMS = new java.util.HashMap<>();
 
 	@Override
 	public void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
-		int argb = 0xFFFFFFFF;
+		picture(key, png, x, y, size, size, 0xFFFFFFFF);
+	}
+
+	@Override
+	public void picture(String key, java.util.function.Supplier<byte[]> png, int x, int y, int w, int h, int argb) {
 		Identifier id = IMAGES.get(key);
 		if (id == null) {
 			if (IMAGES.containsKey(key)) return;
@@ -142,6 +148,7 @@ public final class GfxImpl implements Gfx {
 			}
 			try {
 				com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(new java.io.ByteArrayInputStream(b));
+				DIMS.put(key, new int[] {img.getWidth(), img.getHeight()});
 				id = Identifier.fromNamespaceAndPath(TatnatClient.ID, "image/" + IMAGES.size());
 				net.minecraft.client.Minecraft.getInstance().getTextureManager().register(id, new net.minecraft.client.renderer.texture.DynamicTexture(() -> "tatnat image", img));
 			} catch (Exception e) {
@@ -150,10 +157,12 @@ public final class GfxImpl implements Gfx {
 			}
 			IMAGES.put(key, id);
 		}
+		int[] dims = DIMS.get(key);
+		int tw = dims == null ? 64 : dims[0], th = dims == null ? 64 : dims[1];
 		g.pose().pushMatrix();
 		g.pose().translate(x, y);
-		g.pose().scale(size / 64f, size / 64f);
-		g.blit(RenderPipelines.GUI_TEXTURED, id, 0, 0, 0f, 0f, 64, 64, 64, 64, argb);
+		g.pose().scale(w / (float) tw, h / (float) th);
+		g.blit(RenderPipelines.GUI_TEXTURED, id, 0, 0, 0f, 0f, tw, th, tw, th, argb);
 		g.pose().popMatrix();
 	}
 

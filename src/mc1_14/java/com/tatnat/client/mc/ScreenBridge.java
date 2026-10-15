@@ -27,7 +27,9 @@ public final class ScreenBridge extends Screen {
 
 	/** Screens on this version draw their own background from render(). */
 	private void background(Graphics g) {
-		if (minecraft.level == null) {
+		if (ui.backdrop() == UiScreen.Backdrop.NONE) {
+			// The screen paints its own full-screen background.
+		} else if (minecraft.level == null) {
 			super.renderBackground();
 		} else if (ui.backdrop() == UiScreen.Backdrop.DIM) {
 			g.fill(0, 0, width, height, 0x3C000000);

@@ -70,7 +70,7 @@ public final class DevTest {
 			// Begin once we're in a world.
 			if (mc.player == null || mc.world == null) {
 				String join = System.getProperty("tatnat.join");
-				if (join != null && !joining && mc.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen) {
+				if (join != null && !joining && (mc.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen || mc.currentScreen instanceof ScreenBridge && ((ScreenBridge) mc.currentScreen).ui instanceof com.tatnat.client.ui.menu.MainMenu)) {
 					joining = true;
 					String[] hp = join.split(":");
 					mc.setScreen(new net.minecraft.client.gui.screen.ConnectScreen(mc.currentScreen, mc, hp[0], Integer.parseInt(hp[1])));

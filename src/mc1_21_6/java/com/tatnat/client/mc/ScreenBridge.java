@@ -27,7 +27,9 @@ public final class ScreenBridge extends Screen {
 
 	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-		if (minecraft.level == null) {
+		if (ui.backdrop() == UiScreen.Backdrop.NONE) {
+			// The screen paints its own full-screen background.
+		} else if (minecraft.level == null) {
 			// Title screen: the usual panorama behind the menu.
 			renderPanorama(g, partialTick);
 			renderBlurredBackground(g);

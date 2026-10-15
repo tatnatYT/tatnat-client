@@ -250,7 +250,11 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
-		int argb = 0xFFFFFFFF, w = size, h = size;
+		picture(key, png, x, y, size, size, 0xFFFFFFFF);
+	}
+
+	@Override
+	public void picture(String key, java.util.function.Supplier<byte[]> png, int x, int y, int w, int h, int argb) {
 		Identifier id = IMAGES.get(key);
 		if (id == null) {
 			if (IMAGES.containsKey(key)) return;

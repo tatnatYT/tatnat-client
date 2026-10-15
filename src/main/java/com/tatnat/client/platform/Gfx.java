@@ -83,6 +83,13 @@ public interface Gfx {
 	default void image(String key, java.util.function.Supplier<byte[]> png, int x, int y, int size) {
 	}
 
+	/**
+	 * Draws a PNG of any size stretched to w x h at (x, y), tinted/faded by {@code argb}. Same
+	 * caching as {@link #image}: {@code png} is only called the first time for a key.
+	 */
+	default void picture(String key, java.util.function.Supplier<byte[]> png, int x, int y, int w, int h, int argb) {
+	}
+
 	/** A game item (opaque platform handle from {@link Game}) at 16x16, with durability bar. */
 	void item(Object stack, int x, int y);
 

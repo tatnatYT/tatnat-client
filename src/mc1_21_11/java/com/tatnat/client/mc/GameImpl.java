@@ -699,4 +699,46 @@ public final class GameImpl implements Game {
 	public String minecraftVersion() {
 		return SharedConstants.getCurrentVersion().name();
 	}
+
+	@Override
+	public boolean titleAction(String action) {
+		Minecraft m = mc();
+		net.minecraft.client.gui.screens.Screen parent = m.screen;
+		switch (action) {
+			case "singleplayer":
+				m.setScreen(new net.minecraft.client.gui.screens.worldselection.SelectWorldScreen(parent));
+				return true;
+			case "multiplayer":
+				m.setScreen(new net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen(parent));
+				return true;
+			case "options":
+				m.setScreen(new net.minecraft.client.gui.screens.options.OptionsScreen(parent, m.options));
+				return true;
+			case "mods": {
+				Object s = modListScreen(parent);
+				if (s == null) return false;
+				m.setScreen((net.minecraft.client.gui.screens.Screen) s);
+				return true;
+			}
+			case "quit":
+				m.stop();
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/** The loader's (or Mod Menu's) mod list, by reflection so no loader classes are needed here. */
+	private static Object modListScreen(Object parent) {
+		for (String c : com.tatnat.client.ui.menu.MainMenu.MOD_LISTS) {
+			try {
+				for (java.lang.reflect.Constructor<?> k : Class.forName(c).getConstructors()) {
+					if (k.getParameterCount() == 1 && k.getParameterTypes()[0].isInstance(parent)) return k.newInstance(parent);
+				}
+			} catch (Throwable ignored) {
+			}
+		}
+		return null;
+	}
+
 }

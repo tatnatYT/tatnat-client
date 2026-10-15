@@ -13,6 +13,7 @@
 		"WorldMixins$Light",
 		"WorldMixins$Outline",
 		"WorldMixins$HitboxesOn",
+		"MainMenuMixin",
 		"WorldMixins$CullBlockEntities",
 		"WorldMixins$HitFlash",
 		"WorldMixins$GlintSpeed",

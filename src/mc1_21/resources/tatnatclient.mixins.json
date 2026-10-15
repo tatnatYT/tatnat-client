@@ -30,6 +30,7 @@
 		"OverlayMixins$CameraDistance",
 		"ChatComponentMixin",
 		"EntityRenderMixins$HideBody",
+		"MainMenuMixin",
 		"EntityRenderMixins$CullBlockEntities",
 		"EntityRenderMixins$NameTag",
 		"GameRendererMixin",
