@@ -55,6 +55,8 @@ loom {
 			// crashing at the first; devtest.js fails the run if any are logged.
 			vmArg "-Dmixin.ignoreRequired=true"
 			if (project.hasProperty('devtest')) vmArg "-Dtatnat.devtest=${project.property('devtest')}"
+			// Extra mods for the client only (e.g. Sodium for compatibility checks): -Pextramods=<folder>
+			if (project.hasProperty('extramods')) vmArg "-Dfabric.addMods=${project.property('extramods')}"
 			// The launcher's account bridge (or a stand-in) for the in-game account switcher.
 			if (project.hasProperty('accounts')) vmArg "-Dtatnat.accounts=${project.property('accounts')}"
 			if (project.hasProperty('accountcheck')) vmArg "-Dtatnat.accountcheck=${project.property('accountcheck')}"

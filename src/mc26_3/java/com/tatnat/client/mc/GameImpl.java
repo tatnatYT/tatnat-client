@@ -520,6 +520,16 @@ public final class GameImpl implements Game {
 		return !m.level.getBlockState(p).getCollisionShape(m.level, p).isEmpty();
 	}
 
+	private final net.minecraft.core.BlockPos.MutableBlockPos occ = new net.minecraft.core.BlockPos.MutableBlockPos();
+
+	@Override
+	public boolean occludes(int x, int y, int z) {
+		Minecraft m = mc();
+		if (m.level == null) return false;
+		occ.set(x, y, z);
+		return m.level.getBlockState(occ).isSolidRender();
+	}
+
 	@Override
 	public String biome() {
 		Minecraft m = mc();

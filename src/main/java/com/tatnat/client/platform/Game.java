@@ -221,6 +221,14 @@ public interface Game {
 		return false;
 	}
 
+	/**
+	 * True when the block at a position fully hides what's behind it (a solid full cube; glass,
+	 * leaves, fences and slabs don't), for the built-in culling. Old versions reuse {@link #opaque}.
+	 */
+	default boolean occludes(int x, int y, int z) {
+		return opaque(x, y, z);
+	}
+
 	/** True while the "Disconnected" screen is open (also remembers the server while connected). */
 	default boolean disconnectedScreen() {
 		return false;

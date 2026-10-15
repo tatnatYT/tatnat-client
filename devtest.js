@@ -24,6 +24,7 @@ if (!fs.existsSync(props)) {
 const opts = path.join(run, "options.txt");
 if (!fs.existsSync(opts)) fs.writeFileSync(opts, ["onboardAccessibility:false", "skipMultiplayerWarning:true", "joinedFirstServer:true", "tutorialStep:none", "narrator:0"].join("\n") + "\n");
 // The dev player's name: DEVNAME=Verniq node devtest.js ... plays as a tier-listed player (offline account).
+// EXTRAMODS=<folder> node devtest.js ... loads the jars in that folder into the client only (compatibility checks).
 const DEVNAME = process.env.DEVNAME || 'tatnat';
 // Op the dev player ("tatnat", offline UUID) so the test can use commands.
 const h = crypto.createHash('md5').update('OfflinePlayer:' + DEVNAME).digest();
@@ -66,7 +67,7 @@ console.log('server up for ' + version);
   lines.push('pauseOnLostFocus:false');
   fs.writeFileSync(opts, lines.join('\n') + '\n');
 }
-const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, `-Pdevname=${DEVNAME}`, ...(audit ? [] : ['-Pquickjoin=127.0.0.1:25599'])],
+const client = spawnSync(java, [...wrapper, 'runClient', '--no-daemon', ...props2, `-Pdevtest=${mode}`, `-Pdevname=${DEVNAME}`, ...(process.env.EXTRAMODS ? [`-Pextramods=${process.env.EXTRAMODS}`] : []), ...(audit ? [] : ['-Pquickjoin=127.0.0.1:25599'])],
   { cwd: __dirname, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 900000 });
 fs.writeFileSync(path.join(__dirname, 'build', `client-${version}.log`), (client.stdout || '') + (client.stderr || ''));
 server.kill();

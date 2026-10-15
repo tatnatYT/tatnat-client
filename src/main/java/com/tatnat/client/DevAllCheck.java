@@ -37,7 +37,8 @@ public final class DevAllCheck {
 	private final List<Integer> waits = new ArrayList<>();
 
 	public static void init() {
-		if (System.getProperty("tatnat.devtest", "").startsWith("allcheck")) TatnatClient.EVENTS.register(new DevAllCheck());
+		String p = System.getProperty("tatnat.devtest", "");
+		if (p.startsWith("allcheck") && !p.equals("allcheck-cull")) TatnatClient.EVENTS.register(new DevAllCheck());
 	}
 
 	private DevAllCheck() {

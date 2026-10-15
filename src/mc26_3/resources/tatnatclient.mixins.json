@@ -24,6 +24,7 @@
 		"ChatComponentMixin",
 		"DebugRendererMixin",
 		"EntityRenderMixins$HideBody",
+		"EntityRenderMixins$CullBlockEntities",
 		"EntityRenderMixins$NameTag",
 		"GameplayHooksMixin",
 		"GameRendererMixin",

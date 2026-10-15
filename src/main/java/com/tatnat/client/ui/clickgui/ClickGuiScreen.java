@@ -62,6 +62,8 @@ public class ClickGuiScreen implements UiScreen {
 	private String search = "";
 	private boolean searchFocused, closing;
 	private long confirmResetAll;
+	/** Settings > Open the menu is waiting for the new key. */
+	private boolean bindingMenuKey;
 
 	private double scroll, scrollTarget, setScroll, setScrollTarget;
 	/** Share of the remaining scroll distance covered this frame (time-based, same feel at any FPS). */
@@ -717,8 +719,27 @@ public class ClickGuiScreen implements UiScreen {
 
 	private void drawPerformancePage(Gfx g, int x, int top, int w, int bottom, double mx, double my) {
 		int left = drawClose(g, x + w, top, mx, my);
-		drawTitle(g, x, top - Ui.px(2), "Performance", "Turn effects off to make the menus lighter on slow PCs", left - x - Ui.px(20));
+		drawTitle(g, x, top - Ui.px(2), "Performance", "Built-in FPS boosts, and menu effects you can turn off on slow PCs", left - x - Ui.px(20));
 		int contentY = top + Ui.px(68);
+
+		// Built-in optimizations: always on, no switch.
+		UIFont.TINY.draw(g, "BUILT-IN FPS OPTIMIZATIONS", x, contentY, Theme.ACCENT);
+		contentY += Ui.px(22);
+		boolean on = com.tatnat.client.perf.Optimizations.enabled();
+		int rh = Ui.px(56);
+		for (String[] row : com.tatnat.client.perf.Optimizations.list()) {
+			card(g, x, contentY, w, rh, false);
+			Icons.draw(g, Icon.CHIP, x + Ui.px(30), contentY + rh / 2, Ui.px(20), Theme.ACCENT);
+			UIFont.TITLE.draw(g, row[0], x + Ui.px(56), contentY + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			UIFont.SMALL.draw(g, row[1], x + Ui.px(56), contentY + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
+			String label = row[2].toUpperCase();
+			chip(g, label, x + w - Ui.px(24) - UIFont.TINY.width(label) - Ui.px(14), contentY + (rh - Ui.px(20)) / 2,
+					on ? Theme.ACCENT_SOFT : 0x14FFFFFF, on ? 0xFFB49CFF : Theme.TEXT_MUTED);
+			contentY += rh + Ui.px(8);
+		}
+		contentY += Ui.px(12);
+		UIFont.TINY.draw(g, "MENU EFFECTS", x, contentY, Theme.ACCENT);
+		contentY += Ui.px(22);
 		clip(g, x - Ui.px(8), contentY, w + Ui.px(16), bottom - contentY);
 		drawSettingsList(g, x, contentY, w, bottom, mx, my);
 		g.endScissor();
@@ -821,12 +842,28 @@ public class ClickGuiScreen implements UiScreen {
 		y += ch + Ui.px(18);
 
 		// Tips.
+		// Open the menu: click, then press the new key.
+		{
+			int rh = Ui.px(56);
+			boolean hover = Widgets.inside(mx, my, x, y, w, rh);
+			card(g, x, y, w, rh, hover || bindingMenuKey);
+			Icons.draw(g, Icon.KEYBOARD, x + Ui.px(30), y + rh / 2, Ui.px(20), Theme.ACCENT);
+			UIFont.TITLE.draw(g, "Open the menu", x + Ui.px(56), y + rh / 2 - UIFont.TITLE.size() + Ui.px(1), Theme.TEXT);
+			UIFont.SMALL.draw(g, bindingMenuKey ? "Press any key... (Escape cancels)" : "Click to change the key", x + Ui.px(56), y + rh / 2 + Ui.px(4), Theme.TEXT_MUTED);
+			String label = bindingMenuKey ? "..." : ClientOptions.INSTANCE.menuKey.keyName();
+			int kw = Math.max(Ui.px(110), UIFont.BODY.width(label) + Ui.px(28)), kh = Ui.px(34);
+			int kx = x + w - Ui.px(20) - kw, ky = y + (rh - kh) / 2;
+			RenderUtils.surface(g, kx, ky, kw, kh, Ui.px(Theme.RADIUS), bindingMenuKey ? Theme.ACCENT_LIGHT : 0xFF2A2C33,
+					bindingMenuKey ? Theme.ACCENT : 0xFF22242A, bindingMenuKey ? 0x60FFFFFF : Theme.BORDER);
+			UIFont.BODY.drawCentered(g, label, kx + kw / 2, ky + (kh - UIFont.BODY.size()) / 2, bindingMenuKey ? 0xFFFFFFFF : Theme.TEXT);
+			hit(x, y, w, rh, false, () -> bindingMenuKey = !bindingMenuKey, null);
+			y += rh + Ui.px(8);
+		}
 		String[][] rows = {
-				{"Open the menu", "Right Shift"},
 				{"Move your HUD", "HUD Editor: drag, scroll to resize, right-click for settings"},
 				{"Toggle a mod quickly", "Right-click its card, or give it a Toggle Key"},
 		};
-		Icon[] tipIcons = {Icon.KEYBOARD, Icon.MOVE, Icon.MOUSE};
+		Icon[] tipIcons = {Icon.MOVE, Icon.MOUSE};
 		int rh = Ui.px(56);
 		for (int i = 0; i < rows.length; i++) {
 			card(g, x, y, w, rh, false);
@@ -961,6 +998,15 @@ public class ClickGuiScreen implements UiScreen {
 
 	@Override
 	public boolean keyPressed(int key, boolean shift) {
+		// Settings > Open the menu: the next key pressed becomes the menu key (Escape cancels).
+		if (bindingMenuKey) {
+			bindingMenuKey = false;
+			if (key != KeyCodes.ESCAPE && key > 0) {
+				ClientOptions.INSTANCE.menuKey.set(key);
+				TatnatClient.CONFIG.markDirty();
+			}
+			return true;
+		}
 		if (settingsVisible()) {
 			for (SettingComponent<?> c : components) {
 				if (c.isCapturingKeys() && c.keyPressed(key)) return true;
@@ -976,13 +1022,13 @@ public class ClickGuiScreen implements UiScreen {
 				searchFocused = false;
 				return true;
 			}
-			if (key != TatnatClient.MENU_KEY) return true;
+			if (key != TatnatClient.menuKey()) return true;
 		}
 		if (key == KeyCodes.ESCAPE && page == Page.MODS && settingsVisible()) {
 			closeSettings();
 			return true;
 		}
-		if (key == KeyCodes.ESCAPE || key == TatnatClient.MENU_KEY) {
+		if (key == KeyCodes.ESCAPE || key == TatnatClient.menuKey()) {
 			close();
 			return true;
 		}

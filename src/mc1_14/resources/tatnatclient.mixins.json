@@ -23,6 +23,7 @@
 		"KeyMappingAccess",
 		"ChatComponentMixin",
 		"EntityRenderMixins$HideBody",
+		"EntityRenderMixins$CullBlockEntities",
 		"EntityRenderMixins$NameTag",
 		"GameRendererMixin",
 		"GameplayHooksMixin",

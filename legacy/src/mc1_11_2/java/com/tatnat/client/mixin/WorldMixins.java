@@ -146,6 +146,16 @@ public final class WorldMixins {
 				CallbackInfoReturnable<Boolean> cir) {
 			if (Freecam.active() && Freecam.INSTANCE.hideBody() && entity == MinecraftClient.getInstance().player) cir.setReturnValue(false);
 		}
+
+		/** Built-in Entity Culling: entities the game would draw but that are hidden behind blocks. */
+		@Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true)
+		private void tatnat$cull(Entity entity, net.minecraft.client.render.CameraView view, double x, double y, double z,
+				CallbackInfoReturnable<Boolean> cir) {
+			if (!cir.getReturnValue() || !com.tatnat.client.perf.Optimizations.enabled()) return;
+			boolean exempt = entity instanceof net.minecraft.entity.player.PlayerEntity || entity.isGlowing();
+			net.minecraft.util.math.Box b = entity.getBoundingBox();
+			if (b != null && com.tatnat.client.perf.Optimizations.entityHidden(entity, exempt, x, y, z, b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ)) cir.setReturnValue(false);
+		}
 	}
 
 	/** Hit Color: hurt mobs are tinted with the first four values put in the overlay buffer. */
@@ -212,6 +222,18 @@ public final class WorldMixins {
 		private void tatnat$thunder(float partialTick, CallbackInfoReturnable<Float> cir) {
 			if (!((Object) this instanceof ClientWorld) || !TimeChanger.active() || TimeChanger.INSTANCE.weather.is("Server")) return;
 			cir.setReturnValue(TimeChanger.INSTANCE.weather.is("Thunder") ? 1f : 0f);
+		}
+	}
+
+	/** Built-in Block Entity Culling: chests, signs, banners... hidden behind blocks aren't drawn. */
+	@Mixin(net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher.class)
+	public static class CullBlockEntities {
+		@Inject(method = "renderEntity(Lnet/minecraft/block/entity/BlockEntity;FI)V", at = @At("HEAD"), cancellable = true)
+		private void tatnat$cullBlockEntity(net.minecraft.block.entity.BlockEntity be, float pt, int destroy, CallbackInfo ci) {
+			// Beams and outlines reach far outside the block: always drawn.
+			if (be instanceof net.minecraft.block.entity.BeaconBlockEntity || be instanceof net.minecraft.block.entity.EndGatewayBlockEntity || be instanceof net.minecraft.block.entity.StructureBlockEntity) return;
+			net.minecraft.util.math.BlockPos p = be.getPos();
+			if (p != null && com.tatnat.client.perf.Optimizations.blockEntityHidden(be, p.getX(), p.getY(), p.getZ())) ci.cancel();
 		}
 	}
 }

@@ -28,8 +28,10 @@ public final class TatnatClient {
 	public static final ConfigManager CONFIG = new ConfigManager();
 	public static String VERSION = "dev";
 
-	/** Opens the mod menu. */
-	public static final int MENU_KEY = KeyCodes.RIGHT_SHIFT;
+	/** The key that opens the mod menu: Right Shift by default, changeable on the Settings page. */
+	public static int menuKey() {
+		return com.tatnat.client.modules.ClientOptions.menuKey();
+	}
 
 	private static Game game;
 	private static Features features = new Features() {
@@ -55,6 +57,7 @@ public final class TatnatClient {
 		EVENTS.register(CpsTracker.INSTANCE);
 		EVENTS.register(HudRenderer.INSTANCE);
 		DevAllCheck.init();
+		DevCullCheck.init();
 		if (System.getProperty("tatnat.accountcheck") != null) EVENTS.register(new com.tatnat.client.account.AccountSwitcher.DevCheck());
 		ModuleManager.get();
 		CONFIG.load();
@@ -63,12 +66,12 @@ public final class TatnatClient {
 				System.getProperty("java.version"));
 	}
 
-	/** Right Shift for the menu, plus each mod's own toggle key. */
+	/** The menu key, plus each mod's own toggle key. */
 	public static final class Hotkeys {
 		@Subscribe
 		public void onKey(Events.Key e) {
 			if (!e.inGame || e.action != KeyCodes.PRESS) return;
-			if (e.key == MENU_KEY) {
+			if (e.key == menuKey()) {
 				game.openScreen(new ClickGuiScreen());
 				// Consume it, or the game hands this same press to the menu that just opened (which closes it).
 				e.cancel();

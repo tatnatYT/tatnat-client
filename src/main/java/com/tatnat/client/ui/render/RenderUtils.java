@@ -72,14 +72,11 @@ public final class RenderUtils {
 			rect(g, x, y, x + w, y + h, color);
 			return;
 		}
-		// Middle band (full width), then the top and bottom bands between the corners.
+		// Middle band (full width), then the top and bottom bands between the rounded corners; a
+		// square corner is already covered by its band (filling it again doubled translucent colours).
 		rect(g, x, y + r, x + w, y + h - r, color);
 		rect(g, x + (tl ? r : 0), y, x + w - (tr ? r : 0), y + r, color);
 		rect(g, x + (bl ? r : 0), y + h - r, x + w - (br ? r : 0), y + h, color);
-		if (!tl) rect(g, x, y, x + r, y + r, color);
-		if (!tr) rect(g, x + w - r, y, x + w, y + r, color);
-		if (!bl) rect(g, x, y + h - r, x + r, y + h, color);
-		if (!br) rect(g, x + w - r, y + h - r, x + w, y + h, color);
 
 		if (g.masks()) {
 			// One textured quad per corner instead of a fill per anti-aliased pixel.
