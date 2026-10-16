@@ -106,15 +106,6 @@ public final class OverlayMixins {
 			if (com.tatnat.client.modules.impl.visual.PlayerModel.hideElytra()) ci.cancel();
 		}
 	}
-	/** Tablist: friends in your colour. */
-	@Mixin(net.minecraft.client.gui.components.PlayerTabOverlay.class)
-	public static class TabFriends {
-		@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true, require = 0)
-		private void tatnat$friend(net.minecraft.client.multiplayer.PlayerInfo info, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.network.chat.Component> cir) {
-			String text = com.tatnat.client.modules.impl.visual.Tablist.highlight(cir.getReturnValue().getString());
-			if (text != null) cir.setReturnValue(net.minecraft.network.chat.Component.literal(text));
-		}
-	}
 	/** Totem Pop Counter: entity event 35 is the totem animation (the network handler plays it itself). */
 	@Mixin(net.minecraft.client.multiplayer.ClientPacketListener.class)
 	public abstract static class TotemPop {

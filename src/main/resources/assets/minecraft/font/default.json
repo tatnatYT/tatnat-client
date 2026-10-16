@@ -6,7 +6,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue701"
       ]
     },
     {
@@ -15,7 +15,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue702"
       ]
     },
     {
@@ -24,7 +24,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue703"
       ]
     },
     {
@@ -33,7 +33,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue704"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue705"
       ]
     },
     {
@@ -51,7 +51,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue706"
       ]
     },
     {
@@ -60,7 +60,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue707"
       ]
     },
     {
@@ -69,7 +69,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue708"
       ]
     },
     {
@@ -78,7 +78,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue709"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue721"
       ]
     },
     {
@@ -96,7 +96,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue722"
       ]
     },
     {
@@ -105,7 +105,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue723"
       ]
     },
     {
@@ -114,7 +114,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue724"
       ]
     },
     {
@@ -123,7 +123,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue725"
       ]
     },
     {
@@ -132,7 +132,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue726"
       ]
     },
     {
@@ -141,7 +141,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue727"
       ]
     },
     {
@@ -150,7 +150,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue728"
       ]
     },
     {
@@ -159,7 +159,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue729"
       ]
     },
     {
@@ -168,7 +168,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue72a"
       ]
     },
     {
@@ -177,7 +177,7 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue72b"
       ]
     },
     {
@@ -186,7 +186,25 @@
       "ascent": 7,
       "height": 8,
       "chars": [
-        ""
+        "\ue72c"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "tatnatclient:font/badges/eclipse.png",
+      "ascent": 7,
+      "height": 8,
+      "chars": [
+        "\ue740"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "tatnatclient:font/badges/eclipse_plus.png",
+      "ascent": 7,
+      "height": 8,
+      "chars": [
+        "\ue741"
       ]
     }
   ]

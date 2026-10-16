@@ -205,7 +205,7 @@ final class DevTestSteps {
 
 		step(2, "cape + nick, third person back", () -> {
 			mod(com.tatnat.client.modules.impl.utility.Waypoints.class).setEnabled(false);
-			mod(com.tatnat.client.modules.impl.cosmetic.CustomCapes.class).setEnabled(true);
+			com.tatnat.client.plus.EclipseNet.devCape("eclipse");
 			mod(com.tatnat.client.modules.impl.visual.NickHider.class).setEnabled(true);
 			mc().options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
 			cmd("say hello from tatnat");

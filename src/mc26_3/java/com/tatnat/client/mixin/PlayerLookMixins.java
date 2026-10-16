@@ -13,15 +13,15 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.player.PlayerSkin;
 
 /**
- * Your own player's skin and cape as seen on your screen (Nick Hider, Custom Capes), and the
+ * Your own player's skin and cape as seen on your screen (Nick Hider, Eclipse Plus capes), and the
  * sprint/fly FOV change (FOV Modifier's Static FOV).
  */
 @Mixin(AbstractClientPlayer.class)
 public abstract class PlayerLookMixins {
 	@Inject(method = "getSkin", at = @At("RETURN"), cancellable = true)
 	private void tatnat$skin(CallbackInfoReturnable<PlayerSkin> cir) {
-		if ((Object) this != Minecraft.getInstance().player) return;
-		cir.setReturnValue(PlayerLooks.apply(cir.getReturnValue()));
+		AbstractClientPlayer self = (AbstractClientPlayer) (Object) this;
+		cir.setReturnValue(PlayerLooks.apply(cir.getReturnValue(), self.getUUID(), self == Minecraft.getInstance().player));
 	}
 
 	@Inject(method = "getFieldOfViewModifier", at = @At("RETURN"), cancellable = true)

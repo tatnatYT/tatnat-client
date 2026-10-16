@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.tatnat.client.modules.impl.cosmetic.CustomCapes;
 import com.tatnat.client.modules.impl.cosmetic.EnchantGlint;
 import com.tatnat.client.modules.impl.utility.Freecam;
 
@@ -46,19 +45,6 @@ public final class MiscMixins {
 		}
 	}
 
-	/** Cape swing strength (Custom Capes "Physics"). Applies to your own cape only. */
-	@Mixin(PlayerRenderer.class)
-	public static class CapePhysics {
-		@Inject(method = "extractRenderState(Lnet/minecraft/client/player/AbstractClientPlayer;Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;F)V",
-				at = @At("TAIL"))
-		private void tatnat$physics(AbstractClientPlayer entity, PlayerRenderState state, float partialTick, CallbackInfo ci) {
-			if (!CustomCapes.active() || entity != Minecraft.getInstance().player) return;
-			float k = CustomCapes.INSTANCE.physics.floatValue() / 100f;
-			state.capeFlap *= k;
-			state.capeLean *= k;
-			state.capeLean2 *= k;
-		}
-	}
 
 	/** Enchant Glint speed multiplier on top of vanilla's Glint Speed option. */
 	@Mixin(RenderStateShard.class)

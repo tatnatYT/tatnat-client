@@ -252,12 +252,22 @@ final class DevTestSteps {
 
 		step(2, "cape + nick, third person back", () -> {
 			mod(com.tatnat.client.modules.impl.utility.Waypoints.class).setEnabled(false);
-			mod(com.tatnat.client.modules.impl.cosmetic.CustomCapes.class).setEnabled(true);
+			com.tatnat.client.plus.EclipseNet.devCape("eclipse");
 			mod(com.tatnat.client.modules.impl.visual.NickHider.class).setEnabled(true);
 			mc().options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
 			cmd("say hello from tatnat");
 		});
 		step(20, "shot cape", () -> shot("13-cape-nick"));
+		step(2, "tab list (Eclipse badge)", () -> mc().options.keyPlayerList.setDown(true));
+		step(10, "shot tab", () -> {
+			net.minecraft.client.multiplayer.PlayerInfo me = mc().getConnection().getPlayerInfo(mc().player.getUUID());
+			String shown = me == null ? "(no player info)" : mc().gui.getTabList().getNameForDisplay(me).getString();
+			StringBuilder cps = new StringBuilder();
+			shown.codePoints().forEach(c -> cps.append(Integer.toHexString(c)).append(' '));
+			com.tatnat.client.TatnatClient.LOG.info("[devtest] tab name: '{}' = {}", shown, cps);
+			shot("13b-tab-badge");
+			mc().options.keyPlayerList.setDown(false);
+		});
 
 		step(2, "freecam", () -> {
 			mc().options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);

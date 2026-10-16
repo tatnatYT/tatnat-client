@@ -13,7 +13,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Your own player's skin, cape and model as seen on your screen (Nick Hider, Custom Capes), and
+ * Your own player's skin, cape and model as seen on your screen (Nick Hider, Eclipse Plus capes), and
  * the sprint/fly FOV change (FOV Modifier's Static FOV). 1.20 - 1.20.1 use separate getters.
  */
 @Mixin(AbstractClientPlayer.class)
@@ -34,7 +34,7 @@ public abstract class PlayerLookMixins {
 
 	@Inject(method = {"getCloakTextureLocation", "getElytraTextureLocation"}, at = @At("RETURN"), cancellable = true)
 	private void tatnat$cape(CallbackInfoReturnable<ResourceLocation> cir) {
-		if (tatnat$isMe()) cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue()));
+		cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue(), ((AbstractClientPlayer) (Object) this).getUUID(), tatnat$isMe()));
 	}
 
 	@Inject(method = "getFieldOfViewModifier", at = @At("RETURN"), cancellable = true)

@@ -47,7 +47,7 @@ public final class PlayerMixins {
 	private PlayerMixins() {
 	}
 
-	/** Your own skin, cape and model (Nick Hider, Custom Capes) and the sprint/fly FOV change. */
+	/** Your own skin, cape and model (Nick Hider, Eclipse Plus capes) and the sprint/fly FOV change. */
 	@Mixin(AbstractClientPlayerEntity.class)
 	public static abstract class Looks {
 		private boolean tatnat$isMe() {
@@ -68,7 +68,7 @@ public final class PlayerMixins {
 		// ...and "getSkinId()" returns the cape.
 		@Inject(method = "getSkinId()Lnet/minecraft/util/Identifier;", at = @At("RETURN"), cancellable = true)
 		private void tatnat$cape(CallbackInfoReturnable<Identifier> cir) {
-			if (tatnat$isMe()) cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue()));
+			cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue(), ((AbstractClientPlayerEntity) (Object) this).getUuid(), tatnat$isMe()));
 		}
 
 		@Inject(method = "getSpeed", at = @At("RETURN"), cancellable = true)
@@ -80,10 +80,16 @@ public final class PlayerMixins {
 	/** Nick Hider in the tab list. */
 	@Mixin(PlayerListHud.class)
 	public static class TabName {
+		// One hook: separate cancellable injections would stop each other.
 		@Inject(method = "getPlayerName", at = @At("RETURN"), cancellable = true)
 		private void tatnat$tabName(PlayerListEntry info, CallbackInfoReturnable<String> cir) {
-			if (!NickHider.active() || !NickHider.INSTANCE.inTab.on()) return;
-			if (PlayerLooks.isMe(info.getProfile().getId())) cir.setReturnValue(PlayerLooks.replaceName(cir.getReturnValue()));
+			String name = cir.getReturnValue();
+			if (name == null) return;
+			java.util.UUID id = info.getProfile().getId();
+			boolean me = PlayerLooks.isMe(id);
+			if (me && NickHider.active() && NickHider.INSTANCE.inTab.on()) name = PlayerLooks.replaceName(name);
+			name = com.tatnat.client.plus.EclipseBadge.legacy(com.tatnat.client.plus.EclipseNet.badge(id, me)) + name;
+			cir.setReturnValue(name);
 		}
 	}
 
@@ -102,6 +108,7 @@ public final class PlayerMixins {
 			String nick = NickHider.active() && entity == MinecraftClient.getInstance().player ? PlayerLooks.replaceName(name) : name;
 			com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = entity instanceof net.minecraft.entity.player.PlayerEntity ? com.tatnat.client.modules.impl.utility.TierTagger.nameTag(entity.getUuid(), name.replaceAll("\u00a7.", "")) : null;
 			if (tier != null) nick = tier.legacy() + nick;
+			if (entity instanceof net.minecraft.entity.player.PlayerEntity) nick = com.tatnat.client.plus.EclipseBadge.legacy(com.tatnat.client.plus.EclipseNet.badge(entity.getUuid(), entity == MinecraftClient.getInstance().player)) + nick;
 			String pop = com.tatnat.client.modules.impl.hud.TotemPops.tag(entity instanceof net.minecraft.entity.player.PlayerEntity ? entity.getName().asUnformattedString() : null);
 			if (pop != null) nick = nick + " §c" + pop;
 			if (nick.equals(name)) return;

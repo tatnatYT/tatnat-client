@@ -6,8 +6,9 @@ import java.util.UUID;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.tatnat.client.TatnatClient;
-import com.tatnat.client.modules.impl.cosmetic.CapeArt;
-import com.tatnat.client.modules.impl.cosmetic.CustomCapes;
+import com.tatnat.client.modules.impl.cosmetic.PlusCapes;
+import com.tatnat.client.plus.CapeFrames;
+import com.tatnat.client.plus.EclipseNet;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
 import net.minecraft.network.chat.TextComponent;
@@ -19,17 +20,14 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Nick Hider and Custom Capes for 1.20 - 1.20.1, where a player's look is a set of separate
+ * Nick Hider and Eclipse Plus capes for 1.20 - 1.20.1, where a player's look is a set of separate
  * texture getters (skin, cape, elytra, model) rather than one skin record.
  */
 public final class PlayerLooks {
 	private PlayerLooks() {
 	}
 
-	private static final ResourceLocation CAPE = new ResourceLocation(TatnatClient.ID, "cape/current");
-	private static int capeRevision = -1;
-	private static ResourceLocation capeTexture;
-
+	
 	public static boolean isMe(UUID id) {
 		Minecraft mc = Minecraft.getInstance();
 		return mc.player != null && mc.player.getUUID().equals(id) || mc.getUser().getGameProfile().getId().equals(id);
@@ -50,28 +48,54 @@ public final class PlayerLooks {
 		return NickHider.INSTANCE.skin.is("Alex") ? "slim" : "default";
 	}
 
-	/** Your cape (also used for the elytra) when Custom Capes is on. */
-	public static ResourceLocation cape(ResourceLocation original) {
-		if (!CustomCapes.active()) return original;
-		ResourceLocation c = capeTexture();
+	/** A player's Eclipse Plus cape (also used for the elytra), if they have one. */
+	public static ResourceLocation cape(ResourceLocation original, UUID id, boolean me) {
+		ResourceLocation c = plusCape(EclipseNet.cape(id, me));
 		return c != null ? c : original;
 	}
 
-	private static ResourceLocation capeTexture() {
-		CustomCapes c = CustomCapes.INSTANCE;
-		int rev = c.revision();
-		if (rev == capeRevision) return capeTexture;
-		capeRevision = rev;
-		int[] px = c.pixels();
-		if (px == null) {
-			capeTexture = null;
-			return null;
+
+	/** One live texture per Plus cape, updated in place with each new frame. */
+	private static final class PlusTexture {
+		final ResourceLocation id;
+		final NativeImage img = new NativeImage(PlusCapes.W, PlusCapes.H, true);
+		final DynamicTexture tex;
+		final ResourceLocation handle;
+		int revision = -1;
+		boolean full;
+
+		PlusTexture(String cape) {
+			id = new ResourceLocation(TatnatClient.ID, "cape/plus_" + cape);
+			NativeImage img = this.img;
+			tex = new DynamicTexture(img);
+			Minecraft.getInstance().getTextureManager().register(id, tex);
+			handle = id;
 		}
-		NativeImage img = new NativeImage(CapeArt.W, CapeArt.H, true);
-		for (int y = 0; y < CapeArt.H; y++) for (int x = 0; x < CapeArt.W; x++) img.setPixelRGBA(x, y, FeaturesImpl.toAbgr(px[y * CapeArt.W + x]));
-		Minecraft.getInstance().getTextureManager().register(CAPE, new DynamicTexture(img));
-		capeTexture = CAPE;
-		return capeTexture;
+	}
+
+	private static final java.util.Map<String, PlusTexture> plusTextures = new java.util.HashMap<>();
+
+	/** The texture of Plus cape {@code cape} (null for none, or before its first frame is ready). */
+	private static ResourceLocation plusCape(String cape) {
+		CapeFrames.Frame frame = CapeFrames.get(cape);
+		if (frame == null) return null;
+		PlusTexture t = plusTextures.computeIfAbsent(cape, PlusTexture::new);
+		if (t.revision != frame.revision) {
+			NativeImage img = t.img;
+			int[] px = frame.pixels;
+			// Only the faces change between frames; everything is copied the first time.
+			int y0 = t.full ? PlusCapes.DIRTY_Y0 : 0, y1 = t.full ? PlusCapes.DIRTY_Y1 : PlusCapes.H, x1 = t.full ? PlusCapes.DIRTY_X1 : PlusCapes.W;
+			for (int y = y0; y < y1; y++) {
+				for (int x = 0; x < x1; x++) {
+					int c = px[y * PlusCapes.W + x];
+					img.setPixelRGBA(x, y, FeaturesImpl.toAbgr(c));
+				}
+			}
+			t.tex.upload();
+			t.full = true;
+			t.revision = frame.revision;
+		}
+		return t.handle;
 	}
 
 	/** Copy of {@code c} with every occurrence of your real name replaced (styles kept). */

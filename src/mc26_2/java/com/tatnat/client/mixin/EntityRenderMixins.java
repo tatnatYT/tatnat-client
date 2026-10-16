@@ -30,6 +30,7 @@ public final class EntityRenderMixins {
 			}
 			com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = entity instanceof net.minecraft.world.entity.player.Player ? com.tatnat.client.modules.impl.utility.TierTagger.nameTag(entity.getUUID(), entity.getName().getString()) : null;
 			if (tier != null && cir.getReturnValue() != null) cir.setReturnValue(com.tatnat.client.mc.TierText.prefix(tier, cir.getReturnValue()));
+			if (entity instanceof net.minecraft.world.entity.player.Player && cir.getReturnValue() != null) cir.setReturnValue(com.tatnat.client.mc.TierText.badge(com.tatnat.client.plus.EclipseNet.badge(entity.getUUID(), entity == net.minecraft.client.Minecraft.getInstance().player), cir.getReturnValue()));
 			String pop = com.tatnat.client.modules.impl.hud.TotemPops.tag(entity instanceof net.minecraft.world.entity.player.Player ? entity.getName().getString() : null);
 			if (pop != null && cir.getReturnValue() != null) cir.setReturnValue(Component.empty().append(cir.getReturnValue()).append(Component.literal(" §c" + pop)));
 		}

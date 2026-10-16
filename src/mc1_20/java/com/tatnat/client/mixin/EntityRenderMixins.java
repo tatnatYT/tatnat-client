@@ -29,6 +29,7 @@ public final class EntityRenderMixins {
 			if (NickHider.active() && entity == Minecraft.getInstance().player && name != null) name = PlayerLooks.replaceName(name);
 			com.tatnat.client.modules.impl.utility.TierTagger.Tag tier = entity instanceof net.minecraft.world.entity.player.Player ? com.tatnat.client.modules.impl.utility.TierTagger.nameTag(entity.getUUID(), entity.getName().getString()) : null;
 			if (tier != null && name != null) name = com.tatnat.client.mc.TierText.prefix(tier, name);
+			if (entity instanceof net.minecraft.world.entity.player.Player && name != null) name = com.tatnat.client.mc.TierText.badge(com.tatnat.client.plus.EclipseNet.badge(entity.getUUID(), entity == net.minecraft.client.Minecraft.getInstance().player), name);
 			String pop = com.tatnat.client.modules.impl.hud.TotemPops.tag(entity instanceof net.minecraft.world.entity.player.Player ? entity.getName().getString() : null);
 			if (pop != null && name != null) name = Component.empty().append(name).append(Component.literal(" §c" + pop));
 			return name;

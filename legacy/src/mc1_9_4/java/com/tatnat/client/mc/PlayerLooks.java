@@ -1,13 +1,13 @@
 package com.tatnat.client.mc;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.tatnat.client.TatnatClient;
-import com.tatnat.client.modules.impl.cosmetic.CapeArt;
-import com.tatnat.client.modules.impl.cosmetic.CustomCapes;
+import com.tatnat.client.modules.impl.cosmetic.PlusCapes;
+import com.tatnat.client.plus.CapeFrames;
+import com.tatnat.client.plus.EclipseNet;
 import com.tatnat.client.modules.impl.visual.NickHider;
 
 import net.minecraft.client.MinecraftClient;
@@ -17,15 +17,12 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
-/** Nick Hider and Custom Capes for the legacy versions. */
+/** Nick Hider and Eclipse Plus capes for the legacy versions. */
 public final class PlayerLooks {
 	private PlayerLooks() {
 	}
 
-	private static final Identifier CAPE = new Identifier(TatnatClient.ID, "cape/current");
-	private static int capeRevision = -1;
-	private static Identifier capeTexture;
-
+	
 	public static boolean isMe(UUID id) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		return mc.player != null && mc.player.getUuid().equals(id) || mc.getSession().getProfile().getId().equals(id);
@@ -46,28 +43,43 @@ public final class PlayerLooks {
 		return NickHider.INSTANCE.skin.is("Alex") ? "slim" : "default";
 	}
 
-	/** Your cape when Custom Capes is on. */
-	public static Identifier cape(Identifier original) {
-		if (!CustomCapes.active()) return original;
-		Identifier c = capeTexture();
+	/** A player's Eclipse Plus cape (also used for the elytra), if they have one. */
+	public static Identifier cape(Identifier original, UUID id, boolean me) {
+		Identifier c = plusCape(EclipseNet.cape(id, me));
 		return c != null ? c : original;
 	}
 
-	private static Identifier capeTexture() {
-		CustomCapes c = CustomCapes.INSTANCE;
-		int rev = c.revision();
-		if (rev == capeRevision) return capeTexture;
-		capeRevision = rev;
-		int[] px = c.pixels();
-		if (px == null) {
-			capeTexture = null;
-			return null;
+
+	/** One live texture per Plus cape, updated in place with each new frame. */
+	private static final class PlusTexture {
+		final Identifier id;
+		final NativeImageBackedTexture tex = new NativeImageBackedTexture(PlusCapes.W, PlusCapes.H);
+		int revision = -1;
+		boolean full;
+
+		PlusTexture(String cape) {
+			id = new Identifier(TatnatClient.ID, "cape/plus_" + cape);
+			MinecraftClient.getInstance().getTextureManager().loadTexture(id, tex);
 		}
-		BufferedImage img = new BufferedImage(CapeArt.W, CapeArt.H, BufferedImage.TYPE_INT_ARGB);
-		img.setRGB(0, 0, CapeArt.W, CapeArt.H, px, 0, CapeArt.W);
-		MinecraftClient.getInstance().getTextureManager().loadTexture(CAPE, new NativeImageBackedTexture(img));
-		capeTexture = CAPE;
-		return capeTexture;
+	}
+
+	private static final java.util.Map<String, PlusTexture> plusTextures = new java.util.HashMap<>();
+
+	/** The texture of Plus cape {@code cape} (null for none, or before its first frame is ready). */
+	private static Identifier plusCape(String cape) {
+		CapeFrames.Frame frame = CapeFrames.get(cape);
+		if (frame == null) return null;
+		PlusTexture t = plusTextures.computeIfAbsent(cape, PlusTexture::new);
+		if (t.revision != frame.revision) {
+			int[] dst = t.tex.getPixels(), src = frame.pixels;
+			// Only the faces change between frames; everything is copied the first time.
+			if (!t.full) System.arraycopy(src, 0, dst, 0, src.length);
+			else for (int y = PlusCapes.DIRTY_Y0; y < PlusCapes.DIRTY_Y1; y++) System.arraycopy(src, y * PlusCapes.W, dst, y * PlusCapes.W, PlusCapes.DIRTY_X1);
+			t.tex.upload();
+			t.full = true;
+			t.revision = frame.revision;
+		}
+		return t.id;
 	}
 
 	private static String realName() {

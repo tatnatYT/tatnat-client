@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.tatnat.client.modules.impl.cosmetic.CustomCapes;
 import com.tatnat.client.modules.impl.cosmetic.EnchantGlint;
 import com.tatnat.client.modules.impl.hud.ArmorStatus;
 import com.tatnat.client.modules.impl.hud.Direction;
@@ -173,7 +172,6 @@ public final class ModuleManager {
 		add(new DarkMode());
 		add(new CustomAdvancements());
 		// Cosmetic
-		add(new CustomCapes());
 		add(new EnchantGlint());
 	}
 

@@ -13,4 +13,14 @@ public final class TierText {
 				.append(new net.minecraft.network.chat.TextComponent(t.text).withStyle(s -> s.withColor(net.minecraft.network.chat.TextColor.fromRgb(t.rgb))))
 				.append(new net.minecraft.network.chat.TextComponent(" | ").withStyle(net.minecraft.ChatFormatting.GRAY)).append(name);
 	}
+
+	/** The Eclipse badge in front of a name: a crescent in the name's colour, or the purple Plus badge (its own colours). */
+	public static net.minecraft.network.chat.Component badge(int kind, net.minecraft.network.chat.Component name) {
+		if (kind == com.tatnat.client.plus.EclipseNet.NONE || name == null) return name;
+		if (kind == com.tatnat.client.plus.EclipseNet.PLUS) return new net.minecraft.network.chat.TextComponent(com.tatnat.client.plus.EclipseBadge.PLUS + " ").withStyle(net.minecraft.ChatFormatting.WHITE).append(name);
+		net.minecraft.network.chat.TextColor colour = name.getStyle().getColor();
+		for (net.minecraft.network.chat.Component s : name.getSiblings()) if (colour == null) colour = s.getStyle().getColor();
+		final net.minecraft.network.chat.TextColor c = colour;
+		return new net.minecraft.network.chat.TextComponent(com.tatnat.client.plus.EclipseBadge.PLAIN + " ").withStyle(s -> c == null ? s : s.withColor(c)).append(name);
+	}
 }

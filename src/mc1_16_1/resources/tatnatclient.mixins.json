@@ -17,7 +17,6 @@
 		"OverlayMixins$HeldItem",
 		"OverlayMixins$NoFog",
 		"OverlayMixins$JumpMeter",
-		"OverlayMixins$TabFriends",
 		"OverlayMixins$DebugSpam",
 		"OverlayMixins$ElytraLayerHide",
 		"OverlayMixins$ArmorLayerHide",
