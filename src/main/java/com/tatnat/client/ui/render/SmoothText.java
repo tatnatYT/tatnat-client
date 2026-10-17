@@ -25,7 +25,9 @@ import com.tatnat.client.platform.Gfx;
  */
 public final class SmoothText {
 	/** At most this many different strings get their own texture (textures are kept for the session). */
-	private static final int MAX_STRINGS = 3000;
+	private static final int MAX_STRINGS = 12000;
+	/** Strings are drawn this many times bigger, then scaled down: smoother edges than drawing at size. */
+	private static final int SS = 3;
 
 	private static final class Entry {
 		final int w, h, ascent, advance;
@@ -102,20 +104,47 @@ public final class SmoothText {
 		int ascent = (int) Math.ceil(lm.getAscent()) + 1, descent = (int) Math.ceil(lm.getDescent()) + 1;
 		int advance = (int) Math.ceil(f.getStringBounds(s, FRC).getWidth());
 		int w = advance + 3, h = ascent + descent;
-		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = img.createGraphics();
+		Font big = f.deriveFont(f.getSize2D() * SS);
+		BufferedImage hi = new BufferedImage(w * SS, h * SS, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = hi.createGraphics();
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-		g.setFont(f);
+		g.setFont(big);
 		g.setColor(java.awt.Color.WHITE);
-		g.drawString(s, 1f, ascent);
+		g.drawString(s, SS, ascent * SS);
 		g.dispose();
+		// Average each SS x SS block into one pixel (white, coverage in alpha), slightly boosted so thin
+		// strokes stay solid.
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		int[] src = hi.getRGB(0, 0, w * SS, h * SS, null, 0, w * SS);
+		int[] dst = new int[w * h];
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
+				int sum = 0;
+				for (int j = 0; j < SS; j++) {
+					int row = (y * SS + j) * w * SS + x * SS;
+					for (int i = 0; i < SS; i++) sum += src[row + i] >>> 24;
+				}
+				float a = sum / (255f * SS * SS);
+				int out = Math.round((float) Math.pow(a, 0.85) * 255);
+				dst[y * w + x] = out << 24 | 0xFFFFFF;
+			}
+		}
+		img.setRGB(0, 0, w, h, dst, 0, w);
 		e = new Entry(w, h, ascent, advance, img);
 		ENTRIES.put(key, e);
 		return e;
+	}
+
+	/** A file inside the mod jar. Mod loaders differ in which lookup works (NeoForge's module system), so try each. */
+	private static InputStream open(String path) {
+		InputStream in = SmoothText.class.getResourceAsStream("/" + path);
+		if (in == null && SmoothText.class.getClassLoader() != null) in = SmoothText.class.getClassLoader().getResourceAsStream(path);
+		if (in == null && Thread.currentThread().getContextClassLoader() != null) in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+		return in;
 	}
 
 	private static Font font(int weight, int px) {
@@ -125,7 +154,8 @@ public final class SmoothText {
 		if (f != null) return f;
 		Font base = FONTS.get(-weight);
 		if (base == null) {
-			try (InputStream in = SmoothText.class.getResourceAsStream("/assets/tatnatclient/font/inter-" + weight + ".ttf")) {
+			try (InputStream in = open("assets/tatnatclient/font/inter-" + weight + ".ttf")) {
+				if (in == null) throw new java.io.FileNotFoundException("inter-" + weight + ".ttf");
 				base = Font.createFont(Font.TRUETYPE_FONT, in);
 			} catch (Throwable t) {
 				TatnatClient.LOG.warn("Smooth menu text is off (font unavailable): {}", t.toString());

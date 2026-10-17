@@ -92,6 +92,21 @@ public class ClickGuiScreen implements UiScreen {
 
 	private final List<Hit> hits = new ArrayList<>();
 
+	/** When the menu opened, for the backdrop and border animations. */
+	private final long born = System.nanoTime();
+	/** Click ripples: {x, y, start seconds}. */
+	private final List<double[]> ripples = new ArrayList<>();
+	/** Twinkling stars on the backdrop: {x, y (0..1), phase, speed}. */
+	private static final float[][] STARS = new float[46][];
+	static {
+		java.util.Random r = new java.util.Random(7);
+		for (int i = 0; i < STARS.length; i++) STARS[i] = new float[] {r.nextFloat(), r.nextFloat(), r.nextFloat(), 0.6f + r.nextFloat() * 1.6f};
+	}
+
+	private double seconds() {
+		return (System.nanoTime() - born) / 1e9;
+	}
+
 	public ClickGuiScreen() {
 		open.animateTo(1f);
 	}
@@ -255,6 +270,7 @@ public class ClickGuiScreen implements UiScreen {
 		int W = TatnatClient.game().windowWidth(), H = TatnatClient.game().windowHeight();
 		// Dim the world so the window stands out (darker towards the bottom).
 		RenderUtils.verticalGradient(g, 0, 0, W, H, 0x66050508, 0xB0050508);
+		drawBackdrop(g, W, H);
 
 		int ww = Ui.px(WIN_W), wh = Ui.px(WIN_H);
 		int wx = (W - ww) / 2, wy = (H - wh) / 2 + Math.round((1 - o) * Ui.px(14));
@@ -265,6 +281,7 @@ public class ClickGuiScreen implements UiScreen {
 		RenderUtils.glow(g, wx + Ui.px(120), wy + Ui.px(60), Ui.px(220), 0x188A63E8, 8);
 		RenderUtils.roundedOutline(g, wx, wy, ww, wh, wr, 1, Theme.BORDER);
 		RenderUtils.rect(g, wx + wr, wy + 1, wx + ww - wr, wy + 2, 0x14FFFFFF);
+		drawBorderComets(g, wx, wy, ww, wh, wr);
 
 		drawRail(g, wx, wy, Ui.px(RAIL_W), wh, mx, my);
 
@@ -275,9 +292,87 @@ public class ClickGuiScreen implements UiScreen {
 		else if (page == Page.ACCOUNTS) drawAccountsPage(g, cx, top, cw, bottom, mx, my);
 		else if (page == Page.PLUS) drawPlusPage(g, cx, top, cw, bottom, mx, my);
 		else drawSettingsPage(g, cx, top, cw, bottom, mx, my);
+		drawRipples(g);
 
 		RenderUtils.end(g);
 		RenderUtils.alpha = 1f;
+	}
+
+	/** Behind the window: a vignette, two slow aurora lights and twinkling stars. */
+	private void drawBackdrop(Gfx g, int W, int H) {
+		double t = Performance.animations() ? seconds() : 0;
+		RenderUtils.horizontalGradient(g, 0, 0, W / 4, H, 0x55000000, 0x00000000);
+		RenderUtils.horizontalGradient(g, W - W / 4, 0, W, H, 0x00000000, 0x55000000);
+		int r = Math.max(W, H) / 3;
+		RenderUtils.glow(g, (int) (W * (0.22 + 0.07 * Math.sin(t * 0.21))), (int) (H * (0.3 + 0.06 * Math.cos(t * 0.17))), r, 0x5A8A63E8, 10);
+		RenderUtils.glow(g, (int) (W * (0.78 + 0.06 * Math.cos(t * 0.19))), (int) (H * (0.72 + 0.05 * Math.sin(t * 0.23))), r, 0x484F6BFF, 10);
+		int big = Math.max(2, Ui.px(3)), small = Math.max(1, Ui.px(2));
+		for (float[] st : STARS) {
+			float tw = 0.5f + 0.5f * (float) Math.sin(t * st[3] + st[2] * 6.283f);
+			int a = Math.round(tw * tw * 170);
+			int sx = (int) (st[0] * W), sy = (int) (st[1] * H), sz = st[2] > 0.8f ? big : small;
+			RenderUtils.rect(g, sx, sy, sx + sz, sy + sz, Colors.argb(a, 233, 226, 255));
+		}
+	}
+
+	/** Two comets of light chasing each other around the window's edge. */
+	private void drawBorderComets(Gfx g, int x, int y, int w, int h, int r) {
+		if (!Performance.animations()) return;
+		double per = 2.0 * (w + h - 4 * r) + 2 * Math.PI * r;
+		double head = (seconds() * 0.12 % 1.0) * per;
+		comet(g, x, y, w, h, r, per, head);
+		comet(g, x, y, w, h, r, per, (head + per / 2) % per);
+	}
+
+	private void comet(Gfx g, int x, int y, int w, int h, int r, double per, double head) {
+		int n = 110, dot = Math.max(2, Ui.px(3)), step = Math.max(1, Ui.px(2));
+		for (int i = n - 1; i >= 0; i--) {
+			double d = head - i * step;
+			if (d < 0) d += per;
+			int[] p = edgePoint(x, y, w, h, r, d);
+			float f = 1f - i / (float) n;
+			int c = Colors.withAlpha(Colors.lerp(0xFF8A63E8, 0xFFF2EEFF, f * f), Math.round(235 * f * f));
+			RenderUtils.rect(g, p[0] - dot / 2, p[1] - dot / 2, p[0] - dot / 2 + dot, p[1] - dot / 2 + dot, c);
+		}
+		int[] hp = edgePoint(x, y, w, h, r, head);
+		RenderUtils.glow(g, hp[0], hp[1], Ui.px(20), 0x70B49CFF, 6);
+	}
+
+	/** The point at distance {@code d} along the rounded window outline, clockwise from the top-left. */
+	private static int[] edgePoint(int x, int y, int w, int h, int r, double d) {
+		double top = w - 2.0 * r, side = h - 2.0 * r, arc = Math.PI * r / 2;
+		double[][] arcs = {{x + w - r, y + r, -90}, {x + w - r, y + h - r, 0}, {x + r, y + h - r, 90}, {x + r, y + r, 180}};
+		double[] lens = {top, arc, side, arc, top, arc, side, arc};
+		int seg = 0;
+		while (seg < 7 && d > lens[seg]) d -= lens[seg++];
+		switch (seg) {
+			case 0: return new int[] {(int) (x + r + d), y};
+			case 2: return new int[] {x + w, (int) (y + r + d)};
+			case 4: return new int[] {(int) (x + w - r - d), y + h};
+			case 6: return new int[] {x, (int) (y + h - r - d)};
+			default: {
+				double[] a = arcs[seg / 2];
+				double ang = Math.toRadians(a[2] + 90 * Math.min(1, d / arc));
+				return new int[] {(int) Math.round(a[0] + r * Math.cos(ang)), (int) Math.round(a[1] + r * Math.sin(ang))};
+			}
+		}
+	}
+
+	/** Rings spreading out from where you clicked. */
+	private void drawRipples(Gfx g) {
+		double now = seconds();
+		for (int i = ripples.size() - 1; i >= 0; i--) {
+			double[] rp = ripples.get(i);
+			double p = (now - rp[2]) / 0.45;
+			if (p >= 1) {
+				ripples.remove(i);
+				continue;
+			}
+			float e = (float) (1 - Math.pow(1 - p, 3));
+			int rad = Ui.px(6) + Math.round(e * Ui.px(38));
+			int a = Math.round((float) ((1 - p) * (1 - p)) * 200);
+			RenderUtils.roundedOutline(g, (int) rp[0] - rad, (int) rp[1] - rad, rad * 2, rad * 2, rad, Math.max(1, Ui.px(2)), Colors.argb(a, 200, 184, 255));
+		}
 	}
 
 	/** Eases {@code from} towards {@code to}, time-based (same feel at any frame rate). */
@@ -297,7 +392,8 @@ public class ClickGuiScreen implements UiScreen {
 		// Brand: the player's head (a multiple of 8 so the pixels stay square) and the wordmark.
 		int logo = Math.max(24, Ui.px(44) / 8 * 8);
 		int lx = x + Ui.px(24), ly = y + Ui.px(30);
-		RenderUtils.glow(g, lx + logo / 2, ly + logo / 2, logo, 0x308A63E8, 6);
+		float pulse = Performance.animations() ? 0.5f + 0.5f * (float) Math.sin(seconds() * 2.2) : 0.5f;
+		RenderUtils.glow(g, lx + logo / 2, ly + logo / 2, Math.round(logo * (1.05f + 0.25f * pulse)), Colors.argb(0x28 + Math.round(0x30 * pulse), 0x8A, 0x63, 0xE8), 7);
 		RenderUtils.roundedRect(g, lx - Ui.px(3), ly - Ui.px(3), logo + Ui.px(6), logo + Ui.px(6), Ui.px(8), 0x30FFFFFF);
 		g.logo(lx, ly, logo, Colors.fade(0xFFFFFFFF, RenderUtils.alpha));
 		int tx = lx + logo + Ui.px(14);
@@ -311,8 +407,13 @@ public class ClickGuiScreen implements UiScreen {
 		int active = page == Page.MODS ? 0 : page == Page.PERFORMANCE ? 2 : page == Page.SETTINGS ? 3 : page == Page.PLUS ? 5 : 4;
 		navY = glide(navY, first + active * step);
 		int ny = Math.round(navY);
-		RenderUtils.roundedRect(g, bx, ny, bw, bh, Ui.px(Theme.RADIUS_LARGE), Theme.ACCENT_SOFT);
-		RenderUtils.roundedRect(g, bx, ny + bh / 2 - Ui.px(11), Math.max(2, Ui.px(4)), Ui.px(22), Math.max(1, Ui.px(2)), Theme.ACCENT);
+		// The highlight: lit from the left, a glow behind the icon and a glowing bar.
+		RenderUtils.roundedRect(g, bx, ny, bw, bh, Ui.px(Theme.RADIUS_LARGE), 0x1C8A63E8);
+		RenderUtils.horizontalGradient(g, bx + Ui.px(4), ny + 1, bx + bw - Ui.px(Theme.RADIUS_LARGE), ny + bh - 1, 0x388A63E8, 0x008A63E8);
+		RenderUtils.roundedOutline(g, bx, ny, bw, bh, Ui.px(Theme.RADIUS_LARGE), 1, 0x30B49CFF);
+		RenderUtils.glow(g, bx + Ui.px(28), ny + bh / 2, Ui.px(24), 0x508A63E8, 6);
+		RenderUtils.glow(g, bx + Ui.px(2), ny + bh / 2, Ui.px(14), 0x70B49CFF, 5);
+		RenderUtils.roundedRect(g, bx, ny + bh / 2 - Ui.px(11), Math.max(2, Ui.px(4)), Ui.px(22), Math.max(1, Ui.px(2)), 0xFFB49CFF);
 		for (int i = 0; i < labels.length; i++) {
 			int by = first + i * step;
 			boolean on = i == active;
@@ -610,6 +711,12 @@ public class ClickGuiScreen implements UiScreen {
 		// Enabled: the card is lit purple from the top, with a glow behind the icon.
 		RenderUtils.surface(g, x, y, w, h, r, Colors.lerp(Colors.lerp(Theme.CARD_TOP, Theme.CARD_HOVER_TOP, hv), Theme.CARD_ON_TOP, on * 0.9f),
 				Colors.lerp(Colors.lerp(Theme.CARD_BOTTOM, Theme.CARD_HOVER_BOTTOM, hv), Theme.CARD_ON_BOTTOM, on * 0.6f), border);
+		// A soft light under the mouse while hovering (kept inside the card).
+		if (hv > 0.01f && Performance.hoverEffects()) {
+			int sr = Math.min(Ui.px(70), Math.min(w, h) / 2 - 1);
+			int gx = (int) Math.max(x + sr, Math.min(x + w - sr, mx)), gy = (int) Math.max(y + sr, Math.min(y + h - sr, my));
+			RenderUtils.glow(g, gx, gy, sr, Colors.fade(0x2EB49CFF, hv), 6);
+		}
 		int iconY = y + Ui.px(74);
 		if (on > 0.01f) RenderUtils.glow(g, x + w / 2, iconY, Ui.px(58), Colors.fade(0x508A63E8, on), 8);
 		int iconCol = Colors.lerp(Theme.ICON_OFF, Theme.ICON, on);
@@ -1042,6 +1149,7 @@ public class ClickGuiScreen implements UiScreen {
 	@Override
 	public boolean mouseClicked(double mx, double my, int button) {
 		if (closing) return true;
+		if (Performance.animations()) ripples.add(new double[] {mx, my, seconds()});
 
 		// A key listener / text field that is capturing gets first go (it may bind mouse buttons).
 		if (settingsVisible()) {
