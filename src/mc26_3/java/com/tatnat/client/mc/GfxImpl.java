@@ -98,12 +98,15 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public void uiText(int weight, int px, String s, int x, int y, int argb) {
+		if (com.tatnat.client.ui.render.SmoothText.draw(this, weight, px, s, x, y, argb)) return;
 		// Minecraft puts every font's baseline 7px below the given y; move it to ~80% of the em box.
 		g.text(mc.font, uiComponent(weight, px, s), x, y + Math.round(px * 0.8f) - 7, argb, false);
 	}
 
 	@Override
 	public int uiTextWidth(int weight, int px, String s) {
+		int smooth = com.tatnat.client.ui.render.SmoothText.width(weight, px, s);
+		if (smooth >= 0) return smooth;
 		return mc.font.width(uiComponent(weight, px, s));
 	}
 

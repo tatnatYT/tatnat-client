@@ -90,6 +90,7 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public void uiText(int weight, int px, String s, int x, int y, int argb) {
+		if (com.tatnat.client.ui.render.SmoothText.draw(this, weight, px, s, x, y, argb)) return;
 		// stb_truetype (before 1.20.5) puts the baseline at y - 3 + ascent (Inter: 0.969 em); move it
 		// to ~80% of the em box like the FreeType versions.
 		g.drawString(mc.font, uiComponent(weight, px, s), x, y + Math.round(3 - px * 0.169f), argb, false);
@@ -97,6 +98,8 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public int uiTextWidth(int weight, int px, String s) {
+		int smooth = com.tatnat.client.ui.render.SmoothText.width(weight, px, s);
+		if (smooth >= 0) return smooth;
 		return mc.font.width(uiComponent(weight, px, s));
 	}
 

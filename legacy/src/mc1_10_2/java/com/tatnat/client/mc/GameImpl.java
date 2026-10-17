@@ -143,6 +143,8 @@ public final class GameImpl implements Game {
 
 	@Override
 	public int uiTextWidth(int weight, int px, String s) {
+		int smooth = com.tatnat.client.ui.render.SmoothText.width(weight, px, s);
+		if (smooth >= 0) return smooth;
 		return LegacyFont.get(weight, px).width(s);
 	}
 

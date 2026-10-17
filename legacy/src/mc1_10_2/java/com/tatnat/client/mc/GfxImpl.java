@@ -157,6 +157,7 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public void uiText(int weight, int px, String s, int x, int y, int argb) {
+		if (com.tatnat.client.ui.render.SmoothText.draw(this, weight, px, s, x, y, argb)) return;
 		begin();
 		// Baseline at ~80% of the em box, like the TrueType versions.
 		LegacyFont.get(weight, px).draw(s, x, y + Math.round(px * 0.8f), argb);
@@ -165,6 +166,8 @@ public final class GfxImpl implements Gfx {
 
 	@Override
 	public int uiTextWidth(int weight, int px, String s) {
+		int smooth = com.tatnat.client.ui.render.SmoothText.width(weight, px, s);
+		if (smooth >= 0) return smooth;
 		return LegacyFont.get(weight, px).width(s);
 	}
 
