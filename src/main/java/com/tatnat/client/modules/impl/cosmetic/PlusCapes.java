@@ -33,9 +33,8 @@ public final class PlusCapes {
 	private static final int K = W / 128, OX = 2 * K, OY = 2 * K, FW = 20 * K, FH = 32 * K, IX = 24 * K;
 	/** The part of the texture that changes between frames (faces and edges); the rest never does. */
 	public static final int DIRTY_Y0 = OY, DIRTY_Y1 = OY + FH, DIRTY_X1 = IX + FW;
-	/** Texture pixels per unit of the vanilla 64x32 layout, and the elytra's part of it (refreshed less often). */
-	private static final int E = W / 64;
-	public static final int WINGS_X1 = Math.max(DIRTY_X1, 46 * E), WINGS_Y1 = Math.max(DIRTY_Y1, 22 * E);
+	/** Plus capes aren't drawn on the elytra (it keeps its normal look), so nothing else ever changes. */
+	public static final int WINGS_X1 = DIRTY_X1, WINGS_Y1 = DIRTY_Y1;
 	/** Pixels per scene unit. */
 	private static final float S = FW / 80f;
 	private static final float UW = 80, UH = 128;
@@ -214,29 +213,9 @@ public final class PlusCapes {
 			for (int x = 0; x < 2 * K; x++) img[y * W + x] = edge;
 			for (int x = 22 * K; x < 24 * K; x++) img[y * W + x] = edge;
 		}
-		wings(img, edge);
 	}
 
-	/**
-	 * The elytra: Minecraft draws it from the cape texture's (22, 0) box (10 x 20 x 2 in the 64x32 layout).
-	 * Both big faces get the cape's picture (stretched to the wing's height; the inner one mirrored and in
-	 * shadow), the thin edges a darker colour.
-	 */
-	private static void wings(int[] img, int edge) {
-		int fx = 24 * E, bx = 36 * E, top = 2 * E, ww = 10 * E, wh = 20 * E;
-		for (int y = 0; y < wh; y++) {
-			int sy = OY + Math.min(FH - 1, y * FH / wh);
-			for (int x = 0; x < ww; x++) {
-				int sx = OX + Math.min(FW - 1, x * FW / ww);
-				int c = img[sy * W + sx];
-				img[(top + y) * W + fx + x] = c;
-				img[(top + y) * W + bx + (ww - 1 - x)] = shade(c, 0.8f);
-			}
-			for (int x = 22 * E; x < 24 * E; x++) img[(top + y) * W + x] = edge;
-			for (int x = 34 * E; x < 36 * E; x++) img[(top + y) * W + x] = edge;
-		}
-		for (int y = 0; y < top; y++) for (int x = 24 * E; x < 44 * E; x++) img[y * W + x] = edge;
-	}
+
 
 	// =================================================================== single colours
 
@@ -245,9 +224,7 @@ public final class PlusCapes {
 	 * the bottom and edges, with a slightly darker hem. The inside and edges are the shadow side.
 	 */
 	private static int[] solid(int c) {
-		int[] out = solidFace(c);
-		wings(out, shade(c, 0.6f));
-		return out;
+		return solidFace(c);
 	}
 
 	private static int[] solidFace(int c) {

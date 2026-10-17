@@ -71,6 +71,12 @@ public final class PlayerMixins {
 			cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue(), ((AbstractClientPlayerEntity) (Object) this).getUuid(), tatnat$isMe()));
 		}
 
+		// The elytra keeps its own look: without this it would use the Plus cape.
+		@Inject(method = "method_12264", at = @At("RETURN"), cancellable = true)
+		private void tatnat$elytra(CallbackInfoReturnable<Identifier> cir) {
+			cir.setReturnValue(PlayerLooks.elytra(cir.getReturnValue(), ((AbstractClientPlayerEntity) (Object) this).getUuid(), tatnat$isMe()));
+		}
+
 		@Inject(method = "getSpeed", at = @At("RETURN"), cancellable = true)
 		private void tatnat$staticFov(CallbackInfoReturnable<Float> cir) {
 			if (FovModifier.active() && FovModifier.INSTANCE.staticFov.on()) cir.setReturnValue(1.0f);

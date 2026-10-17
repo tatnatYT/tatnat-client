@@ -258,6 +258,11 @@ final class DevTestSteps {
 			cmd("say hello from tatnat");
 		});
 		step(20, "shot cape", () -> shot("13-cape-nick"));
+		step(2, "elytra with a Plus cape", () -> cmd("item replace entity @s armor.chest with elytra"));
+		step(15, "shot elytra", () -> {
+			shot("13a-elytra");
+			cmd("item replace entity @s armor.chest with diamond_chestplate");
+		});
 		step(2, "tab list (Eclipse badge)", () -> mc().options.keyPlayerList.setDown(true));
 		step(2, "eclipse plus page", () -> com.tatnat.client.TatnatClient.game().openScreen(com.tatnat.client.ui.clickgui.ClickGuiScreen.plus()));
 		step(15, "shot plus page", () -> {

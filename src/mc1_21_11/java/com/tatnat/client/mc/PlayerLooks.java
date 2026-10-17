@@ -28,16 +28,19 @@ public final class PlayerLooks {
 	}
 
 	
+	/** Minecraft's own elytra, so Plus capes don't show up on it. */
+	private static final ClientAsset.Texture DEFAULT_ELYTRA = new ClientAsset.ResourceTexture(Identifier.withDefaultNamespace("entity/equipment/wings/elytra"), Identifier.withDefaultNamespace("textures/entity/equipment/wings/elytra.png"));
+
 	public static boolean isMe(UUID id) {
 		Minecraft mc = Minecraft.getInstance();
 		return mc.player != null && mc.player.getUUID().equals(id) || mc.getUser().getProfileId().equals(id);
 	}
 
-	/** A player's skin as you see it: the default skin for yourself (Nick Hider), and their Eclipse Plus cape. */
+	/** A player's skin as you see it: the default skin for yourself (Nick Hider), and their Eclipse Plus cape (not on the elytra). */
 	public static PlayerSkin apply(PlayerSkin skin, UUID id, boolean me) {
 		if (me && NickHider.active() && NickHider.INSTANCE.hideSkin.on()) skin = replacementSkin();
 		ClientAsset.Texture cape = plusCape(EclipseNet.cape(id, me));
-		if (cape != null) skin = new PlayerSkin(skin.body(), cape, cape, skin.model(), skin.secure());
+		if (cape != null) skin = new PlayerSkin(skin.body(), cape, skin.elytra() != null ? skin.elytra() : DEFAULT_ELYTRA, skin.model(), skin.secure());
 		return skin;
 	}
 
@@ -79,7 +82,7 @@ public final class PlayerLooks {
 			NativeImage img = t.img;
 			int[] px = frame.pixels;
 			// Only the faces change between frames; everything is copied the first time.
-			// The faces every frame, the elytra every third frame (it changes less on screen).
+			// Only the faces change between frames; everything is copied the first time.
 			boolean wings = frame.revision % 3 == 0;
 			int y0 = !t.full ? 0 : wings ? 0 : PlusCapes.DIRTY_Y0;
 			int y1 = !t.full ? PlusCapes.H : wings ? PlusCapes.WINGS_Y1 : PlusCapes.DIRTY_Y1;

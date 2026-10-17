@@ -43,7 +43,15 @@ public final class PlayerLooks {
 		return NickHider.INSTANCE.skin.is("Alex") ? "slim" : "default";
 	}
 
-	/** A player's Eclipse Plus cape (also used for the elytra), if they have one. */
+	/** Minecraft's own elytra, so Plus capes don't show up on it. */
+	private static final Identifier DEFAULT_ELYTRA = new Identifier("minecraft", "textures/entity/elytra.png");
+
+	/** The elytra texture: the player's own, or Minecraft's default one when they wear a Plus cape (never the cape). */
+	public static Identifier elytra(Identifier original, UUID id, boolean me) {
+		return original != null || EclipseNet.cape(id, me) == null ? original : DEFAULT_ELYTRA;
+	}
+
+	/** A player's Eclipse Plus cape, if they have one. */
 	public static Identifier cape(Identifier original, UUID id, boolean me) {
 		Identifier c = plusCape(EclipseNet.cape(id, me));
 		return c != null ? c : original;

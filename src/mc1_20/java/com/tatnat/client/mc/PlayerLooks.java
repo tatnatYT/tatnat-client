@@ -48,7 +48,15 @@ public final class PlayerLooks {
 		return NickHider.INSTANCE.skin.is("Alex") ? "slim" : "default";
 	}
 
-	/** A player's Eclipse Plus cape (also used for the elytra), if they have one. */
+	/** Minecraft's own elytra, so Plus capes don't show up on it. */
+	private static final ResourceLocation DEFAULT_ELYTRA = new ResourceLocation("minecraft", "textures/entity/elytra.png");
+
+	/** The elytra texture: the player's own, or Minecraft's default one when they wear a Plus cape (never the cape). */
+	public static ResourceLocation elytra(ResourceLocation original, UUID id, boolean me) {
+		return original != null || EclipseNet.cape(id, me) == null ? original : DEFAULT_ELYTRA;
+	}
+
+	/** A player's Eclipse Plus cape, if they have one. */
 	public static ResourceLocation cape(ResourceLocation original, UUID id, boolean me) {
 		ResourceLocation c = plusCape(EclipseNet.cape(id, me));
 		return c != null ? c : original;
@@ -84,7 +92,7 @@ public final class PlayerLooks {
 			NativeImage img = t.img;
 			int[] px = frame.pixels;
 			// Only the faces change between frames; everything is copied the first time.
-			// The faces every frame, the elytra every third frame (it changes less on screen).
+			// Only the faces change between frames; everything is copied the first time.
 			boolean wings = frame.revision % 3 == 0;
 			int y0 = !t.full ? 0 : wings ? 0 : PlusCapes.DIRTY_Y0;
 			int y1 = !t.full ? PlusCapes.H : wings ? PlusCapes.WINGS_Y1 : PlusCapes.DIRTY_Y1;

@@ -32,9 +32,15 @@ public abstract class PlayerLookMixins {
 		if (tatnat$isMe()) cir.setReturnValue(PlayerLooks.model(cir.getReturnValue()));
 	}
 
-	@Inject(method = {"getCloakTextureLocation", "getElytraTextureLocation"}, at = @At("RETURN"), cancellable = true)
+	@Inject(method = "getCloakTextureLocation", at = @At("RETURN"), cancellable = true)
 	private void tatnat$cape(CallbackInfoReturnable<ResourceLocation> cir) {
 		cir.setReturnValue(PlayerLooks.cape(cir.getReturnValue(), ((AbstractClientPlayer) (Object) this).getUUID(), tatnat$isMe()));
+	}
+
+	/** The elytra keeps its own look: without this it would use the Plus cape. */
+	@Inject(method = "getElytraTextureLocation", at = @At("RETURN"), cancellable = true)
+	private void tatnat$elytra(CallbackInfoReturnable<ResourceLocation> cir) {
+		cir.setReturnValue(PlayerLooks.elytra(cir.getReturnValue(), ((AbstractClientPlayer) (Object) this).getUUID(), tatnat$isMe()));
 	}
 
 	@Inject(method = "getFieldOfViewModifier", at = @At("RETURN"), cancellable = true)
