@@ -76,7 +76,11 @@ public final class PlayerLooks {
 			NativeImage img = t.img;
 			int[] px = frame.pixels;
 			// Only the faces change between frames; everything is copied the first time.
-			int y0 = t.full ? PlusCapes.DIRTY_Y0 : 0, y1 = t.full ? PlusCapes.DIRTY_Y1 : PlusCapes.H, x1 = t.full ? PlusCapes.DIRTY_X1 : PlusCapes.W;
+			// The faces every frame, the elytra every third frame (it changes less on screen).
+			boolean wings = frame.revision % 3 == 0;
+			int y0 = !t.full ? 0 : wings ? 0 : PlusCapes.DIRTY_Y0;
+			int y1 = !t.full ? PlusCapes.H : wings ? PlusCapes.WINGS_Y1 : PlusCapes.DIRTY_Y1;
+			int x1 = !t.full ? PlusCapes.W : wings ? PlusCapes.WINGS_X1 : PlusCapes.DIRTY_X1;
 			for (int y = y0; y < y1; y++) {
 				for (int x = 0; x < x1; x++) {
 					int c = px[y * PlusCapes.W + x];

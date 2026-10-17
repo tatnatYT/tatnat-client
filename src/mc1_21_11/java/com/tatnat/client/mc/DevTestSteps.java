@@ -259,6 +259,11 @@ final class DevTestSteps {
 		});
 		step(20, "shot cape", () -> shot("13-cape-nick"));
 		step(2, "tab list (Eclipse badge)", () -> mc().options.keyPlayerList.setDown(true));
+		step(2, "eclipse plus page", () -> com.tatnat.client.TatnatClient.game().openScreen(com.tatnat.client.ui.clickgui.ClickGuiScreen.plus()));
+		step(15, "shot plus page", () -> {
+			shot("13c-plus-page");
+			mc().setScreen(null);
+		});
 		step(10, "shot tab", () -> {
 			net.minecraft.client.multiplayer.PlayerInfo me = mc().getConnection().getPlayerInfo(mc().player.getUUID());
 			String shown = me == null ? "(no player info)" : mc().gui.getTabList().getNameForDisplay(me).getString();

@@ -53,6 +53,8 @@ public final class EclipseNet {
 	public static String cape(UUID id, boolean me) {
 		if (id == null) return null;
 		if (me && devCape != null) return devCape;
+		// Your own cape as you picked it in the menu (before the next lookup catches up).
+		if (me && myCape != null) return myCape.equals("none") ? null : myCape;
 		String k = key(id);
 		see(k);
 		String c = plus.get(k);
@@ -64,10 +66,98 @@ public final class EclipseNet {
 		if (id == null) return NONE;
 		String k = key(id);
 		see(k);
-		if (plus.containsKey(k) || (me && devCape != null)) return PLUS;
+		if (plus.containsKey(k) || (me && (devCape != null || Boolean.TRUE.equals(myPlus)))) return PLUS;
 		// You're always playing with Eclipse yourself.
 		if (me || eclipse.contains(k)) return ECLIPSE;
 		return NONE;
+	}
+
+	// ---------- your own Plus status and cape (the menu's Eclipse Plus page) ----------
+	private static volatile Boolean myPlus;
+	private static volatile String myCape, myStatus = "";
+	private static volatile boolean myOwner, myBusy, myError;
+
+	/** True when the game was started from the Eclipse Launcher with a Plus session. */
+	public static boolean available() {
+		return SERVER != null && TOKEN != null;
+	}
+
+	/** Null until known; then whether you have Eclipse Plus. */
+	public static Boolean hasPlus() {
+		return myPlus;
+	}
+
+	public static String myCape() {
+		return myCape;
+	}
+
+	public static boolean owner() {
+		return myOwner;
+	}
+
+	public static boolean busy() {
+		return myBusy;
+	}
+
+	/** A short message about the last action ("" for none), and whether it was an error. */
+	public static String status() {
+		return myStatus;
+	}
+
+	public static boolean statusError() {
+		return myError;
+	}
+
+	private static final Pattern FIELD = Pattern.compile("\"(plus|owner)\"\\s*:\\s*(true|false)|\"cape\"\\s*:\\s*(null|\"([a-z]+)\")|\"message\"\\s*:\\s*\"([^\"]*)\"");
+
+	private static void readStatus(String json) {
+		Matcher m = FIELD.matcher(json);
+		while (m.find()) {
+			if ("plus".equals(m.group(1))) myPlus = Boolean.valueOf(m.group(2));
+			else if ("owner".equals(m.group(1))) myOwner = Boolean.parseBoolean(m.group(2));
+			else if (m.group(3) != null) myCape = m.group(4);
+		}
+	}
+
+	/** Asks the server for your current Plus status and cape (in the background). */
+	public static void refreshMe() {
+		if (!available() || myBusy) return;
+		background(() -> readStatus(post("/me", "{\"token\":\"" + TOKEN + "\"}")), null);
+	}
+
+	/** Wears {@code cape} ("none" for no cape); everyone sees it after their next lookup. */
+	public static void equip(String cape) {
+		if (!available() || myBusy) return;
+		background(() -> {
+			readStatus(post("/equip", "{\"token\":\"" + TOKEN + "\",\"cape\":\"" + cape + "\"}"));
+			myCape = cape;
+		}, cape.equals("none") ? "Cape hidden." : "Cape changed. Other players see it within a few minutes.");
+	}
+
+	private interface Call {
+		void run() throws Exception;
+	}
+
+	private static void background(Call call, String done) {
+		myBusy = true;
+		Thread t = new Thread(() -> {
+			try {
+				call.run();
+				if (done != null) {
+					myStatus = done;
+					myError = false;
+				}
+			} catch (Exception e) {
+				String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+				Matcher m = Pattern.compile("\"message\"\\s*:\\s*\"([^\"]*)\"").matcher(msg);
+				myStatus = m.find() ? m.group(1) : "Couldn't reach the Eclipse Plus server. Try again in a moment.";
+				myError = true;
+			} finally {
+				myBusy = false;
+			}
+		}, "Eclipse Plus");
+		t.setDaemon(true);
+		t.start();
 	}
 
 	/** For dev tests: wear {@code cape} yourself without a server (null to stop). */

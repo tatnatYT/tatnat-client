@@ -41,7 +41,7 @@ import com.tatnat.client.util.KeyCodes;
 public class ClickGuiScreen implements UiScreen {
 	private static final String YOUTUBE = "https://www.youtube.com/@tatnatmc";
 
-	private enum Page { MODS, PERFORMANCE, SETTINGS, ACCOUNTS }
+	private enum Page { MODS, PERFORMANCE, SETTINGS, ACCOUNTS, PLUS }
 
 	// Remembered between openings, like Feather.
 	private static Category lastCategory = null;
@@ -94,6 +94,14 @@ public class ClickGuiScreen implements UiScreen {
 
 	public ClickGuiScreen() {
 		open.animateTo(1f);
+	}
+
+	/** The menu opened straight on the Eclipse Plus page. */
+	public static ClickGuiScreen plus() {
+		ClickGuiScreen s = new ClickGuiScreen();
+		s.page = Page.PLUS;
+		com.tatnat.client.plus.EclipseNet.refreshMe();
+		return s;
 	}
 
 	/** The menu opened straight on the Accounts page (main menu's account button). */
@@ -265,6 +273,7 @@ public class ClickGuiScreen implements UiScreen {
 		if (page == Page.MODS) drawModsPage(g, cx, top, cw, bottom, mx, my);
 		else if (page == Page.PERFORMANCE) drawPerformancePage(g, cx, top, cw, bottom, mx, my);
 		else if (page == Page.ACCOUNTS) drawAccountsPage(g, cx, top, cw, bottom, mx, my);
+		else if (page == Page.PLUS) drawPlusPage(g, cx, top, cw, bottom, mx, my);
 		else drawSettingsPage(g, cx, top, cw, bottom, mx, my);
 
 		RenderUtils.end(g);
@@ -296,10 +305,10 @@ public class ClickGuiScreen implements UiScreen {
 		UIFont.TINY.draw(g, "C L I E N T", tx + Ui.px(1), ly + Ui.px(28), Theme.ACCENT);
 
 		UIFont.TINY.draw(g, "MENU", x + Ui.px(28), y + Ui.px(118), 0xFF6C6E76);
-		String[] labels = {"Mods", "HUD Editor", "Performance", "Settings", "Accounts"};
-		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.CHIP, Icon.GEAR, Icon.USER};
+		String[] labels = {"Mods", "HUD Editor", "Performance", "Settings", "Accounts", "Eclipse Plus"};
+		Icon[] icons = {Icon.GRID, Icon.MOVE, Icon.CHIP, Icon.GEAR, Icon.USER, Icon.CAPE};
 		int bx = x + Ui.px(14), bw = w - Ui.px(28), bh = Ui.px(46), step = bh + Ui.px(6), first = y + Ui.px(140);
-		int active = page == Page.MODS ? 0 : page == Page.PERFORMANCE ? 2 : page == Page.SETTINGS ? 3 : 4;
+		int active = page == Page.MODS ? 0 : page == Page.PERFORMANCE ? 2 : page == Page.SETTINGS ? 3 : page == Page.PLUS ? 5 : 4;
 		navY = glide(navY, first + active * step);
 		int ny = Math.round(navY);
 		RenderUtils.roundedRect(g, bx, ny, bw, bh, Ui.px(Theme.RADIUS_LARGE), Theme.ACCENT_SOFT);
@@ -348,6 +357,9 @@ public class ClickGuiScreen implements UiScreen {
 			openPerformance();
 		} else if (idx == 3) {
 			page = Page.SETTINGS;
+		} else if (idx == 5) {
+			page = Page.PLUS;
+			com.tatnat.client.plus.EclipseNet.refreshMe();
 		} else {
 			page = Page.ACCOUNTS;
 			AccountSwitcher.refresh();
@@ -824,6 +836,73 @@ public class ClickGuiScreen implements UiScreen {
 		}
 		UIFont.SMALL.draw(g, "Switching keeps the game open. On a server, leave and rejoin to play there as the new account.",
 				x, Math.min(y + Ui.px(6), bottom - UIFont.SMALL.size()), Theme.TEXT_MUTED);
+	}
+
+	/** Sidebar "Eclipse Plus": your cape, picked from every Plus cape (everyone with Eclipse sees it). */
+	private void drawPlusPage(Gfx g, int x, int top, int w, int bottom, double mx, double my) {
+		int left = drawClose(g, x + w, top, mx, my);
+		drawTitle(g, x, top - Ui.px(2), "Eclipse Plus", "Your cape, seen by every Eclipse player", left - x - Ui.px(20));
+		int y = top + Ui.px(72);
+		Boolean plus = com.tatnat.client.plus.EclipseNet.hasPlus();
+		String wearing = com.tatnat.client.plus.EclipseNet.myCape();
+		String line;
+		int lineColor = Theme.TEXT_MUTED;
+		if (!com.tatnat.client.plus.EclipseNet.available()) line = "Start the game from the Eclipse Launcher (signed in with a Microsoft account) to use Eclipse Plus.";
+		else if (plus == null) line = "Checking your Eclipse Plus…";
+		else if (!plus) line = "Get Eclipse Plus in the Eclipse Launcher to wear these capes.";
+		else {
+			line = com.tatnat.client.plus.EclipseNet.owner() ? "You have Eclipse Plus (owner). Click a cape to wear it." : "You have Eclipse Plus. Click a cape to wear it.";
+			lineColor = Theme.ACCENT;
+		}
+		String status = com.tatnat.client.plus.EclipseNet.status();
+		if (com.tatnat.client.plus.EclipseNet.busy()) {
+			line = "Saving…";
+			lineColor = Theme.TEXT_MUTED;
+		} else if (!status.isEmpty()) {
+			line = status;
+			lineColor = com.tatnat.client.plus.EclipseNet.statusError() ? 0xFFFF6B6B : Theme.ACCENT;
+		}
+		UIFont.BODY.draw(g, UIFont.BODY.trim(line, w), x, y, lineColor);
+		y += Ui.px(36);
+
+		// Cards: every cape plus "No cape", sized so three rows fit.
+		String[] ids = com.tatnat.client.modules.impl.cosmetic.PlusCapes.IDS;
+		String[] names = com.tatnat.client.modules.impl.cosmetic.PlusCapes.NAMES;
+		int count = ids.length + 1, gap = Ui.px(12), label = Ui.px(30);
+		int rowsH = bottom - y;
+		int cols = 6;
+		int cw = (w - gap * (cols - 1)) / cols;
+		int artW = cw - Ui.px(16), artH = artW * 16 / 10;
+		int rows = (count + cols - 1) / cols;
+		int maxArtH = (rowsH - gap * (rows - 1)) / rows - label - Ui.px(16);
+		if (artH > maxArtH && maxArtH > 0) {
+			artH = maxArtH;
+			artW = artH * 10 / 16;
+		}
+		int ch = artH + label + Ui.px(16);
+		boolean canWear = Boolean.TRUE.equals(plus) && !com.tatnat.client.plus.EclipseNet.busy();
+		for (int i = 0; i < count; i++) {
+			int cx = x + (i % cols) * (cw + gap), cy = y + (i / cols) * (ch + gap);
+			if (cy + ch > bottom + Ui.px(4)) break;
+			String id = i < ids.length ? ids[i] : "none";
+			boolean on = id.equals(wearing == null ? "" : wearing);
+			boolean hover = canWear && Widgets.inside(mx, my, cx, cy, cw, ch);
+			RenderUtils.surface(g, cx, cy, cw, ch, Ui.px(Theme.RADIUS_CARD), hover ? Theme.CARD_HOVER_TOP : Theme.CARD_TOP,
+					hover ? Theme.CARD_HOVER_BOTTOM : Theme.CARD_BOTTOM, on ? Theme.ACCENT : hover ? Theme.BORDER_HOVER : Theme.BORDER);
+			int ax = cx + (cw - artW) / 2, ay = cy + Ui.px(8);
+			if (i < ids.length) {
+				final String capeId = id;
+				g.picture("plus-thumb/" + capeId, () -> com.tatnat.client.modules.impl.cosmetic.PlusCapes.thumbnail(capeId), ax, ay, artW, artH,
+						Colors.fade(0xFFFFFFFF, RenderUtils.alpha * (canWear || on ? 1f : 0.55f)));
+			} else {
+				RenderUtils.roundedRect(g, ax, ay, artW, artH, Ui.px(6), 0x14FFFFFF);
+				Icons.draw(g, Icon.CAPE, ax + artW / 2, ay + artH / 2, Ui.px(26), Theme.TEXT_MUTED);
+			}
+			String name = i < names.length ? names[i] : "No cape";
+			UIFont.BODY.drawCentered(g, UIFont.BODY.trim(name, cw - Ui.px(8)), cx + cw / 2, cy + Ui.px(8) + artH + Ui.px(8), on ? 0xFFFFFFFF : Theme.TEXT);
+			if (on) chip(g, "WEARING", cx + Ui.px(10), cy + Ui.px(12), Theme.ACCENT, 0xFFFFFFFF);
+			if (canWear && !on) hit(cx, cy, cw, ch, false, () -> com.tatnat.client.plus.EclipseNet.equip(id), null);
+		}
 	}
 
 	/** Sidebar "Settings": about the client, links and reset buttons. */

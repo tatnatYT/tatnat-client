@@ -33,6 +33,9 @@ public final class PlusCapes {
 	private static final int K = W / 128, OX = 2 * K, OY = 2 * K, FW = 20 * K, FH = 32 * K, IX = 24 * K;
 	/** The part of the texture that changes between frames (faces and edges); the rest never does. */
 	public static final int DIRTY_Y0 = OY, DIRTY_Y1 = OY + FH, DIRTY_X1 = IX + FW;
+	/** Texture pixels per unit of the vanilla 64x32 layout, and the elytra's part of it (refreshed less often). */
+	private static final int E = W / 64;
+	public static final int WINGS_X1 = Math.max(DIRTY_X1, 46 * E), WINGS_Y1 = Math.max(DIRTY_Y1, 22 * E);
 	/** Pixels per scene unit. */
 	private static final float S = FW / 80f;
 	private static final float UW = 80, UH = 128;
@@ -71,6 +74,39 @@ public final class PlusCapes {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/** Display names, in the same order as {@link #IDS}. */
+	public static final String[] NAMES = {"Eclipse", "Corona", "Nebula", "Aurora", "Galaxy", "Void", "Storm", "Ender", "Synthwave",
+			"Black", "Purple", "Blue", "Green", "Yellow", "White", "Pink"};
+
+	private static final java.util.Map<String, byte[]> THUMBS = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** A PNG of the cape's outside face (120x192, one frame), for the menu. */
+	public static byte[] thumbnail(String id) {
+		return THUMBS.computeIfAbsent(id, k -> {
+			int[] px = draw(k, 60_000L);
+			java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(FW / 2, FH / 2, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+			for (int y = 0; y < FH / 2; y++) {
+				for (int x = 0; x < FW / 2; x++) {
+					int r = 0, g = 0, b = 0;
+					for (int j = 0; j < 2; j++) for (int i = 0; i < 2; i++) {
+						int c = px[(OY + y * 2 + j) * W + OX + x * 2 + i];
+						r += (c >> 16) & 255;
+						g += (c >> 8) & 255;
+						b += c & 255;
+					}
+					img.setRGB(x, y, 0xFF000000 | (r / 4) << 16 | (g / 4) << 8 | b / 4);
+				}
+			}
+			try {
+				java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+				javax.imageio.ImageIO.write(img, "png", out);
+				return out.toByteArray();
+			} catch (java.io.IOException e) {
+				return new byte[0];
+			}
+		});
 	}
 
 	public static boolean isPlus(String id) {
@@ -178,6 +214,28 @@ public final class PlusCapes {
 			for (int x = 0; x < 2 * K; x++) img[y * W + x] = edge;
 			for (int x = 22 * K; x < 24 * K; x++) img[y * W + x] = edge;
 		}
+		wings(img, edge);
+	}
+
+	/**
+	 * The elytra: Minecraft draws it from the cape texture's (22, 0) box (10 x 20 x 2 in the 64x32 layout).
+	 * Both big faces get the cape's picture (stretched to the wing's height; the inner one mirrored and in
+	 * shadow), the thin edges a darker colour.
+	 */
+	private static void wings(int[] img, int edge) {
+		int fx = 24 * E, bx = 36 * E, top = 2 * E, ww = 10 * E, wh = 20 * E;
+		for (int y = 0; y < wh; y++) {
+			int sy = OY + Math.min(FH - 1, y * FH / wh);
+			for (int x = 0; x < ww; x++) {
+				int sx = OX + Math.min(FW - 1, x * FW / ww);
+				int c = img[sy * W + sx];
+				img[(top + y) * W + fx + x] = c;
+				img[(top + y) * W + bx + (ww - 1 - x)] = shade(c, 0.8f);
+			}
+			for (int x = 22 * E; x < 24 * E; x++) img[(top + y) * W + x] = edge;
+			for (int x = 34 * E; x < 36 * E; x++) img[(top + y) * W + x] = edge;
+		}
+		for (int y = 0; y < top; y++) for (int x = 24 * E; x < 44 * E; x++) img[y * W + x] = edge;
 	}
 
 	// =================================================================== single colours
@@ -187,6 +245,12 @@ public final class PlusCapes {
 	 * the bottom and edges, with a slightly darker hem. The inside and edges are the shadow side.
 	 */
 	private static int[] solid(int c) {
+		int[] out = solidFace(c);
+		wings(out, shade(c, 0.6f));
+		return out;
+	}
+
+	private static int[] solidFace(int c) {
 		int[] img = new int[W * H];
 		java.util.Arrays.fill(img, shade(c, 0.85f));
 		for (int y = 0; y < FH; y++) {

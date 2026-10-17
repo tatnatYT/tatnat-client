@@ -74,7 +74,7 @@ public final class PlayerLooks {
 			int[] dst = t.tex.getPixels(), src = frame.pixels;
 			// Only the faces change between frames; everything is copied the first time.
 			if (!t.full) System.arraycopy(src, 0, dst, 0, src.length);
-			else for (int y = PlusCapes.DIRTY_Y0; y < PlusCapes.DIRTY_Y1; y++) System.arraycopy(src, y * PlusCapes.W, dst, y * PlusCapes.W, PlusCapes.DIRTY_X1);
+			else for (int y = 0; y < PlusCapes.WINGS_Y1; y++) System.arraycopy(src, y * PlusCapes.W, dst, y * PlusCapes.W, PlusCapes.WINGS_X1);
 			t.tex.upload();
 			t.full = true;
 			t.revision = frame.revision;

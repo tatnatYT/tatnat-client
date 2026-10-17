@@ -133,6 +133,12 @@ public final class RectBatch implements Gfx {
 	}
 
 	@Override
+	public void picture(String key, java.util.function.Supplier<byte[]> png, int x, int y, int w, int h, int argb) {
+		flush();
+		g.picture(key, png, x, y, w, h, argb);
+	}
+
+	@Override
 	public void item(Object stack, int x, int y) {
 		flush();
 		g.item(stack, x, y);
