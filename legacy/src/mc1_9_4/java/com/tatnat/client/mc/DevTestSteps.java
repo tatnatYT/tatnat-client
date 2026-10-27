@@ -180,16 +180,7 @@ final class DevTestSteps {
 		});
 		step(20, "shot cape", () -> shot("13-cape-nick"));
 
-		step(2, "freecam", () -> {
-			mc().options.perspective = 0;
-			mod(com.tatnat.client.modules.impl.visual.NickHider.class).setEnabled(false);
-			mod(com.tatnat.client.modules.impl.utility.Freecam.class).setEnabled(true);
-			FeaturesImpl.INSTANCE.freecam().moveBy(0, 4, 0);
-			FeaturesImpl.INSTANCE.freecam().increaseTransforms(0, 300);
-		});
-		step(15, "shot freecam", () -> shot("14-freecam"));
-		step(2, "freecam off, survival", () -> {
-			mod(com.tatnat.client.modules.impl.utility.Freecam.class).setEnabled(false);
+		step(2, "survival", () -> {
 			mod(com.tatnat.client.modules.impl.utility.BetterTooltips.class).setEnabled(true);
 			cmd("gamemode survival");
 		});

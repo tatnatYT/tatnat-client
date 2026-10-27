@@ -19,7 +19,7 @@ import com.tatnat.client.modules.ModuleManager;
  */
 public final class DevAllCheck {
 	/** Mods that take over the camera or the whole screen; checked on their own at the end. */
-	private static final Set<String> LATER = new HashSet<>(Arrays.asList("Freecam", "Autohide HUD", "UI Scaling", "Color Saturation"));
+	private static final Set<String> LATER = new HashSet<>(Arrays.asList("Autohide HUD", "UI Scaling", "Color Saturation"));
 
 	/** "allcheck:Name|Name" limits the run to those mods (to find which one causes a problem). */
 	private static final Set<String> ONLY = new HashSet<>();
@@ -151,8 +151,6 @@ public final class DevAllCheck {
 		for (int i = 0; i < 6; i++) add(1, () -> cmd("tp @s ~ ~ ~ ~15 ~"));
 		add(1, () -> shot("allcheck-12-blur-turning"));
 		add(20, () -> shot("allcheck-13-blur-after"));
-		add(2, () -> later("Freecam", true));
-		add(10, () -> later("Freecam", false));
 		// Survival HUD: hearts, armor, totems, held item; dropped items for Item Physic / Loot Beams.
 		add(2, () -> {
 			later("Motion Blur", false);

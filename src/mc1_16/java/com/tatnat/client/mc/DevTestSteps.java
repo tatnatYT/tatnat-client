@@ -214,17 +214,6 @@ final class DevTestSteps {
 		});
 		step(20, "shot cape", () -> shot("13-cape-nick"));
 
-		step(2, "freecam", () -> {
-			mc().options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
-			mod(com.tatnat.client.modules.impl.visual.NickHider.class).setEnabled(false);
-			com.tatnat.client.modules.impl.utility.Freecam fc = mod(com.tatnat.client.modules.impl.utility.Freecam.class);
-			fc.setEnabled(true);
-			// Fly up and back so the (hidden) body would be in view.
-			FeaturesImpl.INSTANCE.freecam().moveBy(0, 4, 0);
-			FeaturesImpl.INSTANCE.freecam().turn(0, 300);
-		});
-		step(15, "shot freecam", () -> shot("14-freecam"));
-		step(2, "freecam off", () -> mod(com.tatnat.client.modules.impl.utility.Freecam.class).setEnabled(false));
 
 		step(2, "tooltip", () -> {
 			mod(com.tatnat.client.modules.impl.utility.BetterTooltips.class).setEnabled(true);

@@ -62,7 +62,6 @@ import com.tatnat.client.modules.impl.hud.ReachDisplay;
 import com.tatnat.client.modules.impl.hud.ServerAddress;
 import com.tatnat.client.modules.impl.utility.AutoGG;
 import com.tatnat.client.modules.impl.utility.BetterTooltips;
-import com.tatnat.client.modules.impl.utility.Freecam;
 import com.tatnat.client.modules.impl.utility.Macros;
 import com.tatnat.client.modules.impl.utility.ScrollableTooltips;
 import com.tatnat.client.modules.impl.utility.ToggleSprint;
@@ -127,7 +126,6 @@ public final class ModuleManager {
 		// Utility
 		add(new ToggleSprint());
 		add(new Waypoints());
-		add(new Freecam());
 		add(new AutoGG());
 		add(new Macros());
 		add(new Backups());
